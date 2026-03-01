@@ -10,16 +10,38 @@
 }
 
 @layer base {
-  html {
-    scroll-behavior: smooth;
-    scroll-padding-top: 5rem;
-  }
-
   body {
-    @apply bg-white text-neutral-900 dark:bg-[#0a0a0a] dark:text-neutral-100 transition-colors duration-300;
+    @apply bg-neutral-100 text-neutral-900 dark:bg-[#1a1a1a] dark:text-neutral-100 transition-colors duration-300;
   }
 
   ::selection {
-    @apply bg-accent/20 text-accent;
+    @apply bg-green-500/20 text-green-600 dark:text-green-400;
   }
+}
+
+.typed-command {
+  visibility: hidden;
+}
+
+@keyframes blink {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0; }
+}
+
+.blinking-cursor {
+  animation: blink 1s step-end infinite;
+}
+
+/* Scrollbar styling for the terminal body */
+.terminal-window ::-webkit-scrollbar {
+  width: 6px;
+}
+
+.terminal-window ::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.terminal-window ::-webkit-scrollbar-thumb {
+  background: #525252;
+  border-radius: 3px;
 }

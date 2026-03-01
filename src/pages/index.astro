@@ -1,14 +1,102 @@
 ---
-import BaseLayout from "../layouts/BaseLayout.astro";
-import Hero from "../components/Hero.astro";
-import About from "../components/About.astro";
-import Experience from "../components/Experience.astro";
-import Contact from "../components/Contact.astro";
+import TerminalLayout from "../layouts/TerminalLayout.astro";
+import TerminalBlock from "../components/TerminalBlock.astro";
+import { site } from "../content/site";
+import { experience } from "../content/experience";
+
+const work = experience.filter((e) => e.type === "work");
+const education = experience.filter((e) => e.type === "education");
 ---
 
-<BaseLayout title="Sean Higgins — Software Engineer">
-  <Hero />
-  <About />
-  <Experience />
-  <Contact />
-</BaseLayout>
+<TerminalLayout title="Sean Higgins — Software Engineer">
+  <TerminalBlock command="whoami">
+    <p class="font-semibold text-neutral-800 dark:text-neutral-200">
+      {site.name} — {site.title}
+    </p>
+  </TerminalBlock>
+
+  <TerminalBlock command="cat about.txt">
+    <p>
+      Software engineer with a M.S. in Software Engineering and a B.S. in
+      Computer Science from Loyola University Chicago. I enjoy building clean,
+      practical software and have experience across front-end, back-end, data
+      engineering, and machine learning.
+    </p>
+    <p class="mt-2">
+      When I'm not writing code, you can find me in the boxing ring, on the
+      mountain snowboarding, enjoying a live concert, or at home building
+      furniture and making art. World traveler. Eagle Scout. Cat dad to Sunny.
+    </p>
+  </TerminalBlock>
+
+  <TerminalBlock command="ls experience/">
+    <p class="font-mono">
+      {work.map((e) =>
+        `${e.organization.toLowerCase().replace(/\s+/g, "-")}-${e.title.toLowerCase().replace(/\s+/g, "-")}`
+      ).join("  ")}
+    </p>
+  </TerminalBlock>
+
+  {work.map((entry) => (
+    <TerminalBlock command={`cat experience/${entry.organization.toLowerCase().replace(/\\s+/g, "-")}-${entry.title.toLowerCase().replace(/\\s+/g, "-")}`}>
+      <p class="font-semibold text-neutral-800 dark:text-neutral-200">
+        {entry.title} @ {entry.organization} ({entry.dates})
+      </p>
+      <p class="mt-1">{entry.description}</p>
+    </TerminalBlock>
+  ))}
+
+  <TerminalBlock command="ls education/">
+    <p class="font-mono">
+      {education.map((e) =>
+        `${e.title.toLowerCase().replace(/\s+/g, "-")}`
+      ).join("  ")}
+    </p>
+  </TerminalBlock>
+
+  {education.map((entry) => (
+    <TerminalBlock command={`cat education/${entry.title.toLowerCase().replace(/\\s+/g, "-")}`}>
+      <p class="font-semibold text-neutral-800 dark:text-neutral-200">
+        {entry.title} — {entry.organization} ({entry.dates})
+      </p>
+      <p class="mt-1">{entry.description}</p>
+    </TerminalBlock>
+  ))}
+
+  <TerminalBlock command="contact">
+    <p>email: <a href={`mailto:${site.email}`} class="text-green-500 hover:underline dark:text-green-400">{site.email}</a></p>
+    <p>github: <a href={site.github} target="_blank" rel="noopener noreferrer" class="text-green-500 hover:underline dark:text-green-400">{site.github.replace("https://", "")}</a></p>
+    <p>linkedin: <a href={site.linkedin} target="_blank" rel="noopener noreferrer" class="text-green-500 hover:underline dark:text-green-400">{site.linkedin.replace("https://www.", "")}</a></p>
+  </TerminalBlock>
+
+  <div class="terminal-block">
+    <span class="text-green-500 dark:text-green-400">$</span>
+    <span class="blinking-cursor ml-2 inline-block h-5 w-2.5 translate-y-0.5 bg-green-500 dark:bg-green-400"></span>
+  </div>
+
+  <!-- Typing animation -->
+  <script>
+    function setupTypingAnimation() {
+      const commands = document.querySelectorAll(".typed-command");
+      commands.forEach((cmd, i) => {
+        const el = cmd as HTMLElement;
+        const text = el.textContent || "";
+        el.textContent = "";
+        el.style.visibility = "visible";
+
+        const delay = i * 400;
+        setTimeout(() => {
+          let charIndex = 0;
+          const interval = setInterval(() => {
+            el.textContent = text.slice(0, charIndex + 1);
+            charIndex++;
+            if (charIndex >= text.length) clearInterval(interval);
+          }, 30);
+        }, delay);
+      });
+    }
+
+    setupTypingAnimation();
+    document.addEventListener("astro:after-swap", setupTypingAnimation);
+  </script>
+</TerminalLayout>
