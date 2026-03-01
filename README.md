@@ -1,43 +1,77 @@
-# Astro Starter Kit: Minimal
+# seanmh.com — Multi-Version Portfolio
 
-```sh
-npm create astro@latest -- --template minimal
+This repo maintains multiple completely different visual versions of [seanmh.com](https://seanmh.com). Each version lives on its own long-lived branch and is independently deployable.
+
+## Branches
+
+| Branch | Description | Status |
+|--------|-------------|--------|
+| `main` | This README (not deployed) | — |
+| `content` | Staging branch for content-only changes | — |
+| `version/a-scroll` | Scrollable single-page portfolio | Production |
+| `version/b-card` | Single-viewport digital business card | Preview |
+| `version/c-terminal` | Terminal/CLI-themed portfolio | Preview |
+
+## Switching the Live Version
+
+1. Go to **Vercel Dashboard > seanmh.com > Settings > Git > Production Branch**
+2. Change to the desired `version/*` branch
+3. Vercel triggers a new production build (~30 seconds)
+
+All version branches always have Vercel preview URLs available.
+
+## Content Sync
+
+All versions share the same content files at identical paths:
+
+```
+src/content/site.ts          # name, title, tagline, email, social links
+src/content/experience.ts    # ExperienceEntry interface + experience array
+src/assets/images/headshot.jpeg
 ```
 
-> 🧑‍🚀 **Seasoned astronaut?** Delete this file. Have fun!
+These files (plus `astro.config.mjs`, `package.json`, `tsconfig.json`) are the **content contract** — identical across all version branches.
 
-## 🚀 Project Structure
+### Updating content across all versions
 
-Inside of your Astro project, you'll see the following folders and files:
+```bash
+# 1. Make changes on the content branch
+git checkout content
+# edit src/content/site.ts or src/content/experience.ts
+git add -A && git commit -m "Update job title"
 
-```text
-/
-├── public/
-├── src/
-│   └── pages/
-│       └── index.astro
-└── package.json
+# 2. Cherry-pick to each version branch
+git checkout version/a-scroll && git cherry-pick <hash>
+git checkout version/b-card   && git cherry-pick <hash>
+git checkout version/c-terminal && git cherry-pick <hash>
 ```
 
-Astro looks for `.astro` or `.md` files in the `src/pages/` directory. Each page is exposed as a route based on its file name.
+Cherry-pick (not merge) because version branches diverge heavily in components/layouts. Content-only commits cherry-pick cleanly since the content files are identical in path and structure.
 
-There's nothing special about `src/components/`, but that's where we like to put any Astro/React/Vue/Svelte/Preact components.
+## Files That Differ Per Version
 
-Any static assets, like images, can be placed in the `public/` directory.
+```
+src/pages/          # each version composes its own pages
+src/layouts/        # each version has its own layout
+src/components/     # completely different per version
+src/styles/         # different theme/typography per version
+vercel.json         # version-specific rewrites, or empty
+```
 
-## 🧞 Commands
+## Adding a New Version
 
-All commands are run from the root of the project, from a terminal:
+```bash
+git checkout -b version/d-whatever version/a-scroll
+# Rewrite src/pages/, src/layouts/, src/components/, src/styles/
+# Keep src/content/ and src/assets/ untouched
+# Commit, push, and Vercel will create a preview URL automatically
+```
 
-| Command                   | Action                                           |
-| :------------------------ | :----------------------------------------------- |
-| `npm install`             | Installs dependencies                            |
-| `npm run dev`             | Starts local dev server at `localhost:4321`      |
-| `npm run build`           | Build your production site to `./dist/`          |
-| `npm run preview`         | Preview your build locally, before deploying     |
-| `npm run astro ...`       | Run CLI commands like `astro add`, `astro check` |
-| `npm run astro -- --help` | Get help using the Astro CLI                     |
+## Development
 
-## 👀 Want to learn more?
-
-Feel free to check [our documentation](https://docs.astro.build) or jump into our [Discord server](https://astro.build/chat).
+```bash
+npm install
+npm run dev      # localhost:4321
+npm run build    # production build
+npm run preview  # preview production build
+```
