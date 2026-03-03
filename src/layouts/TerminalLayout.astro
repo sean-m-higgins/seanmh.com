@@ -52,9 +52,9 @@ const { title, description = "Sean Higgins — Software Engineer" } = Astro.prop
   </head>
   <body class="flex h-screen items-center justify-center overflow-hidden p-4 font-mono antialiased sm:p-8">
     <!-- Terminal window -->
-    <div class="terminal-window flex h-full w-full max-w-3xl flex-col overflow-hidden rounded-lg border border-neutral-300 shadow-2xl dark:border-neutral-700">
+    <div class="terminal-window flex h-full w-full max-w-3xl flex-col overflow-hidden rounded-lg border border-neutral-300 shadow-2xl transition-colors duration-2000 dark:border-neutral-700">
       <!-- Title bar -->
-      <div class="flex items-center gap-2 border-b border-neutral-300 bg-neutral-200 px-4 py-2.5 dark:border-neutral-700 dark:bg-neutral-800">
+      <div class="flex items-center gap-2 border-b border-neutral-300 bg-neutral-200 px-4 py-2.5 transition-colors duration-2000 dark:border-neutral-700 dark:bg-neutral-800">
         <span class="h-3 w-3 rounded-full bg-[#ff5f57]"></span>
         <span class="h-3 w-3 rounded-full bg-[#febc2e]"></span>
         <span class="h-3 w-3 rounded-full bg-[#28c840]"></span>
@@ -76,7 +76,7 @@ const { title, description = "Sean Higgins — Software Engineer" } = Astro.prop
       </div>
 
       <!-- Terminal body -->
-      <div class="flex-1 overflow-y-auto bg-neutral-50 p-4 text-sm leading-relaxed dark:bg-[#0a0a0a] sm:p-6 sm:text-base">
+      <div class="flex-1 overflow-y-auto bg-neutral-50 p-4 text-sm leading-relaxed transition-colors duration-2000 dark:bg-[#0a0a0a] sm:p-6 sm:text-base">
         <slot />
       </div>
     </div>
