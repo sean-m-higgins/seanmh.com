@@ -1,5 +1,6 @@
 ---
 import "../styles/global.css";
+import VersionSwitcher from "../components/VersionSwitcher.astro";
 import { ViewTransitions } from "astro:transitions";
 
 interface Props {
@@ -23,6 +24,7 @@ const { title, description = "Sean Higgins — Software Engineer" } = Astro.prop
     <meta property="og:type" content="website" />
     <meta property="og:url" content={Astro.url.href} />
     <meta name="twitter:card" content="summary_large_image" />
+    <meta name="portfolio-version" content="c-terminal" />
 
     <link rel="icon" type="image/x-icon" href="/favicon.ico" />
     <link rel="preconnect" href="https://fonts.googleapis.com" />
@@ -78,6 +80,7 @@ const { title, description = "Sean Higgins — Software Engineer" } = Astro.prop
         <slot />
       </div>
     </div>
+    <VersionSwitcher />
 
     <script>
       function setupThemeToggle() {
