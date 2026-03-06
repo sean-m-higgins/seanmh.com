@@ -12,6 +12,7 @@ const current = 'c-terminal';
   {versions.map((v) => (
     <a
       href={v.name === current ? '#' : `/?v=${v.name}`}
+      data-astro-reload
       class:list={[
         'rounded-full px-2 py-0.5 transition-colors',
         v.name === current
