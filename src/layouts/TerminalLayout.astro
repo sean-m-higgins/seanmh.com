@@ -49,15 +49,102 @@ const { title, description = "Sean Higgins — Software Engineer" } = Astro.prop
         }
       })();
     </script>
+    <script is:inline>
+      // Apply persisted window state before first paint to avoid FOUC.
+      (function () {
+        const s = localStorage.getItem("terminalWindowState");
+        if (s === "minimized" || s === "maximized" || s === "closed" || s === "normal") {
+          document.documentElement.dataset.windowState = s;
+        } else {
+          document.documentElement.dataset.windowState = "normal";
+        }
+      })();
+    </script>
+
+    <style is:global>
+      /* Traffic-light buttons reveal a hint glyph on hover/focus. */
+      .tl-btn {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        height: 0.75rem;
+        width: 0.75rem;
+        border-radius: 9999px;
+        border: 0;
+        padding: 0;
+        cursor: pointer;
+        font-size: 0.55rem;
+        line-height: 1;
+        color: rgba(0, 0, 0, 0);
+        font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+        font-weight: 700;
+      }
+      .tl-btn:hover,
+      .tl-btn:focus-visible,
+      .title-bar:hover .tl-btn {
+        color: rgba(0, 0, 0, 0.55);
+      }
+      .tl-btn:focus-visible {
+        outline: 2px solid currentColor;
+        outline-offset: 2px;
+      }
+
+      /* Window state layout rules. */
+      html[data-window-state="closed"] .terminal-window,
+      html[data-window-state="minimized"] .terminal-window {
+        display: none !important;
+      }
+      #terminal-closed-screen,
+      #terminal-dock {
+        display: none;
+      }
+      html[data-window-state="closed"] #terminal-closed-screen {
+        display: flex;
+      }
+      html[data-window-state="minimized"] #terminal-dock {
+        display: inline-flex;
+      }
+
+      html[data-window-state="maximized"] body {
+        padding: 0 !important;
+      }
+      html[data-window-state="maximized"] .terminal-window {
+        max-width: none !important;
+        border-radius: 0 !important;
+        border-width: 0 !important;
+        box-shadow: none !important;
+      }
+
+      @media (prefers-reduced-motion: no-preference) {
+        .terminal-window {
+          transition: max-width 200ms ease, border-radius 200ms ease;
+        }
+      }
+    </style>
   </head>
   <body class="flex h-screen items-center justify-center overflow-hidden p-4 font-mono antialiased sm:p-8">
     <!-- Terminal window -->
     <div class="terminal-window flex h-full w-full max-w-3xl flex-col overflow-hidden rounded-lg border border-neutral-300 shadow-2xl transition-colors duration-2000 dark:border-neutral-700">
       <!-- Title bar -->
-      <div class="flex items-center gap-2 border-b border-neutral-300 bg-neutral-200 px-4 py-2.5 transition-colors duration-2000 dark:border-neutral-700 dark:bg-neutral-800">
-        <span class="h-3 w-3 rounded-full bg-[#ff5f57]"></span>
-        <span class="h-3 w-3 rounded-full bg-[#febc2e]"></span>
-        <span class="h-3 w-3 rounded-full bg-[#28c840]"></span>
+      <div class="title-bar flex items-center gap-2 border-b border-neutral-300 bg-neutral-200 px-4 py-2.5 transition-colors duration-2000 dark:border-neutral-700 dark:bg-neutral-800">
+        <button
+          id="tl-close"
+          type="button"
+          aria-label="Close terminal"
+          class="tl-btn bg-[#ff5f57]"
+        >×</button>
+        <button
+          id="tl-minimize"
+          type="button"
+          aria-label="Minimize terminal"
+          class="tl-btn bg-[#febc2e]"
+        >−</button>
+        <button
+          id="tl-maximize"
+          type="button"
+          aria-label="Maximize terminal"
+          class="tl-btn bg-[#28c840]"
+        >+</button>
         <span class="ml-2 text-xs text-neutral-500 dark:text-neutral-400">sean@seanmh.com ~ %</span>
 
         <!-- Dark mode toggle -->
@@ -80,13 +167,48 @@ const { title, description = "Sean Higgins — Software Engineer" } = Astro.prop
         <slot />
       </div>
     </div>
+
+    <!-- Closed state: process terminated screen -->
+    <div
+      id="terminal-closed-screen"
+      role="dialog"
+      aria-label="Terminal closed"
+      class="flex-col items-center justify-center gap-4 font-mono text-sm text-neutral-600 sm:text-base dark:text-neutral-400"
+    >
+      <p class="text-neutral-500 dark:text-neutral-500">[process terminated]</p>
+      <p>sean@seanmh.com exited with code 0.</p>
+      <button
+        id="terminal-relaunch"
+        type="button"
+        class="mt-4 rounded border border-neutral-400 px-3 py-1.5 text-neutral-800 transition-colors hover:bg-neutral-200 dark:border-neutral-600 dark:text-neutral-200 dark:hover:bg-neutral-800"
+      >
+        <span class="text-green-500 dark:text-green-400">$</span>
+        <span class="ml-2">./relaunch</span>
+      </button>
+      <p class="mt-2 text-xs text-neutral-400 dark:text-neutral-600">(or press Enter / Escape)</p>
+    </div>
+
+    <!-- Minimized state: dock pill -->
+    <button
+      id="terminal-dock"
+      type="button"
+      aria-label="Restore terminal"
+      class="fixed top-4 left-4 z-50 items-center gap-2 rounded-full border border-neutral-200 bg-white/80 px-3 py-1.5 text-xs font-medium shadow-lg backdrop-blur-sm transition-colors hover:bg-white dark:border-neutral-700 dark:bg-neutral-900/80 dark:hover:bg-neutral-900"
+    >
+      <span class="inline-block h-2 w-2 rounded-full bg-[#ff5f57]"></span>
+      <span class="inline-block h-2 w-2 rounded-full bg-[#febc2e]"></span>
+      <span class="inline-block h-2 w-2 rounded-full bg-[#28c840]"></span>
+      <span class="ml-1 text-neutral-600 dark:text-neutral-300">sean@seanmh.com ~ %</span>
+    </button>
+
     <VersionSwitcher />
 
     <script>
       function setupThemeToggle() {
-        const btn = document.getElementById("theme-toggle")!;
-        const sun = document.getElementById("icon-sun")!;
-        const moon = document.getElementById("icon-moon")!;
+        const btn = document.getElementById("theme-toggle");
+        const sun = document.getElementById("icon-sun");
+        const moon = document.getElementById("icon-moon");
+        if (!btn || !sun || !moon) return;
 
         function updateIcons() {
           const isDark = document.documentElement.classList.contains("dark");
@@ -104,8 +226,86 @@ const { title, description = "Sean Higgins — Software Engineer" } = Astro.prop
         updateIcons();
       }
 
+      type WindowState = "normal" | "minimized" | "maximized" | "closed";
+
+      function setupWindowControls() {
+        const html = document.documentElement;
+        const close = document.getElementById("tl-close") as HTMLButtonElement | null;
+        const minimize = document.getElementById("tl-minimize") as HTMLButtonElement | null;
+        const maximize = document.getElementById("tl-maximize") as HTMLButtonElement | null;
+        const dock = document.getElementById("terminal-dock") as HTMLButtonElement | null;
+        const relaunch = document.getElementById("terminal-relaunch") as HTMLButtonElement | null;
+        if (!close || !minimize || !maximize || !dock || !relaunch) return;
+
+        // `prev` is what restore should return to (only meaningful when the
+        // current state is minimized or maximized and we came from the other).
+        let prev: WindowState = "normal";
+
+        function currentState(): WindowState {
+          return (html.dataset.windowState as WindowState) || "normal";
+        }
+
+        function setState(next: WindowState) {
+          const curr = currentState();
+          if (curr === next) return;
+
+          // Track prev only for size transitions between normal/maximized.
+          if (
+            (curr === "normal" || curr === "maximized") &&
+            next === "minimized"
+          ) {
+            prev = curr;
+          }
+
+          html.dataset.windowState = next;
+          try {
+            localStorage.setItem("terminalWindowState", next);
+          } catch {}
+
+          // Pretext paragraph layout depends on container width. Maximize/
+          // restore don't fire a real resize event, so nudge the listener
+          // in src/pages/index.astro to re-run layoutWithLines.
+          requestAnimationFrame(() => {
+            window.dispatchEvent(new Event("resize"));
+          });
+
+          // Focus management.
+          if (next === "closed") {
+            relaunch.focus();
+          } else if (curr === "closed") {
+            close.focus();
+          } else if (curr === "minimized" && next !== "minimized") {
+            // Returning from dock — move focus back to a title-bar button.
+            minimize.focus();
+          }
+        }
+
+        close.addEventListener("click", () => setState("closed"));
+        minimize.addEventListener("click", () => setState("minimized"));
+        maximize.addEventListener("click", () => {
+          setState(currentState() === "maximized" ? "normal" : "maximized");
+        });
+        dock.addEventListener("click", () => {
+          setState(prev === "maximized" ? "maximized" : "normal");
+        });
+        relaunch.addEventListener("click", () => setState("normal"));
+
+        // Global keyboard shortcuts active only while closed.
+        document.addEventListener("keydown", (e) => {
+          if (currentState() !== "closed") return;
+          if (e.key === "Enter" || e.key === "Escape") {
+            e.preventDefault();
+            setState("normal");
+          }
+        });
+      }
+
       setupThemeToggle();
-      document.addEventListener("astro:after-swap", setupThemeToggle);
+      setupWindowControls();
+      document.addEventListener("astro:after-swap", () => {
+        setupThemeToggle();
+        setupWindowControls();
+      });
     </script>
   </body>
 </html>
