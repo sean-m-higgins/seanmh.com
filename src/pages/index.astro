@@ -16,13 +16,13 @@ const education = experience.filter((e) => e.type === "education");
   </TerminalBlock>
 
   <TerminalBlock command="cat about.txt">
-    <p>
+    <p data-pretext>
       Software engineer with a M.S. in Software Engineering and a B.S. in
       Computer Science from Loyola University Chicago. I enjoy building clean,
       practical software and have experience across front-end, back-end, data
       engineering, and machine learning.
     </p>
-    <p class="mt-2">
+    <p class="mt-2" data-pretext>
       When I'm not writing code, you can find me in the boxing ring, on the
       mountain snowboarding, enjoying a live concert, or at home building
       furniture and making art. World traveler. Eagle Scout. Cat dad to Sunny.
@@ -42,7 +42,7 @@ const education = experience.filter((e) => e.type === "education");
       <p class="font-semibold text-neutral-800 dark:text-neutral-200">
         {entry.title} @ {entry.organization} ({entry.dates})
       </p>
-      <p class="mt-1">{entry.description}</p>
+      <p class="mt-1" data-pretext>{entry.description}</p>
     </TerminalBlock>
   ))}
 
@@ -59,7 +59,7 @@ const education = experience.filter((e) => e.type === "education");
       <p class="font-semibold text-neutral-800 dark:text-neutral-200">
         {entry.title} — {entry.organization} ({entry.dates})
       </p>
-      <p class="mt-1">{entry.description}</p>
+      <p class="mt-1" data-pretext>{entry.description}</p>
     </TerminalBlock>
   ))}
 
@@ -76,27 +76,217 @@ const education = experience.filter((e) => e.type === "education");
 
   <!-- Typing animation -->
   <script>
-    function setupTypingAnimation() {
-      const commands = document.querySelectorAll(".typed-command");
-      commands.forEach((cmd, i) => {
-        const el = cmd as HTMLElement;
-        const text = el.textContent || "";
-        el.textContent = "";
-        el.style.visibility = "visible";
+    import {
+      prepareWithSegments,
+      layoutWithLines,
+    } from "@chenglou/pretext";
 
-        const delay = i * 400;
+    const COMMAND_CHAR_MS = 30;
+    const OUTPUT_CHAR_MS = 8;
+    const BLOCK_GAP_MS = 400;
+
+    type PretextJob = {
+      el: HTMLElement;
+      lines: string[];
+    };
+
+    // Per-paragraph active typing intervals, so resize can cancel them.
+    const activeIntervals = new WeakMap<HTMLElement, Set<number>>();
+    // Paragraphs whose reveal has already finished (safe to re-layout silently).
+    const revealed = new WeakSet<HTMLElement>();
+
+    function trackInterval(p: HTMLElement, id: number) {
+      let set = activeIntervals.get(p);
+      if (!set) {
+        set = new Set();
+        activeIntervals.set(p, set);
+      }
+      set.add(id);
+    }
+
+    function clearParagraphIntervals(p: HTMLElement) {
+      const set = activeIntervals.get(p);
+      if (!set) return;
+      set.forEach((id) => clearInterval(id));
+      set.clear();
+    }
+
+    function computeLinesFor(p: HTMLElement, text: string): string[] {
+      const width = p.clientWidth;
+      if (width <= 0) return [text];
+      const cs = getComputedStyle(p);
+      const fontSpec = `${cs.fontStyle} ${cs.fontWeight} ${cs.fontSize} ${cs.fontFamily}`;
+      const lineHeight =
+        cs.lineHeight === "normal"
+          ? parseFloat(cs.fontSize) * 1.5
+          : parseFloat(cs.lineHeight);
+      const prepared = prepareWithSegments(text, fontSpec);
+      const result = layoutWithLines(prepared, width, lineHeight);
+      return result.lines.map((l) => l.text);
+    }
+
+    function writeLineSpans(
+      p: HTMLElement,
+      lines: string[],
+      filled: boolean,
+    ) {
+      const cs = getComputedStyle(p);
+      const lineHeight =
+        cs.lineHeight === "normal"
+          ? parseFloat(cs.fontSize) * 1.5
+          : parseFloat(cs.lineHeight);
+      p.textContent = "";
+      p.style.visibility = "visible";
+      lines.forEach((lineText, idx) => {
+        const span = document.createElement("span");
+        span.className = "pretext-line";
+        span.setAttribute("aria-hidden", "true");
+        span.style.display = "block";
+        span.style.minHeight = `${lineHeight}px`;
+        const leading = idx > 0 ? " " : "";
+        span.textContent = filled ? leading + lineText : "";
+        span.dataset.full = lineText;
+        if (idx > 0) span.dataset.leadingSpace = "1";
+        p.appendChild(span);
+      });
+    }
+
+    // Pre-compute exact line breaks with Pretext for every [data-pretext]
+    // paragraph. No getBoundingClientRect per line, no reflow during reveal.
+    function layoutPretextParagraphs(): Map<HTMLElement, PretextJob[]> {
+      const jobsByBlock = new Map<HTMLElement, PretextJob[]>();
+      const paragraphs = document.querySelectorAll<HTMLElement>("[data-pretext]");
+
+      paragraphs.forEach((p) => {
+        const block = p.closest(".terminal-block") as HTMLElement | null;
+        if (!block) return;
+
+        // Cache the canonical text on first run so resize re-layout has a
+        // source of truth independent of the current (maybe partial) DOM.
+        let text = p.dataset.pretextText;
+        if (!text) {
+          text = (p.textContent || "").replace(/\s+/g, " ").trim();
+          p.dataset.pretextText = text;
+        }
+        if (!text) return;
+
+        const lines = computeLinesFor(p, text);
+        p.setAttribute("aria-label", text);
+        writeLineSpans(p, lines, false);
+
+        const list = jobsByBlock.get(block) ?? [];
+        list.push({ el: p, lines });
+        jobsByBlock.set(block, list);
+      });
+
+      return jobsByBlock;
+    }
+
+    function revealOutput(
+      jobs: PretextJob[],
+      startDelay: number,
+    ): number {
+      let cursor = startDelay;
+      jobs.forEach((job) => {
+        const spans = Array.from(
+          job.el.querySelectorAll<HTMLSpanElement>(".pretext-line"),
+        );
+        spans.forEach((span, lineIdx) => {
+          const full = span.dataset.full ?? "";
+          const leading = span.dataset.leadingSpace === "1" ? " " : "";
+          const typeStart = cursor;
+          const isLastLineOfPara = lineIdx === spans.length - 1;
+          setTimeout(() => {
+            let i = 0;
+            const interval = window.setInterval(() => {
+              span.textContent = leading + full.slice(0, i + 1);
+              i++;
+              if (i >= full.length) {
+                clearInterval(interval);
+                activeIntervals.get(job.el)?.delete(interval);
+                if (isLastLineOfPara) revealed.add(job.el);
+              }
+            }, OUTPUT_CHAR_MS);
+            trackInterval(job.el, interval);
+          }, typeStart);
+          cursor += full.length * OUTPUT_CHAR_MS;
+          if (lineIdx < spans.length - 1) cursor += 20;
+        });
+      });
+      return cursor;
+    }
+
+    // Debounced resize: re-run Pretext with the new width for every paragraph.
+    // Paragraphs mid-reveal get cancelled and snapped to fully-filled state —
+    // the user is actively interacting, so finishing instantly is the right call.
+    function setupResizeHandler() {
+      let pending = 0;
+      window.addEventListener("resize", () => {
+        if (pending) cancelAnimationFrame(pending);
+        pending = requestAnimationFrame(() => {
+          pending = 0;
+          const paragraphs =
+            document.querySelectorAll<HTMLElement>("[data-pretext]");
+          paragraphs.forEach((p) => {
+            const text = p.dataset.pretextText;
+            if (!text) return;
+            clearParagraphIntervals(p);
+            const lines = computeLinesFor(p, text);
+            writeLineSpans(p, lines, true);
+            revealed.add(p);
+          });
+        });
+      });
+    }
+
+    async function setupTypingAnimation() {
+      // Wait for fonts so Pretext measures against the actual rendered font.
+      if (document.fonts && document.fonts.ready) {
+        try {
+          await document.fonts.ready;
+        } catch {}
+      }
+
+      const jobsByBlock = layoutPretextParagraphs();
+
+      const commands = document.querySelectorAll<HTMLElement>(".typed-command");
+      let runningDelay = 0;
+
+      commands.forEach((cmd) => {
+        const text = cmd.textContent || "";
+        cmd.textContent = "";
+        cmd.style.visibility = "visible";
+
+        const commandStart = runningDelay;
         setTimeout(() => {
           let charIndex = 0;
           const interval = setInterval(() => {
-            el.textContent = text.slice(0, charIndex + 1);
+            cmd.textContent = text.slice(0, charIndex + 1);
             charIndex++;
             if (charIndex >= text.length) clearInterval(interval);
-          }, 30);
-        }, delay);
+          }, COMMAND_CHAR_MS);
+        }, commandStart);
+
+        const commandEnd = commandStart + text.length * COMMAND_CHAR_MS;
+        const block = cmd.closest(".terminal-block") as HTMLElement | null;
+        const jobs = block ? jobsByBlock.get(block) : undefined;
+
+        if (jobs && jobs.length > 0) {
+          const outputEnd = revealOutput(jobs, commandEnd + 80);
+          runningDelay = outputEnd + BLOCK_GAP_MS;
+        } else {
+          runningDelay = commandEnd + BLOCK_GAP_MS;
+        }
       });
     }
 
     setupTypingAnimation();
+    setupResizeHandler();
     document.addEventListener("astro:after-swap", setupTypingAnimation);
   </script>
+  <style is:global>
+    [data-pretext] {
+      visibility: hidden;
+    }
+  </style>
 </TerminalLayout>
