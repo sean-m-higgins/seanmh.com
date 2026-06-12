@@ -1,5 +1,6 @@
 ---
 import "../styles/global.css";
+import "../styles/transitions.css";
 import VersionSwitcher from "../components/VersionSwitcher.astro";
 import { ViewTransitions } from "astro:transitions";
 
@@ -201,7 +202,7 @@ const { title, description = "Sean Higgins — Software Engineer" } = Astro.prop
       <span class="ml-1 text-neutral-600 dark:text-neutral-300">sean@seanmh.com ~ %</span>
     </button>
 
-    <VersionSwitcher />
+    <VersionSwitcher current="c-terminal" />
 
     <script>
       function setupThemeToggle() {
