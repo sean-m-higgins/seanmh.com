@@ -1,27 +1,152 @@
 ---
+// Universe dial — version switcher with cross-document view transitions.
+// This file is identical on every version branch (the layout passes `current`).
+// Edit on the `content` branch and cherry-pick, like the content contract.
+interface Props {
+  current: "a-scroll" | "b-card" | "c-terminal";
+}
+
 const versions = [
-  { name: 'a-scroll', label: 'Scroll' },
-  { name: 'b-card', label: 'Card' },
-  { name: 'c-terminal', label: 'Terminal' },
-];
-const current = 'a-scroll';
+  { name: "a-scroll", label: "Scroll", glyph: "∿" },
+  { name: "b-card", label: "Card", glyph: "▣" },
+  { name: "c-terminal", label: "Terminal", glyph: "❯" },
+] as const;
+
+const { current } = Astro.props;
+const active = versions.find((v) => v.name === current) ?? versions[0];
 ---
 
-<div id="version-switcher" class="fixed bottom-4 left-4 z-50 flex items-center gap-1 rounded-full border border-neutral-200 bg-white/80 px-2 py-1 text-xs font-medium shadow-lg backdrop-blur-sm dark:border-neutral-700 dark:bg-neutral-900/80">
-  <span class="mr-1 text-neutral-400 dark:text-neutral-500">v</span>
-  {versions.map((v) => (
-    <a
-      href={v.name === current ? '#' : `/?v=${v.name}`}
-      data-astro-reload
-      class:list={[
-        'rounded-full px-2 py-0.5 transition-colors',
-        v.name === current
-          ? 'bg-accent text-white cursor-default'
-          : 'text-neutral-500 hover:text-neutral-900 dark:text-neutral-400 dark:hover:text-neutral-100',
-      ]}
-      aria-current={v.name === current ? 'page' : undefined}
-    >
-      {v.label}
-    </a>
-  ))}
-</div>
+<nav
+  id="version-switcher"
+  class="universe-dial fixed bottom-4 left-4 z-50 flex items-center overflow-hidden rounded-full border border-neutral-200 bg-white/80 shadow-lg backdrop-blur-sm dark:border-neutral-700 dark:bg-neutral-900/80"
+  aria-label="Portfolio versions"
+>
+  <button
+    type="button"
+    class="dial-core relative flex h-10 w-10 shrink-0 cursor-pointer items-center justify-center"
+    aria-label="Choose a portfolio version"
+  >
+    <span
+      class="dial-ring absolute inset-1.5 rounded-full border border-dashed border-accent/50"
+      aria-hidden="true"></span>
+    <span class="font-mono text-sm text-accent" aria-hidden="true">{active.glyph}</span>
+  </button>
+  <div class="dial-options flex items-center gap-1">
+    {
+      versions.map((v) => (
+        <a
+          href={v.name === current ? "#" : `/?v=${v.name}`}
+          data-astro-reload
+          class:list={[
+            "whitespace-nowrap rounded-full px-2.5 py-1 text-xs font-medium transition-colors",
+            v.name === current
+              ? "bg-accent text-white cursor-default"
+              : "text-neutral-500 hover:text-neutral-900 dark:text-neutral-400 dark:hover:text-neutral-100",
+          ]}
+          aria-current={v.name === current ? "page" : undefined}
+        >
+          <span class="mr-1 font-mono" aria-hidden="true">{v.glyph}</span>
+          {v.label}
+        </a>
+      ))
+    }
+  </div>
+</nav>
+
+<style>
+  .universe-dial {
+    view-transition-name: universe-dial;
+    animation: dial-glow 3.5s ease-in-out infinite;
+  }
+
+  .dial-ring {
+    animation: dial-spin 16s linear infinite;
+  }
+
+  .dial-options {
+    max-width: 0;
+    opacity: 0;
+    padding-right: 0;
+    transition:
+      max-width 0.35s cubic-bezier(0.2, 0, 0, 1),
+      padding-right 0.35s cubic-bezier(0.2, 0, 0, 1),
+      opacity 0.25s ease;
+  }
+
+  .universe-dial:hover .dial-options,
+  .universe-dial:focus-within .dial-options,
+  .universe-dial.open .dial-options {
+    max-width: 18rem;
+    opacity: 1;
+    padding-right: 0.5rem;
+  }
+
+  @keyframes dial-spin {
+    to {
+      transform: rotate(360deg);
+    }
+  }
+
+  @keyframes dial-glow {
+    0%,
+    100% {
+      box-shadow: 0 0 0 0 rgb(99 102 241 / 0);
+    }
+    50% {
+      box-shadow: 0 0 14px 1px rgb(99 102 241 / 0.35);
+    }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .universe-dial,
+    .dial-ring {
+      animation: none;
+    }
+    .dial-options {
+      transition: none;
+    }
+  }
+</style>
+
+<script is:inline>
+  (function () {
+    var meta = document.querySelector('meta[name="portfolio-version"]');
+    var current = meta ? meta.getAttribute("content") : "";
+
+    // Cross-document view transitions: remember which version we left so the
+    // destination page can style the transition per direction (transitions.css).
+    window.addEventListener("pageswap", function (e) {
+      if (!e.viewTransition) return;
+      try {
+        sessionStorage.setItem("vt-from", current);
+      } catch (_) {}
+    });
+
+    window.addEventListener("pagereveal", function (e) {
+      var from = "";
+      try {
+        from = sessionStorage.getItem("vt-from") || "";
+        sessionStorage.removeItem("vt-from");
+      } catch (_) {}
+      if (!e.viewTransition || !from || from === current) return;
+      // Before first paint: lets CSS skip intro animations on arrival.
+      document.documentElement.classList.add("vt-arrived");
+      if (e.viewTransition.types) {
+        e.viewTransition.types.add("from-" + from);
+        e.viewTransition.types.add("to-" + current);
+      }
+    });
+
+    // Touch devices have no hover: tapping the core toggles the dial open.
+    var dial = document.getElementById("version-switcher");
+    var core = dial && dial.querySelector(".dial-core");
+    if (dial && core) {
+      core.addEventListener("click", function () {
+        dial.classList.toggle("open");
+      });
+      document.addEventListener("click", function (e) {
+        if (!dial.contains(e.target)) dial.classList.remove("open");
+      });
+    }
+  })();
+</script>

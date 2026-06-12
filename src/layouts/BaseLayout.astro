@@ -1,5 +1,6 @@
 ---
 import "../styles/global.css";
+import "../styles/transitions.css";
 import Navigation from "../components/Navigation.astro";
 import Footer from "../components/Footer.astro";
 import VersionSwitcher from "../components/VersionSwitcher.astro";
@@ -59,7 +60,7 @@ const { title, description = "Sean Higgins — Software Engineer" } = Astro.prop
       <slot />
     </main>
     <Footer />
-    <VersionSwitcher />
+    <VersionSwitcher current="a-scroll" />
 
     <!-- Scroll-triggered fade-in for sections -->
     <script>
