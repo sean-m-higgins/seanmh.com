@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>seanmh.com — Two-Cluster Execution Plan</title>
+<style>
+  :root {
+    --bg: #0d1117; --panel: #161b22; --border: #30363d;
+    --text: #e6edf3; --muted: #8b949e; --accent: #58a6ff;
+    --green: #3fb950; --orange: #d29922; --purple: #bc8cff; --red: #f85149;
+  }
+  * { box-sizing: border-box; }
+  body { background: var(--bg); color: var(--text); font-family: -apple-system, "Segoe UI", Helvetica, Arial, sans-serif; line-height: 1.6; max-width: 900px; margin: 0 auto; padding: 2rem 1.5rem 4rem; }
+  h1 { font-size: 1.9rem; border-bottom: 1px solid var(--border); padding-bottom: .5rem; }
+  h2 { color: var(--accent); margin-top: 2.5rem; }
+  .phase { background: var(--panel); border: 1px solid var(--border); border-left: 4px solid var(--accent); border-radius: 8px; padding: 1rem 1.5rem; margin: 1.25rem 0; }
+  .phase h2 { margin-top: 0; }
+  .verify { background: rgba(63,185,80,.08); border-left: 3px solid var(--green); padding: .5rem 1rem; margin-top: .75rem; border-radius: 4px; }
+  .verify strong { color: var(--green); }
+  .muted { color: var(--muted); }
+  code { background: rgba(110,118,129,.2); padding: .1rem .35rem; border-radius: 4px; font-size: .9em; }
+  pre { background: #010409; border: 1px solid var(--border); border-radius: 8px; padding: 1rem; overflow-x: auto; font-size: .85rem; line-height: 1.45; }
+  table { border-collapse: collapse; width: 100%; margin: 1rem 0; }
+  th, td { border: 1px solid var(--border); padding: .45rem .7rem; text-align: left; font-size: .92rem; }
+  th { background: var(--panel); }
+  .risk { color: var(--orange); }
+</style>
+</head>
+<body>
+
+<h1>seanmh.com — Two-Cluster Execution Plan</h1>
+<p class="muted">June 2026 · Builds on the existing worker-proxied multi-branch architecture. Phases are sequential; each ends in a deployed, verified state.</p>
+
+<h2>End State</h2>
+<pre>
+            CLUSTER 1  (the portfolio)            CLUSTER 2  (the playground)
+  ┌──────────────────────────────────┐    ┌──────────────────────────────────────┐
+  │  a-scroll ⇄ b-card ⇄ c-terminal  │    │  d-hall ⇄ e-nexus ⇄ f-???           │
+  │   (cinematic in-cluster morphs)  │    │  (its own in-cluster transitions)    │
+  └────────────────┬─────────────────┘    └──────────────────┬───────────────────┘
+                   │      ✨ SHINY BUTTON → bridge warp      │
+                   └──────────────── ⇄ ────────────────────--┘
+</pre>
+<ul>
+  <li><strong>Why this works with what exists:</strong> the Cloudflare Worker already serves every version from one origin (<code>seanmh.com</code>) via transparent proxy + <code>pv</code> cookie + <code>?v=</code> override. Same-origin is the requirement for cross-document View Transitions, so cinematic switching needs <em>zero</em> architecture change — only CSS/JS in each version and a small worker extension for clusters.</li>
+  <li>Each new page = a new <code>version/*</code> branch + Pages deployment, same as today. Shared assets flow through the existing <code>content</code> branch sync.</li>
+</ul>
+
+<div class="phase">
+<h2>Phase 1 — Cinematic In-Cluster Switching</h2>
+<ol>
+  <li><strong>Switcher kit</strong> (on <code>content</code> branch, synced to all versions): a "universe dial" component + a shared identity element (name/avatar "Sean card") present in every version, tagged <code>view-transition-name: sean-card</code>.</li>
+  <li><strong>Cross-document View Transitions:</strong> add <code>@view-transition { navigation: auto; }</code> to each version. Switching navigates to <code>/?v=&lt;name&gt;</code> (existing worker override) — the Sean card morphs between layouts; the rest crossfades with per-version flavor via transition types (e.g. terminal exits with a CRT power-off, card flips).</li>
+  <li><strong>Progressive enhancement:</strong> Safari/Firefox without cross-document VT get a clean ~200ms CSS fade fallback; <code>prefers-reduced-motion</code> disables all of it.</li>
+  <li><strong>Worker touch-up:</strong> bump <code>pv</code> cookie max-age on every response (not just first visit) so the chosen version sticks through a browsing session.</li>
+</ol>
+<div class="verify"><strong>Verify:</strong> dial appears in all 3 versions · morph works in Chrome desktop + Android · Safari/Firefox fall back without breakage · cookie stickiness intact · Lighthouse perf within 5 pts of baseline.</div>
+</div>
+
+<div class="phase">
+<h2>Phase 2 — Make the Terminal Real</h2>
+<ol>
+  <li><strong>Command engine</strong> on <code>version/c-terminal</code>: <code>help</code>, <code>ls projects</code>, <code>cat resume.md</code>, <code>open &lt;project&gt;</code>, <code>git log</code> (real history baked in at build), <code>switch &lt;version&gt;</code> (triggers Phase-1 transition), command history (↑/↓) and tab completion. Content sourced from the <code>content</code> branch so it never drifts from the other versions.</li>
+  <li><strong><code>ask &lt;question&gt;</code></strong>: worker route <code>/api/ask</code> → Claude API (Haiku 4.5, streaming SSE) with a system prompt grounded in resume + project content. The worker handles <code>/api/*</code> itself before proxying.</li>
+  <li><strong>Guardrails:</strong> per-IP rate limit (Workers KV, ~10 req/hr), max-token cap, API key in worker secret, prompt scoped to "answer about Sean only."</li>
+</ol>
+<div class="verify"><strong>Verify:</strong> all commands + completion + history work · <code>ask</code> streams a grounded answer in &lt;3s to first token · rate limit returns friendly message · key never reaches client · off-topic questions politely refused.</div>
+</div>
+
+<div class="phase">
+<h2>Phase 3 — The Shiny Button, the Bridge & Cluster 2's First Page</h2>
+<ol>
+  <li><strong>Worker v2 — cluster model:</strong> config becomes two clusters. <code>pv</code> cookie still picks within Cluster 1 on first visit; a visitor's current page determines which "adjacent" versions the dial offers. Cluster 2 is never randomly assigned — it's only reachable through the button (it should feel like a discovery).</li>
+  <li><strong>The shiny button:</strong> one irresistible artifact in all Cluster-1 versions (glowing orb in the corner; in the terminal it's a mysterious <code>???</code> command that <code>help</code> hints at). Subtle idle animation, stronger pull on hover.</li>
+  <li><strong>The bridge transition:</strong> deliberately different from in-cluster morphs — a warp/iris-wipe (View Transition <code>types: ['bridge']</code>) so crossing clusters feels like leaving the universe, not flipping a page. Same effect in reverse to come home.</li>
+  <li><strong>Cluster 2 page #1 — The Hall of Versions</strong> (<code>version/d-hall</code>): gallery of AI-generated site designs; each entry = screenshot, generation #, date, and the prompt that created it. Ships with generation #1 created interactively with Claude Code.</li>
+  <li><strong>Self-redesign pipeline:</strong> monthly scheduled Claude Code cloud agent (or GitHub Action): pick a style direction → generate a full standalone design as <code>gen/N</code> branch → open PR with preview link. On merge: deploy, screenshot, append to the hall manifest. <span class="muted">Human approval stays in the loop — a PR you review.</span></li>
+</ol>
+<div class="verify"><strong>Verify:</strong> button visible in all 3 v1 versions, never randomly assigned into Cluster 2 · bridge warp distinct from in-cluster morph, works both directions · hall renders gen #1 · pipeline produces one real merged PR end-to-end · direct URL to Cluster 2 still works (deep links).</div>
+</div>
+
+<div class="phase">
+<h2>Phase 4 — The Nexus</h2>
+<ol>
+  <li><code>version/e-nexus</code>: a single lightweight Three.js scene — floating portals, one per page across <em>both</em> clusters; drag to orbit, click/tap a portal to travel (portal zoom blends into the View Transition).</li>
+  <li><strong>Budget:</strong> &lt;1&nbsp;MB JS gzipped, lazy-load the scene behind an instant-paint title frame, static image + link list fallback for WebGL-less devices.</li>
+  <li>Wire into the Cluster-2 dial (d-hall ⇄ e-nexus).</li>
+</ol>
+<div class="verify"><strong>Verify:</strong> interactive in &lt;2s on simulated 4G mid-tier phone · all portals navigate correctly · fallback renders without WebGL · 60fps orbit on desktop.</div>
+</div>
+
+<div class="phase">
+<h2>Phase 5 — Third Cluster-2 Page + Polish <span class="muted">(decide later)</span></h2>
+<ul>
+  <li>Candidates for <code>f-???</code>: the public A/B <strong>scoreboard observatory</strong> (which universe is winning), a <strong>visitor pixel wall</strong> (KV/D1), or a live <strong>"now" dashboard</strong>. Pick when we get here.</li>
+  <li>Polish pass: per-version OG images, version-assignment analytics, accessibility audit, wiki docs update.</li>
+</ul>
+</div>
+
+<h2>Branch / Infra Summary</h2>
+<table>
+  <tr><th>Thing</th><th>Where</th><th>New?</th></tr>
+  <tr><td>Switcher kit (dial, Sean card, transition CSS)</td><td><code>content</code> branch → synced to all versions</td><td>new</td></tr>
+  <tr><td>Cluster routing + <code>/api/ask</code></td><td><code>worker.js</code> (main)</td><td>extend</td></tr>
+  <tr><td>Hall of Versions</td><td><code>version/d-hall</code> + Pages project</td><td>new</td></tr>
+  <tr><td>Generated designs</td><td><code>gen/N</code> branches</td><td>new</td></tr>
+  <tr><td>Nexus</td><td><code>version/e-nexus</code> + Pages project</td><td>new</td></tr>
+  <tr><td>Redesign agent</td><td>Scheduled cloud agent / GH Action</td><td>new</td></tr>
+</table>
+
+<h2>Risks &amp; Mitigations</h2>
+<ul>
+  <li class="risk">Cross-document View Transitions aren't universal</li>
+  <li class="muted">→ Treat as enhancement; fade fallback everywhere; feature-detect, never block navigation.</li>
+  <li class="risk">Claude API cost/abuse on <code>ask</code></li>
+  <li class="muted">→ Haiku model, KV rate limit, token caps, monthly spend alert.</li>
+  <li class="risk">Six+ deployments drifting out of sync</li>
+  <li class="muted">→ All shared content/components live on <code>content</code> branch; sync workflow is the only path in.</li>
+  <li class="risk">Nexus bloating load time</li>
+  <li class="muted">→ Hard 1&nbsp;MB budget enforced in CI; it's a destination page, never the random landing.</li>
+</ul>
+
+</body>
+</html>

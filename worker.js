@@ -40,13 +40,11 @@ export default {
     const cookie = request.headers.get('Cookie') || '';
     const match = cookie.match(/pv=([a-z-]+)/);
     let chosen;
-    let isNew = false;
 
     if (match) {
       chosen = VERSIONS.find(v => v.name === match[1]) || pickVersion();
     } else {
       chosen = pickVersion();
-      isNew = true;
     }
 
     // Transparent proxy
@@ -58,9 +56,8 @@ export default {
 
     const headers = new Headers(resp.headers);
     headers.set('X-Portfolio-Version', chosen.name);
-    if (isNew) {
-      headers.set('Set-Cookie', `pv=${chosen.name}; Path=/; Max-Age=1800; SameSite=Lax`);
-    }
+    // Refresh on every response so the version sticks through a browsing session
+    headers.set('Set-Cookie', `pv=${chosen.name}; Path=/; Max-Age=1800; SameSite=Lax`);
 
     return new Response(resp.body, { status: resp.status, headers });
   }

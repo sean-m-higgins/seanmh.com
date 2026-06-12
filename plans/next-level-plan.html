@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>seanmh.com — Next Level Plan</title>
+<style>
+  :root {
+    --bg: #0d1117; --panel: #161b22; --border: #30363d;
+    --text: #e6edf3; --muted: #8b949e; --accent: #58a6ff;
+    --green: #3fb950; --orange: #d29922; --purple: #bc8cff;
+  }
+  * { box-sizing: border-box; }
+  body { background: var(--bg); color: var(--text); font-family: -apple-system, "Segoe UI", Helvetica, Arial, sans-serif; line-height: 1.6; max-width: 880px; margin: 0 auto; padding: 2rem 1.5rem 4rem; }
+  h1 { font-size: 2rem; border-bottom: 1px solid var(--border); padding-bottom: .5rem; }
+  h2 { color: var(--accent); margin-top: 2.5rem; }
+  h3 { margin-bottom: .25rem; }
+  .tier { background: var(--panel); border: 1px solid var(--border); border-radius: 10px; padding: 1rem 1.5rem; margin: 1rem 0; }
+  .tag { display: inline-block; font-size: .72rem; font-weight: 600; padding: .1rem .55rem; border-radius: 999px; margin-left: .5rem; vertical-align: middle; }
+  .novel { background: rgba(188,140,255,.15); color: var(--purple); }
+  .wow { background: rgba(210,153,34,.15); color: var(--orange); }
+  .easy { background: rgba(63,185,80,.15); color: var(--green); }
+  .muted { color: var(--muted); }
+  code { background: rgba(110,118,129,.2); padding: .1rem .35rem; border-radius: 4px; font-size: .9em; }
+  table { border-collapse: collapse; width: 100%; margin: 1rem 0; }
+  th, td { border: 1px solid var(--border); padding: .5rem .75rem; text-align: left; }
+  th { background: var(--panel); }
+  ol li, ul li { margin: .35rem 0; }
+</style>
+</head>
+<body>
+
+<h1>seanmh.com — Taking the Multiverse to the Next Level</h1>
+<p class="muted">June 2026 · Current state: Astro site, 3 versions on branches (<code>version/a-scroll</code>, <code>version/b-card</code>, <code>version/c-terminal</code>), shared <code>content</code> branch, Cloudflare Worker randomly assigns versions with a switcher.</p>
+
+<p><strong>Thesis:</strong> The branch-per-version architecture is already the most interesting thing about this site. Instead of bolting on generic animation (the motionsites.ai route), make the multiverse itself the spectacle — then add one signature interactive piece and a layer that makes the site feel alive.</p>
+
+<h2>Tier 1 — Amplify the Multiverse <span class="tag novel">most novel</span></h2>
+
+<div class="tier">
+  <h3>1. The Self-Redesigning Website <span class="tag novel">novel</span><span class="tag wow">wow</span></h3>
+  <p>A scheduled AI agent (Claude Code cloud routine / GitHub Action) generates a brand-new <strong>Version D</strong> on a cadence — say monthly — as a PR on a new <code>version/d-*</code> branch. You approve, it deploys, and the worker adds it to rotation. Past generations live in a browsable <strong>"Hall of Versions"</strong> gallery with the prompt + date that created each one.</p>
+  <p class="muted">Pitch line on the site: "This website redesigns itself. You're looking at generation #7." Nobody else has this. It also showcases exactly the AI-partner workflow you care about.</p>
+</div>
+
+<div class="tier">
+  <h3>2. Cinematic Version Switching <span class="tag wow">wow</span></h3>
+  <p>Replace the plain redirect switcher with a <strong>portal transition</strong>: a shared "Sean identity card" element morphs between layouts (View Transitions API works cross-document on same-origin — perfect fit since the worker serves all versions from one domain). The switcher becomes a "universe dial" UI present in every version.</p>
+</div>
+
+<div class="tier">
+  <h3>3. Public A/B Scoreboard <span class="tag easy">low effort</span></h3>
+  <p>Log version assignments and switch-aways in Cloudflare Analytics Engine (or KV counters). Publish a live <strong>"Which universe is winning?"</strong> page — engagement per version, switch rates. Turns your infrastructure into content and shows product-thinking, not just code.</p>
+</div>
+
+<h2>Tier 2 — One Signature Interactive Piece <span class="tag wow">visitor wow</span></h2>
+
+<div class="tier">
+  <h3>4. The Nexus — a 3D entry world</h3>
+  <p>A lightweight Three.js scene where the versions are physical doors/portals floating in space; walk or drag to one to enter it. Inspired by Bruno Simon's drivable portfolio (Awwwards Site of the Month, Jan 2026) but scoped small: one scene, three portals, &lt;1MB. Could itself live on a branch as <code>version/nexus</code> — the meta-version that contains the others.</p>
+</div>
+
+<div class="tier">
+  <h3>5. Make the Terminal Version Real <span class="tag novel">novel</span></h3>
+  <ul>
+    <li>Working commands: <code>ls projects</code>, <code>cat resume.md</code>, <code>git log</code> (real repo history), tab-completion, history.</li>
+    <li><code>ask &lt;question&gt;</code> — Claude-powered answers grounded in your resume/projects, streamed into the terminal via a Worker.</li>
+    <li>Stretch: <code>ssh seanmh.com</code> serves an actual SSH portfolio (Charm's <em>wish</em> library, runs on a $4 VPS). Massive engineer cred.</li>
+  </ul>
+</div>
+
+<h2>Tier 3 — Make It Feel Alive <span class="tag easy">quick wins</span></h2>
+
+<div class="tier">
+  <h3>6. Live "Now" Layer</h3>
+  <p>A small shared component (lives on the <code>content</code> branch, so all versions get it): latest GitHub commit, currently-playing on Spotify, your local time. One Worker endpoint, cached, free tier.</p>
+</div>
+
+<div class="tier">
+  <h3>7. Visitor Trace</h3>
+  <p>A tasteful collaborative artifact — e.g. a pixel wall or signature constellation backed by Workers KV/D1. Each visitor leaves one mark; the site visibly accumulates history.</p>
+</div>
+
+<h2>Recommended Sequence</h2>
+<table>
+  <tr><th>#</th><th>Step</th><th>Verify</th></tr>
+  <tr><td>1</td><td>Cinematic switcher (View Transitions across versions)</td><td>Switch between all 3 versions with morph transition, no flash, mobile OK</td></tr>
+  <tr><td>2</td><td>Terminal version: real commands + <code>ask</code> AI command</td><td>5 commands work; <code>ask</code> answers from resume content; streams</td></tr>
+  <tr><td>3</td><td>Self-redesigning Version D pipeline</td><td>Scheduled agent opens PR with deployable new version; gallery page lists generations</td></tr>
+  <tr><td>4</td><td>A/B scoreboard + Now layer</td><td>Live stats page updates; now-playing renders in all versions</td></tr>
+  <tr><td>5</td><td>The Nexus 3D entry (stretch)</td><td>Loads &lt;2s, portals route to versions</td></tr>
+</table>
+
+<h2>On motionsites.ai</h2>
+<p class="muted">Its prompt library is gated behind Copy buttons/login — template names visible (liquid glass, animated heroes, 3D portfolio) but not prompt text. Useful as an aesthetic mood board for Version D generations; paste in any specific prompts you've copied and we can fold them into the generator's style pool.</p>
+
+</body>
+</html>
