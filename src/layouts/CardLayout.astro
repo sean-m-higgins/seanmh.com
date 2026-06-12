@@ -1,5 +1,6 @@
 ---
 import "../styles/global.css";
+import "../styles/transitions.css";
 import VersionSwitcher from "../components/VersionSwitcher.astro";
 import { ViewTransitions } from "astro:transitions";
 
@@ -52,7 +53,7 @@ const { title, description = "Sean Higgins — Software Engineer" } = Astro.prop
   </head>
   <body class="h-screen overflow-hidden font-sans antialiased">
     <slot />
-    <VersionSwitcher />
+    <VersionSwitcher current="b-card" />
 
     <!-- Dark mode toggle -->
     <button
