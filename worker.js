@@ -56,8 +56,14 @@ export default {
 
     const headers = new Headers(resp.headers);
     headers.set('X-Portfolio-Version', chosen.name);
-    // Refresh on every response so the version sticks through a browsing session
-    headers.set('Set-Cookie', `pv=${chosen.name}; Path=/; Max-Age=1800; SameSite=Lax`);
+    // Refresh only on page navigations so the version sticks through a browsing
+    // session. Asset/fetch responses must not set it: a stale in-flight
+    // subrequest from the previous version would overwrite a just-switched cookie.
+    const isDocument = request.headers.get('Sec-Fetch-Dest') === 'document'
+      || (request.headers.get('Accept') || '').includes('text/html');
+    if (isDocument) {
+      headers.set('Set-Cookie', `pv=${chosen.name}; Path=/; Max-Age=1800; SameSite=Lax`);
+    }
 
     return new Response(resp.body, { status: resp.status, headers });
   }

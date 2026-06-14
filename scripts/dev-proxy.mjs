@@ -40,7 +40,14 @@ const server = http.createServer(async (req, res) => {
     const headers = Object.fromEntries(upstream.headers);
     delete headers["content-encoding"];
     delete headers["content-length"];
-    headers["set-cookie"] = `pv=${chosen.name}; Path=/; Max-Age=1800; SameSite=Lax`;
+    // Mirror worker.js: only refresh the cookie on page navigations, so a stale
+    // in-flight asset request from the previous version can't overwrite a
+    // just-switched cookie.
+    const isDocument = req.headers["sec-fetch-dest"] === "document"
+      || (req.headers["accept"] || "").includes("text/html");
+    if (isDocument) {
+      headers["set-cookie"] = `pv=${chosen.name}; Path=/; Max-Age=1800; SameSite=Lax`;
+    }
     headers["x-portfolio-version"] = chosen.name;
     res.writeHead(upstream.status, headers);
     res.end(Buffer.from(await upstream.arrayBuffer()));
