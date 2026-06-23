@@ -1,0 +1,152 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>seanmh.com — Continuation Plan (post Phase 1)</title>
+<style>
+  :root {
+    --bg: #0d1117; --panel: #161b22; --border: #30363d;
+    --text: #e6edf3; --muted: #8b949e; --accent: #58a6ff;
+    --green: #3fb950; --orange: #d29922; --purple: #bc8cff; --red: #f85149;
+  }
+  * { box-sizing: border-box; }
+  body { background: var(--bg); color: var(--text); font-family: -apple-system, "Segoe UI", Helvetica, Arial, sans-serif; line-height: 1.6; max-width: 920px; margin: 0 auto; padding: 2rem 1.5rem 4rem; }
+  h1 { font-size: 1.9rem; border-bottom: 1px solid var(--border); padding-bottom: .5rem; }
+  h2 { color: var(--accent); margin-top: 2.5rem; border-bottom: 1px solid var(--border); padding-bottom: .3rem; }
+  h3 { margin-bottom: .25rem; margin-top: 1.5rem; }
+  .done { color: var(--green); }
+  .panel { background: var(--panel); border: 1px solid var(--border); border-radius: 8px; padding: 1rem 1.5rem; margin: 1rem 0; }
+  .next { border-left: 4px solid var(--accent); }
+  .verify { background: rgba(63,185,80,.08); border-left: 3px solid var(--green); padding: .5rem 1rem; margin-top: .75rem; border-radius: 4px; font-size: .92rem; }
+  .verify strong { color: var(--green); }
+  .gotcha { background: rgba(210,153,34,.08); border-left: 3px solid var(--orange); padding: .5rem 1rem; margin-top: .75rem; border-radius: 4px; font-size: .92rem; }
+  .gotcha strong { color: var(--orange); }
+  .muted { color: var(--muted); }
+  code { background: rgba(110,118,129,.2); padding: .1rem .35rem; border-radius: 4px; font-size: .88em; }
+  pre { background: #010409; border: 1px solid var(--border); border-radius: 8px; padding: 1rem; overflow-x: auto; font-size: .82rem; line-height: 1.5; }
+  table { border-collapse: collapse; width: 100%; margin: 1rem 0; }
+  th, td { border: 1px solid var(--border); padding: .45rem .7rem; text-align: left; font-size: .9rem; vertical-align: top; }
+  th { background: var(--panel); }
+  ul li, ol li { margin: .3rem 0; }
+  .tag { display: inline-block; font-size: .68rem; font-weight: 700; padding: .08rem .5rem; border-radius: 999px; margin-left: .4rem; vertical-align: middle; }
+  .t-done { background: rgba(63,185,80,.15); color: var(--green); }
+  .t-next { background: rgba(88,166,255,.15); color: var(--accent); }
+  .t-later { background: rgba(139,148,158,.15); color: var(--muted); }
+</style>
+</head>
+<body>
+
+<h1>seanmh.com — Continuation Plan</h1>
+<p class="muted">Written June 2026, end of the Phase 1 session. Companion to <code>plans/execution-plan.html</code> (the full 5-phase vision) and <code>plans/next-level-plan.html</code> (idea origins). This file captures exact current state + the immediately actionable next steps.</p>
+
+<h2>Where things stand</h2>
+
+<h3 class="done">✓ Phase 1 — Cinematic in-cluster switching <span class="tag t-done">DONE, committed, NOT pushed</span></h3>
+<p>The "universe dial" switcher + cross-document View Transitions are built and committed on every branch. Verified locally via headless Chromium screenshots + the dev proxy (routing, cookie stickiness, <code>?v=</code> override all confirmed).</p>
+
+<table>
+  <tr><th>Branch</th><th>Commit</th><th>Contents</th></tr>
+  <tr><td><code>version/a-scroll</code></td><td><code>7c791f5</code></td><td>Kit + <code>Hero.astro</code> headline tagged <code>vt-sean-name vt-skip-intro</code></td></tr>
+  <tr><td><code>version/b-card</code></td><td><code>0f5d91d</code></td><td>Kit + <code>CardContent.astro</code> headline tagged</td></tr>
+  <tr><td><code>version/c-terminal</code></td><td><code>377e71e</code></td><td>Kit + <code>index.astro</code> <code>whoami</code> line tagged</td></tr>
+  <tr><td><code>content</code></td><td><code>1284c8c</code></td><td>Canonical copy of the two kit files (cherry-pick source going forward)</td></tr>
+  <tr><td><code>main</code></td><td><code>e6b4c97</code>, <code>9730840</code></td><td>Worker cookie refresh (document-only), <code>scripts/dev-proxy.mjs</code>, plans</td></tr>
+</table>
+
+<p><strong>The "kit" = two byte-identical files on every version branch:</strong></p>
+<ul>
+  <li><code>src/components/VersionSwitcher.astro</code> — the dial. Takes a <code>current</code> prop. Has <code>pageswap</code>/<code>pagereveal</code> handlers that stash the departing version in <code>sessionStorage</code> and add <code>from-X</code>/<code>to-Y</code> view-transition types + a <code>vt-arrived</code> class on arrival.</li>
+  <li><code>src/styles/transitions.css</code> — <code>@view-transition { navigation: auto }</code>, the <code>sean-name</code>/<code>universe-dial</code> morph groups, per-version flavor (CRT power-on for terminal, 3D tilt for card, rise for scroll), reduced-motion off-switch.</li>
+</ul>
+<p class="muted">Per-version wiring (not in the kit): each layout imports <code>transitions.css</code> and renders <code>&lt;VersionSwitcher current="…" /&gt;</code>; each version's identity headline carries <code>vt-sean-name</code>, and its intro-animated container carries <code>vt-skip-intro</code>.</p>
+
+<div class="gotcha"><strong>Cookie nuance (already handled):</strong> <code>worker.js</code> and <code>dev-proxy.mjs</code> only set the <code>pv</code> cookie when <code>Sec-Fetch-Dest: document</code> (or Accept includes <code>text/html</code>). This stops a stale in-flight asset request from the old version overwriting a just-switched cookie. Preserve this if you touch cookie logic.</p></div>
+
+<div class="gotcha"><strong>Kit-sync rule:</strong> the three version copies must stay byte-identical. Future edits: change on <code>content</code>, then cherry-pick to each version branch. (Phase 1's first commit went direct-to-branch because the pre-existing switchers differed and would have conflicted — that's resolved now; they're identical.)</p></div>
+
+<h3>⧗ Open housekeeping before/around Phase 2</h3>
+<div class="panel">
+<ol>
+  <li><strong>Push + deploy Phase 1</strong> (user gates this):
+    <pre>git push origin version/a-scroll version/b-card version/c-terminal content main
+# then publish the worker:
+npx wrangler deploy   # (run from a checkout that has worker.js; confirm wrangler.jsonc target)</pre>
+    Pages auto-deploys the three <code>version/*</code> branches. <code>content</code> + <code>main</code> are not deployed sites.</li>
+  <li><strong>Smoke-test on real browsers</strong> post-deploy: Chrome/Edge (morph), Safari/Firefox (clean fallback, no breakage), mobile (tap-to-open dial), reduced-motion OS setting.</li>
+  <li><strong>Update the wiki:</strong> <code>Version-Switcher.md</code> still describes the old pill. Rewrite for the dial + transitions + kit-sync rule. (<code>wiki/</code> is an untracked sibling dir.)</li>
+  <li><strong>Worktrees</strong> live at <code>../wt/{a-scroll,b-card,c-terminal,content}</code>. Reuse them for Phase 2 or <code>git worktree remove</code> when done.</li>
+</ol>
+</div>
+
+<h2>Next: Phase 2 — Make the terminal real <span class="tag t-next">UP NEXT</span></h2>
+<p class="muted">All work on <code>version/c-terminal</code> except the <code>/api/ask</code> route (worker, on <code>main</code>). Content pulled from the existing <code>src/content/site.ts</code> + <code>experience.ts</code> contract so it never drifts.</p>
+
+<div class="panel next">
+<h3>2a. Interactive command engine</h3>
+<p>Today <code>index.astro</code> renders a <em>scripted</em> typing animation of fake command output (via <code>@chenglou/pretext</code> for line layout). Phase 2 turns the bottom blinking-cursor line into a <strong>real prompt</strong> that accepts input, while keeping the scripted intro as the "boot sequence."</p>
+<ul>
+  <li>Add an input line (contenteditable or hidden input + rendered span) after the boot sequence completes.</li>
+  <li>Command parser + registry. Commands to ship:
+    <ul>
+      <li><code>help</code> — lists commands (and hints at the hidden one, see Phase 3).</li>
+      <li><code>ls projects</code> / <code>ls experience/</code> / <code>ls education/</code> — from content files.</li>
+      <li><code>cat about.txt</code>, <code>cat resume.md</code>, <code>open &lt;project&gt;</code> (window.open to repo/live link).</li>
+      <li><code>git log</code> — real commit history. Bake it at build time: a small Astro build step / script reads <code>git log --oneline -n 20</code> into a JSON the page imports (don't ship the whole repo).</li>
+      <li><code>switch &lt;a-scroll|b-card|c-terminal&gt;</code> — navigates to <code>/?v=…</code>, triggering the Phase 1 transition. <code>clear</code>, <code>whoami</code>, <code>contact</code> too.</li>
+    </ul>
+  </li>
+  <li>UX: command history (↑/↓), tab-completion (commands + known args), unknown-command message. Keep focus on the prompt; clicking anywhere refocuses.</li>
+  <li>Respect the existing window controls (minimize/maximize/close) and <code>astro:after-swap</code> re-init pattern already in <code>TerminalLayout.astro</code>.</li>
+</ul>
+<div class="verify"><strong>Verify:</strong> each command produces correct output; history + tab-completion work; <code>switch</code> triggers the morph; unknown commands handled; boot sequence still plays first; mobile keyboard usable.</div>
+</div>
+
+<div class="panel next">
+<h3>2b. <code>ask &lt;question&gt;</code> — Claude-grounded answers</h3>
+<ul>
+  <li><strong>Worker route</strong> <code>/api/ask</code> in <code>worker.js</code>: handle <code>/api/*</code> <em>before</em> the version proxy. POST <code>{question}</code> → Anthropic API, stream back via SSE.</li>
+  <li><strong>Model:</strong> Claude Haiku 4.5 (<code>claude-haiku-4-5-20251001</code>) — cheap, fast first token. <span class="muted">(Verify current model id against the claude-api skill before shipping.)</span></li>
+  <li><strong>Grounding:</strong> system prompt = resume + project/experience content (import the same content files at build, inline into the worker or a KV value). Scope: "only answer questions about Sean; politely decline otherwise."</li>
+  <li><strong>Guardrails:</strong> API key in a Worker <em>secret</em> (never client). Per-IP rate limit via Workers KV (~10/hr). Max output tokens cap. Monthly spend alert.</li>
+  <li><strong>Client:</strong> <code>ask</code> opens a streaming output block; tokens type in like the rest of the terminal. Show a thinking indicator before first token.</li>
+</ul>
+<div class="verify"><strong>Verify:</strong> first token &lt;3s; answer grounded in real content; off-topic politely refused; key never in client bundle/network; rate-limit returns a friendly in-terminal message; works through the live worker (not just local).</div>
+<div class="gotcha"><strong>New infra this introduces:</strong> a KV namespace (rate limiting) and a Worker secret (API key). Document both in the wiki. This is the first time the worker does more than proxy — keep <code>/api/*</code> handling isolated and well-commented.</div>
+</div>
+
+<h2>Then: Phases 3–5 <span class="tag t-later">LATER</span></h2>
+<p class="muted">Full detail in <code>plans/execution-plan.html</code>. Summary + the key architectural decisions to carry forward:</p>
+
+<h3>Phase 3 — Shiny button, bridge transition, Cluster 2 + Hall of Versions</h3>
+<ul>
+  <li><strong>Worker v2 cluster model:</strong> <code>VERSIONS</code> array becomes two clusters. Cluster 1 (scroll/card/terminal) keeps random assignment + <code>pv</code> cookie. <strong>Cluster 2 is never randomly assigned</strong> — only reachable via the button (it's a discovery). The dial offers only same-cluster neighbors based on current page.</li>
+  <li><strong>Shiny button:</strong> one irresistible artifact in all Cluster-1 versions (glowing corner orb; in the terminal it's the hidden command <code>help</code> hints at — wire this into the Phase 2 registry).</li>
+  <li><strong>Bridge transition:</strong> deliberately distinct from in-cluster morphs — a warp/iris-wipe via a <code>types: ['bridge']</code> view-transition type, both directions. Reuse the Phase 1 <code>pageswap</code>/<code>pagereveal</code> plumbing; add a <code>bridge</code> type branch in <code>transitions.css</code>.</li>
+  <li><strong>Hall of Versions</strong> (<code>version/d-hall</code> + new Pages project): gallery of AI-generated designs — screenshot, generation #, date, the prompt that made it. Ship with gen #1.</li>
+  <li><strong>Self-redesign pipeline:</strong> scheduled Claude Code cloud agent / GH Action → generates a <code>gen/N</code> branch → opens a PR with preview. On merge: deploy, screenshot, append to hall manifest. Human approval stays in the loop.</li>
+</ul>
+
+<h3>Phase 4 — The Nexus (<code>version/e-nexus</code>)</h3>
+<ul>
+  <li>One lightweight Three.js scene: floating portals, one per page across both clusters; drag-orbit, click/tap to travel (portal zoom blends into the view transition).</li>
+  <li>Hard budget: &lt;1 MB JS gzipped; lazy-load behind an instant title frame; static image + link-list fallback for no-WebGL. Never the random landing page.</li>
+</ul>
+
+<h3>Phase 5 — Third Cluster-2 page (<code>f-???</code>) + polish</h3>
+<ul>
+  <li>Pick one: A/B <strong>scoreboard observatory</strong> (which universe wins — log assignments/switches to Analytics Engine or KV), <strong>visitor pixel wall</strong> (KV/D1), or live <strong>"now" dashboard</strong>.</li>
+  <li>Polish: per-version OG images, analytics, a11y audit, wiki refresh.</li>
+</ul>
+
+<h2>Cross-cutting reminders</h2>
+<ul>
+  <li><strong>Content contract:</strong> <code>src/content/{site,experience}.ts</code> + <code>src/assets/images/</code> are identical across versions. Content changes go on <code>content</code> then cherry-pick. The switcher kit now follows the same rule.</li>
+  <li><strong>Stack:</strong> Astro 5.17 + Tailwind 4.2 + <code>@astrojs/cloudflare</code> adapter, React + sitemap integrations. Accent color <code>#6366f1</code>. Dark mode default, pre-paint theme script in every layout.</li>
+  <li><strong>Local testing of transitions</strong> requires same-origin: build each version, serve <code>dist/</code> on 4321/4322/4323, run <code>node scripts/dev-proxy.mjs</code>, open <code>http://localhost:8787</code>. (Headless Chromium works for screenshots; system Google Chrome was crashing headless — use Chromium with <code>--user-data-dir</code>.)</li>
+  <li><strong>View Transitions are Chrome/Edge-only</strong> for now (cross-document). Always progressive enhancement — never block navigation on them.</li>
+  <li><strong>Commit attribution:</strong> end messages with <code>Co-Authored-By: Claude &lt;model&gt; &lt;noreply@anthropic.com&gt;</code>. Don't push without explicit user go-ahead. Branch before committing on default branch (already on the per-version branches here).</li>
+</ul>
+
+</body>
+</html>
