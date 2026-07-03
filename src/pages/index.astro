@@ -232,6 +232,7 @@ const terminalPayload = JSON.stringify(terminalData).replace(/</g, "\\u003c");
       jobs: PretextJob[],
       startDelay: number,
       timers: number[],
+      intervals: number[],
       reduceMotion: boolean,
     ): number {
       let cursor = startDelay;
@@ -262,6 +263,7 @@ const terminalPayload = JSON.stringify(terminalData).replace(/</g, "\\u003c");
                 if (isLastLineOfPara) revealed.add(job.el);
               }
             }, OUTPUT_CHAR_MS);
+            intervals.push(interval);
             trackInterval(job.el, interval);
           }, typeStart);
           timers.push(timeout);
@@ -353,6 +355,9 @@ const terminalPayload = JSON.stringify(terminalData).replace(/</g, "\\u003c");
         div.textContent = text;
         return;
       }
+      // Drop the &nbsp; placeholder before appending, but keep it for blank
+      // lines so they preserve their height.
+      if (text.length) div.textContent = "";
       for (let i = 0; i < text.length; i++) {
         div.textContent += text[i];
         await new Promise((resolve) => window.setTimeout(resolve, 8));
@@ -410,7 +415,8 @@ const terminalPayload = JSON.stringify(terminalData).replace(/</g, "\\u003c");
       out: HTMLElement,
       question: string,
       data: TerminalData,
-    ) {
+      secret: string,
+    ): Promise<boolean | "unauthorized"> {
       const statusLine = createLine("connecting to /api/ask…", "text-neutral-400 dark:text-neutral-600");
       out.appendChild(statusLine);
 
@@ -424,12 +430,18 @@ const terminalPayload = JSON.stringify(terminalData).replace(/</g, "\\u003c");
           body: JSON.stringify({
             question,
             context: askContext(data),
+            secret,
           }),
         });
       } catch (err) {
         const message = err instanceof Error ? err.message : String(err);
         statusLine.textContent = `ask service unavailable (${message}); using local fallback.`;
         return false;
+      }
+
+      if (resp.status === 401) {
+        statusLine.remove();
+        return "unauthorized";
       }
 
       if (!resp.ok || !resp.body) {
@@ -440,6 +452,7 @@ const terminalPayload = JSON.stringify(terminalData).replace(/</g, "\\u003c");
 
       statusLine.textContent = "streaming grounded answer from /api/ask:";
       const answer = createLine("");
+      answer.textContent = ""; // drop the &nbsp; placeholder before streaming deltas in
       out.appendChild(answer);
 
       const reader = resp.body.getReader();
@@ -531,6 +544,18 @@ const terminalPayload = JSON.stringify(terminalData).replace(/</g, "\\u003c");
       const history: string[] = [];
       let historyIndex = 0;
 
+      // `ask` is gated behind a shared secret so the paid AI endpoint isn't
+      // open to the public. The secret is held for the tab and sent per request.
+      let askSecret: string | null = (() => {
+        try {
+          return sessionStorage.getItem("ask-secret");
+        } catch {
+          return null;
+        }
+      })();
+      let secretMode = false;
+      let pendingAsk: { out: HTMLElement; question: string } | null = null;
+
       function scrollToBottom() {
         requestAnimationFrame(() => {
           const scrollParent = terminalBody ?? root;
@@ -598,10 +623,10 @@ const terminalPayload = JSON.stringify(terminalData).replace(/</g, "\\u003c");
           "  open <project|github|linkedin|email>",
           "  git log                      Show real baked-in commit history",
           "  switch <a-scroll|b-card|c-terminal>",
-          "  ask <question>               Stream grounded Q&A (/api/ask, local fallback)",
+          "  ask <question>               Ask Sean's private AI assistant (secret required)",
           "  whoami | contact | clear | history | date | pwd",
           "",
-          "Hint: there is a planned hidden bridge command for the next phase. It is not wired yet.",
+          "Note: `ask` streams answers from a private, secret-gated AI (Claude Sonnet). Ask Sean for the secret.",
         ];
       }
 
@@ -787,6 +812,71 @@ const terminalPayload = JSON.stringify(terminalData).replace(/</g, "\\u003c");
         ];
       }
 
+      function enterSecretMode(out: HTMLElement) {
+        secretMode = true;
+        input.type = "password";
+        input.placeholder = "access secret…";
+        input.value = "";
+        setHint("This assistant is private. Enter the secret Sean gave you, then Enter. (Esc to cancel)");
+        printLines(out, [
+          "🔒 ask is private. Enter the access secret at the prompt below (ask Sean for it).",
+        ]);
+        input.focus();
+      }
+
+      function exitSecretMode() {
+        secretMode = false;
+        input.type = "text";
+        input.placeholder = "help";
+        setHint("↑/↓ history · Tab completion · type help anytime.");
+      }
+
+      function cancelSecretMode() {
+        input.value = "";
+        exitSecretMode();
+        if (pendingAsk) printLines(pendingAsk.out, ["ask cancelled."]);
+        pendingAsk = null;
+      }
+
+      async function performAsk(out: HTMLElement, question: string) {
+        const result = await streamRemoteAsk(out, question, data, askSecret ?? "");
+        if (result === "unauthorized") {
+          askSecret = null;
+          try {
+            sessionStorage.removeItem("ask-secret");
+          } catch {}
+          printLines(out, [
+            "access denied: invalid secret. Run `ask <question>` again to retry.",
+          ]);
+          return;
+        }
+        if (result === true) return;
+        // Network/other failure — use the free, client-side static answer.
+        const lines = answerQuestion(question);
+        for (const line of lines) await typeLine(out, line);
+      }
+
+      async function handleSecretEntry() {
+        const secret = input.value.trim();
+        input.value = "";
+        exitSecretMode();
+        if (!secret) {
+          if (pendingAsk) printLines(pendingAsk.out, ["ask cancelled."]);
+          pendingAsk = null;
+          return;
+        }
+        askSecret = secret;
+        try {
+          sessionStorage.setItem("ask-secret", secret);
+        } catch {}
+        const p = pendingAsk;
+        pendingAsk = null;
+        if (p) {
+          await performAsk(p.out, p.question);
+          scrollToBottom();
+        }
+      }
+
       async function runCommand(rawCommand: string, out: HTMLElement) {
         const tokens = tokenize(rawCommand);
         const [cmd = ""] = tokens;
@@ -815,14 +905,29 @@ const terminalPayload = JSON.stringify(terminalData).replace(/</g, "\\u003c");
             break;
           case "ask": {
             const question = rawCommand.replace(/^ask\s*/i, "").trim();
-            const streamed = question ? await streamRemoteAsk(out, question, data) : false;
-            if (streamed) break;
-            const lines = answerQuestion(question);
-            for (const line of lines) await typeLine(out, line);
+            if (!question) {
+              printLines(out, ["usage: ask <question about Sean>"]);
+              break;
+            }
+            if (question.length > 500) {
+              printLines(out, ["ask: question too long (500 character max)."]);
+              break;
+            }
+            if (!askSecret) {
+              pendingAsk = { out, question };
+              enterSecretMode(out);
+              break;
+            }
+            await performAsk(out, question);
             break;
           }
           case "clear":
             live.innerHTML = "";
+            // Also remove the static boot blocks (whoami/about) so `clear`
+            // blanks the whole screen, not just the live region.
+            root
+              .querySelectorAll(":scope > .terminal-block:not(#terminal-prompt)")
+              .forEach((el) => el.remove());
             break;
           case "whoami":
             printLines(out, [`${data.site.name} — ${data.site.title}`, data.site.tagline]);
@@ -903,9 +1008,21 @@ const terminalPayload = JSON.stringify(terminalData).replace(/</g, "\\u003c");
 
       const submitHandler = (e: SubmitEvent) => {
         e.preventDefault();
+        if (secretMode) {
+          void handleSecretEntry();
+          return;
+        }
         void submitCommand(input.value);
       };
       const keyHandler = (e: KeyboardEvent) => {
+        if (secretMode) {
+          // While entering the secret, don't run history/completion; Esc cancels.
+          if (e.key === "Escape") {
+            e.preventDefault();
+            cancelSecretMode();
+          }
+          return;
+        }
         if (e.key === "ArrowUp") {
           e.preventDefault();
           if (!history.length) return;
@@ -957,7 +1074,11 @@ const terminalPayload = JSON.stringify(terminalData).replace(/</g, "\\u003c");
       if (!root || !data) return;
 
       const timers: number[] = [];
-      const cleanups: Array<() => void> = [() => timers.forEach((timer) => clearTimeout(timer))];
+      const intervals: number[] = [];
+      const cleanups: Array<() => void> = [
+        () => timers.forEach((timer) => clearTimeout(timer)),
+        () => intervals.forEach((id) => clearInterval(id)),
+      ];
       (window as any).__seanTerminalCleanup = () => {
         cleanups.splice(0).forEach((cleanup) => cleanup());
       };
@@ -997,6 +1118,7 @@ const terminalPayload = JSON.stringify(terminalData).replace(/</g, "\\u003c");
               charIndex++;
               if (charIndex >= text.length) clearInterval(interval);
             }, COMMAND_CHAR_MS);
+            intervals.push(interval);
           }, commandStart);
           timers.push(timeout);
         }
@@ -1008,7 +1130,7 @@ const terminalPayload = JSON.stringify(terminalData).replace(/</g, "\\u003c");
             if (output) output.style.visibility = "visible";
           }, reduceMotion ? 0 : revealStart);
           timers.push(timeout);
-          const outputEnd = revealOutput(jobs, reduceMotion ? 0 : revealStart, timers, reduceMotion);
+          const outputEnd = revealOutput(jobs, reduceMotion ? 0 : revealStart, timers, intervals, reduceMotion);
           runningDelay = reduceMotion ? 0 : outputEnd + BLOCK_GAP_MS;
         } else {
           const revealAt = reduceMotion ? 0 : commandEnd + 80;

@@ -1,0 +1,14 @@
+# Local dev secrets for `astro dev` (loaded via the Cloudflare adapter's platformProxy).
+# Copy to `.dev.vars` (gitignored) and fill in real values.
+#
+# Production: set these with `wrangler secret put <NAME>` instead — do NOT commit them.
+
+# Anthropic API key that powers the `ask` command's /api/ask endpoint.
+ANTHROPIC_API_KEY=sk-ant-...
+
+# Shared secret the terminal prompts for before it will call the AI.
+# Hand this out to people you want to have access; rotate it here to revoke.
+ASK_SECRET=change-me-to-a-long-random-string
+
+# Optional: override the model (defaults to claude-sonnet-5).
+# ASK_MODEL=claude-sonnet-5
