@@ -2,6 +2,8 @@
 dist/
 # generated types
 .astro/
+# generated at build time by scripts/write-git-log.mjs (predev/prebuild)
+src/content/git-log.ts
 
 # dependencies
 node_modules/
