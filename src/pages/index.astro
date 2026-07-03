@@ -56,30 +56,6 @@ const terminalPayload = JSON.stringify(terminalData).replace(/</g, "\\u003c");
       ))}
     </TerminalBlock>
 
-    <TerminalBlock command="ls experience/">
-      <p class="font-mono">
-        {work.map((e) => `${slugify(e.organization)}-${slugify(e.title)}`).join("  ")}
-      </p>
-    </TerminalBlock>
-
-    <TerminalBlock command="ls projects/">
-      <p class="font-mono">
-        {projects.map((project) => project.id).join("  ")}
-      </p>
-    </TerminalBlock>
-
-    <TerminalBlock command="ls education/">
-      <p class="font-mono">
-        {education.map((e) => slugify(e.title)).join("  ")}
-      </p>
-    </TerminalBlock>
-
-    <TerminalBlock command="contact">
-      <p>email: <a href={`mailto:${site.email}`} class="text-green-500 hover:underline dark:text-green-400">{site.email}</a></p>
-      <p>github: <a href={site.github} target="_blank" rel="noopener noreferrer" class="text-green-500 hover:underline dark:text-green-400">{site.github.replace("https://", "")}</a></p>
-      <p>linkedin: <a href={site.linkedin} target="_blank" rel="noopener noreferrer" class="text-green-500 hover:underline dark:text-green-400">{site.linkedin.replace("https://www.", "")}</a></p>
-    </TerminalBlock>
-
     <div id="terminal-live-region" aria-live="polite" aria-relevant="additions"></div>
 
     <form
