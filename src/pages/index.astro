@@ -3,96 +3,170 @@ import TerminalLayout from "../layouts/TerminalLayout.astro";
 import TerminalBlock from "../components/TerminalBlock.astro";
 import { site } from "../content/site";
 import { experience } from "../content/experience";
+import { gitLog } from "../content/git-log";
+import { projects } from "../content/projects";
+
+const slugify = (value: string) =>
+  value
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/(^-|-$)/g, "");
 
 const work = experience.filter((e) => e.type === "work");
 const education = experience.filter((e) => e.type === "education");
+
+const about = [
+  "Software engineer with a M.S. in Software Engineering and a B.S. in Computer Science from Loyola University Chicago. I enjoy building clean, practical software and have experience across front-end, back-end, data engineering, and machine learning.",
+  "When I'm not writing code, you can find me in the boxing ring, on the mountain snowboarding, enjoying a live concert, or at home building furniture and making art. World traveler. Eagle Scout. Cat dad to Sunny.",
+];
+
+const terminalData = {
+  site,
+  about,
+  experience: work.map((entry) => ({
+    ...entry,
+    id: `${slugify(entry.organization)}-${slugify(entry.title)}`,
+  })),
+  education: education.map((entry) => ({
+    ...entry,
+    id: slugify(entry.title),
+  })),
+  projects,
+  gitLog,
+};
+
+const terminalPayload = JSON.stringify(terminalData).replace(/</g, "\\u003c");
 ---
 
 <TerminalLayout title="Sean Higgins — Software Engineer">
-  <TerminalBlock command="whoami">
-    <p class="vt-sean-name font-semibold text-neutral-800 dark:text-neutral-200">
-      {site.name} — {site.title}
-    </p>
-  </TerminalBlock>
+  <script type="application/json" id="terminal-data" set:html={terminalPayload}></script>
 
-  <TerminalBlock command="cat about.txt">
-    <p data-pretext>
-      Software engineer with a M.S. in Software Engineering and a B.S. in
-      Computer Science from Loyola University Chicago. I enjoy building clean,
-      practical software and have experience across front-end, back-end, data
-      engineering, and machine learning.
-    </p>
-    <p class="mt-2" data-pretext>
-      When I'm not writing code, you can find me in the boxing ring, on the
-      mountain snowboarding, enjoying a live concert, or at home building
-      furniture and making art. World traveler. Eagle Scout. Cat dad to Sunny.
-    </p>
-  </TerminalBlock>
-
-  <TerminalBlock command="ls experience/">
-    <p class="font-mono">
-      {work.map((e) =>
-        `${e.organization.toLowerCase().replace(/\s+/g, "-")}-${e.title.toLowerCase().replace(/\s+/g, "-")}`
-      ).join("  ")}
-    </p>
-  </TerminalBlock>
-
-  {work.map((entry) => (
-    <TerminalBlock command={`cat experience/${entry.organization.toLowerCase().replace(/\\s+/g, "-")}-${entry.title.toLowerCase().replace(/\\s+/g, "-")}`}>
-      <p class="font-semibold text-neutral-800 dark:text-neutral-200">
-        {entry.title} @ {entry.organization} ({entry.dates})
+  <div id="terminal-session" class="vt-skip-intro">
+    <TerminalBlock command="whoami">
+      <p class="vt-sean-name font-semibold text-neutral-800 dark:text-neutral-200">
+        {site.name} — {site.title}
       </p>
-      <p class="mt-1" data-pretext>{entry.description}</p>
     </TerminalBlock>
-  ))}
 
-  <TerminalBlock command="ls education/">
-    <p class="font-mono">
-      {education.map((e) =>
-        `${e.title.toLowerCase().replace(/\s+/g, "-")}`
-      ).join("  ")}
-    </p>
-  </TerminalBlock>
+    <TerminalBlock command="cat about.txt">
+      {about.map((paragraph, index) => (
+        <p class:list={[index > 0 && "mt-2"]} data-pretext>
+          {paragraph}
+        </p>
+      ))}
+    </TerminalBlock>
 
-  {education.map((entry) => (
-    <TerminalBlock command={`cat education/${entry.title.toLowerCase().replace(/\\s+/g, "-")}`}>
-      <p class="font-semibold text-neutral-800 dark:text-neutral-200">
-        {entry.title} — {entry.organization} ({entry.dates})
+    <TerminalBlock command="ls experience/">
+      <p class="font-mono">
+        {work.map((e) => `${slugify(e.organization)}-${slugify(e.title)}`).join("  ")}
       </p>
-      <p class="mt-1" data-pretext>{entry.description}</p>
     </TerminalBlock>
-  ))}
 
-  <TerminalBlock command="contact">
-    <p>email: <a href={`mailto:${site.email}`} class="text-green-500 hover:underline dark:text-green-400">{site.email}</a></p>
-    <p>github: <a href={site.github} target="_blank" rel="noopener noreferrer" class="text-green-500 hover:underline dark:text-green-400">{site.github.replace("https://", "")}</a></p>
-    <p>linkedin: <a href={site.linkedin} target="_blank" rel="noopener noreferrer" class="text-green-500 hover:underline dark:text-green-400">{site.linkedin.replace("https://www.", "")}</a></p>
-  </TerminalBlock>
+    <TerminalBlock command="ls projects/">
+      <p class="font-mono">
+        {projects.map((project) => project.id).join("  ")}
+      </p>
+    </TerminalBlock>
 
-  <div class="terminal-block">
-    <span class="text-green-500 dark:text-green-400">$</span>
-    <span class="blinking-cursor ml-2 inline-block h-5 w-2.5 translate-y-0.5 bg-green-500 dark:bg-green-400"></span>
+    <TerminalBlock command="ls education/">
+      <p class="font-mono">
+        {education.map((e) => slugify(e.title)).join("  ")}
+      </p>
+    </TerminalBlock>
+
+    <TerminalBlock command="contact">
+      <p>email: <a href={`mailto:${site.email}`} class="text-green-500 hover:underline dark:text-green-400">{site.email}</a></p>
+      <p>github: <a href={site.github} target="_blank" rel="noopener noreferrer" class="text-green-500 hover:underline dark:text-green-400">{site.github.replace("https://", "")}</a></p>
+      <p>linkedin: <a href={site.linkedin} target="_blank" rel="noopener noreferrer" class="text-green-500 hover:underline dark:text-green-400">{site.linkedin.replace("https://www.", "")}</a></p>
+    </TerminalBlock>
+
+    <div id="terminal-live-region" aria-live="polite" aria-relevant="additions"></div>
+
+    <form
+      id="terminal-prompt"
+      class="terminal-block mt-2 opacity-0 transition-opacity duration-300"
+      autocomplete="off"
+      data-ready="false"
+    >
+      <label class="flex items-baseline gap-2">
+        <span class="text-green-500 dark:text-green-400">$</span>
+        <input
+          id="terminal-input"
+          class="min-w-0 flex-1 bg-transparent text-neutral-800 caret-green-500 outline-none placeholder:text-neutral-400 disabled:cursor-wait dark:text-neutral-200 dark:placeholder:text-neutral-600"
+          name="command"
+          type="text"
+          inputmode="text"
+          spellcheck="false"
+          autocapitalize="off"
+          autocomplete="off"
+          aria-label="Terminal command prompt"
+          placeholder="booting…"
+          disabled
+        />
+        <span class="blinking-cursor inline-block h-5 w-2.5 translate-y-0.5 bg-green-500 dark:bg-green-400" aria-hidden="true"></span>
+      </label>
+      <p id="terminal-hint" class="mt-2 text-xs text-neutral-400 dark:text-neutral-600">
+        Type <kbd class="rounded border border-neutral-300 px-1 dark:border-neutral-700">help</kbd> after boot. ↑/↓ history · Tab completion.
+      </p>
+    </form>
   </div>
 
-  <!-- Typing animation -->
+  <!-- Boot typing + real command engine -->
   <script>
     import {
       prepareWithSegments,
       layoutWithLines,
     } from "@chenglou/pretext";
 
-    const COMMAND_CHAR_MS = 30;
-    const OUTPUT_CHAR_MS = 8;
-    const BLOCK_GAP_MS = 400;
+    const COMMAND_CHAR_MS = 18;
+    const OUTPUT_CHAR_MS = 3;
+    const BLOCK_GAP_MS = 140;
 
     type PretextJob = {
       el: HTMLElement;
       lines: string[];
     };
 
-    // Per-paragraph active typing intervals, so resize can cancel them.
+    type TerminalEntry = {
+      id: string;
+      type?: "work" | "education";
+      title: string;
+      organization: string;
+      dates: string;
+      description: string;
+      url?: string;
+    };
+
+    type ProjectEntry = {
+      id: string;
+      title: string;
+      summary: string;
+      url: string;
+      source: string;
+    };
+
+    type GitLogEntry = {
+      hash: string;
+      message: string;
+    };
+
+    type TerminalData = {
+      site: {
+        name: string;
+        title: string;
+        tagline: string;
+        email: string;
+        github: string;
+        linkedin: string;
+      };
+      about: string[];
+      experience: TerminalEntry[];
+      education: TerminalEntry[];
+      projects: ProjectEntry[];
+      gitLog: GitLogEntry[];
+    };
+
     const activeIntervals = new WeakMap<HTMLElement, Set<number>>();
-    // Paragraphs whose reveal has already finished (safe to re-layout silently).
     const revealed = new WeakSet<HTMLElement>();
 
     function trackInterval(p: HTMLElement, id: number) {
@@ -151,18 +225,14 @@ const education = experience.filter((e) => e.type === "education");
       });
     }
 
-    // Pre-compute exact line breaks with Pretext for every [data-pretext]
-    // paragraph. No getBoundingClientRect per line, no reflow during reveal.
-    function layoutPretextParagraphs(): Map<HTMLElement, PretextJob[]> {
+    function layoutPretextParagraphs(root: HTMLElement): Map<HTMLElement, PretextJob[]> {
       const jobsByBlock = new Map<HTMLElement, PretextJob[]>();
-      const paragraphs = document.querySelectorAll<HTMLElement>("[data-pretext]");
+      const paragraphs = root.querySelectorAll<HTMLElement>("[data-pretext]");
 
       paragraphs.forEach((p) => {
         const block = p.closest(".terminal-block") as HTMLElement | null;
         if (!block) return;
 
-        // Cache the canonical text on first run so resize re-layout has a
-        // source of truth independent of the current (maybe partial) DOM.
         let text = p.dataset.pretextText;
         if (!text) {
           text = (p.textContent || "").replace(/\s+/g, " ").trim();
@@ -185,6 +255,8 @@ const education = experience.filter((e) => e.type === "education");
     function revealOutput(
       jobs: PretextJob[],
       startDelay: number,
+      timers: number[],
+      reduceMotion: boolean,
     ): number {
       let cursor = startDelay;
       jobs.forEach((job) => {
@@ -196,7 +268,14 @@ const education = experience.filter((e) => e.type === "education");
           const leading = span.dataset.leadingSpace === "1" ? " " : "";
           const typeStart = cursor;
           const isLastLineOfPara = lineIdx === spans.length - 1;
-          setTimeout(() => {
+
+          if (reduceMotion) {
+            span.textContent = leading + full;
+            if (isLastLineOfPara) revealed.add(job.el);
+            return;
+          }
+
+          const timeout = window.setTimeout(() => {
             let i = 0;
             const interval = window.setInterval(() => {
               span.textContent = leading + full.slice(0, i + 1);
@@ -209,6 +288,7 @@ const education = experience.filter((e) => e.type === "education");
             }, OUTPUT_CHAR_MS);
             trackInterval(job.el, interval);
           }, typeStart);
+          timers.push(timeout);
           cursor += full.length * OUTPUT_CHAR_MS;
           if (lineIdx < spans.length - 1) cursor += 20;
         });
@@ -216,17 +296,13 @@ const education = experience.filter((e) => e.type === "education");
       return cursor;
     }
 
-    // Debounced resize: re-run Pretext with the new width for every paragraph.
-    // Paragraphs mid-reveal get cancelled and snapped to fully-filled state —
-    // the user is actively interacting, so finishing instantly is the right call.
-    function setupResizeHandler() {
+    function setupResizeHandler(root: HTMLElement, cleanups: Array<() => void>) {
       let pending = 0;
-      window.addEventListener("resize", () => {
+      const handler = () => {
         if (pending) cancelAnimationFrame(pending);
         pending = requestAnimationFrame(() => {
           pending = 0;
-          const paragraphs =
-            document.querySelectorAll<HTMLElement>("[data-pretext]");
+          const paragraphs = root.querySelectorAll<HTMLElement>("[data-pretext]");
           paragraphs.forEach((p) => {
             const text = p.dataset.pretextText;
             if (!text) return;
@@ -236,10 +312,683 @@ const education = experience.filter((e) => e.type === "education");
             revealed.add(p);
           });
         });
+      };
+      window.addEventListener("resize", handler);
+      cleanups.push(() => {
+        window.removeEventListener("resize", handler);
+        if (pending) cancelAnimationFrame(pending);
       });
     }
 
-    async function setupTypingAnimation() {
+    function parseTerminalData(): TerminalData | null {
+      const el = document.getElementById("terminal-data");
+      if (!el?.textContent) return null;
+      try {
+        return JSON.parse(el.textContent) as TerminalData;
+      } catch {
+        return null;
+      }
+    }
+
+    function normalizePath(value = "") {
+      return value.trim().replace(/^\.\//, "").replace(/^\//, "").replace(/\/$/, "");
+    }
+
+    function tokenize(input: string): string[] {
+      const tokens: string[] = [];
+      const re = /"([^"]*)"|'([^']*)'|(\S+)/g;
+      let match: RegExpExecArray | null;
+      while ((match = re.exec(input))) {
+        tokens.push(match[1] ?? match[2] ?? match[3] ?? "");
+      }
+      return tokens;
+    }
+
+    function createLine(text = "", className = "") {
+      const div = document.createElement("div");
+      div.className = className;
+      div.textContent = text;
+      if (!text) div.innerHTML = "&nbsp;";
+      return div;
+    }
+
+    function printLines(out: HTMLElement, lines: string[], className = "") {
+      lines.forEach((line) => out.appendChild(createLine(line, className)));
+    }
+
+    function printLinkLine(out: HTMLElement, label: string, href: string) {
+      const div = document.createElement("div");
+      div.append(document.createTextNode(`${label}: `));
+      const a = document.createElement("a");
+      a.href = href;
+      a.target = href.startsWith("mailto:") ? "" : "_blank";
+      a.rel = "noopener noreferrer";
+      a.className = "text-green-500 hover:underline dark:text-green-400";
+      a.textContent = href.replace(/^mailto:/, "").replace(/^https?:\/\//, "").replace(/^www\./, "");
+      div.appendChild(a);
+      out.appendChild(div);
+    }
+
+    async function typeLine(out: HTMLElement, text: string) {
+      const div = createLine("");
+      out.appendChild(div);
+      const reduceMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+      if (reduceMotion) {
+        div.textContent = text;
+        return;
+      }
+      for (let i = 0; i < text.length; i++) {
+        div.textContent += text[i];
+        await new Promise((resolve) => window.setTimeout(resolve, 8));
+      }
+    }
+
+    function resumeLines(data: TerminalData) {
+      return [
+        `# ${data.site.name}`,
+        data.site.title,
+        "",
+        "## Contact",
+        `- Email: ${data.site.email}`,
+        `- GitHub: ${data.site.github}`,
+        `- LinkedIn: ${data.site.linkedin}`,
+        "",
+        "## About",
+        ...data.about.map((line) => `- ${line}`),
+        "",
+        "## Experience",
+        ...data.experience.flatMap((entry) => [
+          `- ${entry.title} @ ${entry.organization} (${entry.dates})`,
+          `  ${entry.description}`,
+        ]),
+        "",
+        "## Projects",
+        ...data.projects.map((project) => `- ${project.title}: ${project.summary}`),
+        "",
+        "## Education",
+        ...data.education.flatMap((entry) => [
+          `- ${entry.title} — ${entry.organization} (${entry.dates})`,
+          `  ${entry.description}`,
+        ]),
+      ];
+    }
+
+    function askContext(data: TerminalData) {
+      return [
+        ...resumeLines(data),
+        "",
+        "## Recent site commits",
+        ...data.gitLog.slice(0, 10).map((entry) => `- ${entry.hash} ${entry.message}`),
+      ].join("\n");
+    }
+
+    async function readAskError(resp: Response) {
+      try {
+        const payload = await resp.json();
+        if (payload && typeof payload.error === "string") return payload.error;
+      } catch {}
+      return `ask service returned ${resp.status}`;
+    }
+
+    async function streamRemoteAsk(
+      out: HTMLElement,
+      question: string,
+      data: TerminalData,
+    ) {
+      const statusLine = createLine("connecting to /api/ask…", "text-neutral-400 dark:text-neutral-600");
+      out.appendChild(statusLine);
+
+      let resp: Response;
+      try {
+        resp = await fetch("/api/ask", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            question,
+            context: askContext(data),
+          }),
+        });
+      } catch (err) {
+        const message = err instanceof Error ? err.message : String(err);
+        statusLine.textContent = `ask service unavailable (${message}); using local fallback.`;
+        return false;
+      }
+
+      if (!resp.ok || !resp.body) {
+        const message = await readAskError(resp);
+        statusLine.textContent = `ask service unavailable (${message}); using local fallback.`;
+        return false;
+      }
+
+      statusLine.textContent = "streaming grounded answer from /api/ask:";
+      const answer = createLine("");
+      out.appendChild(answer);
+
+      const reader = resp.body.getReader();
+      const decoder = new TextDecoder();
+      let buffer = "";
+      let receivedText = false;
+
+      function consumeSseEvent(eventText: string) {
+        const dataLines = eventText
+          .split(/\r?\n/)
+          .filter((line) => line.startsWith("data:"))
+          .map((line) => line.slice(5).trimStart());
+
+        for (const dataLine of dataLines) {
+          if (!dataLine || dataLine === "[DONE]") continue;
+          try {
+            const event = JSON.parse(dataLine);
+            if (event.type === "content_block_delta" && typeof event.delta?.text === "string") {
+              answer.textContent += event.delta.text;
+              receivedText = true;
+            } else if (event.type === "error") {
+              throw new Error(event.error?.message || "model stream error");
+            }
+          } catch (err) {
+            if (err instanceof SyntaxError) continue;
+            throw err;
+          }
+        }
+      }
+
+      try {
+        while (true) {
+          const { value, done } = await reader.read();
+          if (done) break;
+          buffer += decoder.decode(value, { stream: true });
+
+          let boundary = buffer.indexOf("\n\n");
+          while (boundary !== -1) {
+            const eventText = buffer.slice(0, boundary);
+            buffer = buffer.slice(boundary + 2);
+            consumeSseEvent(eventText);
+            boundary = buffer.indexOf("\n\n");
+          }
+        }
+
+        buffer += decoder.decode();
+        if (buffer.trim()) consumeSseEvent(buffer);
+      } catch (err) {
+        const message = err instanceof Error ? err.message : String(err);
+        statusLine.textContent = `ask stream interrupted (${message}); using local fallback.`;
+        if (!receivedText) answer.remove();
+        return receivedText;
+      }
+
+      if (!receivedText) {
+        statusLine.textContent = "ask service returned no text; using local fallback.";
+        answer.remove();
+        return false;
+      }
+
+      return true;
+    }
+
+    function setupCommandEngine(root: HTMLElement, data: TerminalData, cleanups: Array<() => void>) {
+      const form = root.querySelector<HTMLFormElement>("#terminal-prompt");
+      const input = root.querySelector<HTMLInputElement>("#terminal-input");
+      const live = root.querySelector<HTMLElement>("#terminal-live-region");
+      const hint = root.querySelector<HTMLElement>("#terminal-hint");
+      const terminalBody = root.closest(".terminal-window")?.querySelector<HTMLElement>(".overflow-y-auto");
+      if (!form || !input || !live) return () => {};
+
+      const commands = ["help", "ls", "cat", "open", "git", "switch", "ask", "clear", "whoami", "contact", "pwd", "date", "history"];
+      const versions = ["a-scroll", "b-card", "c-terminal"];
+      const aliases = new Map([
+        ["scroll", "a-scroll"],
+        ["card", "b-card"],
+        ["terminal", "c-terminal"],
+      ]);
+      const catTargets = [
+        "about.txt",
+        "resume.md",
+        "contact.txt",
+        ...data.projects.map((p) => `projects/${p.id}`),
+        ...data.experience.map((e) => `experience/${e.id}`),
+        ...data.education.map((e) => `education/${e.id}`),
+      ];
+      const openTargets = ["github", "linkedin", "email", "resume", ...data.projects.map((p) => p.id)];
+      const lsTargets = ["projects/", "experience/", "education/"];
+      const history: string[] = [];
+      let historyIndex = 0;
+
+      function scrollToBottom() {
+        requestAnimationFrame(() => {
+          const scrollParent = terminalBody ?? root;
+          scrollParent.scrollTop = scrollParent.scrollHeight;
+        });
+      }
+
+      function setHint(text: string) {
+        if (hint) hint.textContent = text;
+      }
+
+      function appendCommandBlock(command: string) {
+        const block = document.createElement("div");
+        block.className = "terminal-block mb-6";
+
+        const cmd = document.createElement("div");
+        cmd.className = "command mb-1";
+        const prompt = document.createElement("span");
+        prompt.className = "text-green-500 dark:text-green-400";
+        prompt.textContent = "$";
+        const typed = document.createElement("span");
+        typed.className = "ml-2 text-neutral-800 dark:text-neutral-200";
+        typed.textContent = command;
+        cmd.append(prompt, typed);
+
+        const out = document.createElement("div");
+        out.className = "output whitespace-pre-wrap text-neutral-600 dark:text-neutral-400";
+
+        block.append(cmd, out);
+        live.appendChild(block);
+        return out;
+      }
+
+      function findExperience(path: string) {
+        const id = normalizePath(path).replace(/^experience\//, "");
+        return data.experience.find((entry) => entry.id === id);
+      }
+
+      function findEducation(path: string) {
+        const id = normalizePath(path).replace(/^education\//, "");
+        return data.education.find((entry) => entry.id === id);
+      }
+
+      function findProject(value: string) {
+        const id = normalizePath(value).replace(/^projects\//, "");
+        return data.projects.find((project) => project.id === id);
+      }
+
+      function listRoot() {
+        return [
+          "about.txt  resume.md  contact.txt",
+          "projects/  experience/  education/",
+          "git/       versions/    help",
+        ];
+      }
+
+      function commandHelp() {
+        return [
+          "Available commands:",
+          "  help                         Show this help menu",
+          "  ls [projects|experience|education]",
+          "  cat about.txt|resume.md|contact.txt",
+          "  cat projects/<id>            Read project notes",
+          "  cat experience/<id>          Read work history",
+          "  open <project|github|linkedin|email>",
+          "  git log                      Show real baked-in commit history",
+          "  switch <a-scroll|b-card|c-terminal>",
+          "  ask <question>               Stream grounded Q&A (/api/ask, local fallback)",
+          "  whoami | contact | clear | history | date | pwd",
+          "",
+          "Hint: there is a planned hidden bridge command for the next phase. It is not wired yet.",
+        ];
+      }
+
+      function commandLs(pathArg = "") {
+        const path = normalizePath(pathArg || ".");
+        if (path === "." || path === "") return listRoot();
+        if (path === "projects") return data.projects.map((project) => project.id);
+        if (path === "experience") return data.experience.map((entry) => entry.id);
+        if (path === "education") return data.education.map((entry) => entry.id);
+        if (path === "versions") return versions;
+        return [`ls: ${pathArg}: No such directory`];
+      }
+
+      function commandCat(pathArg = "") {
+        const path = normalizePath(pathArg);
+        if (!path) return ["usage: cat <about.txt|resume.md|contact.txt|projects/<id>|experience/<id>|education/<id>>"];
+        if (path === "about.txt") return data.about;
+        if (path === "resume.md") return resumeLines(data);
+        if (path === "contact.txt") {
+          return [
+            `email: ${data.site.email}`,
+            `github: ${data.site.github}`,
+            `linkedin: ${data.site.linkedin}`,
+          ];
+        }
+
+        const project = findProject(path);
+        if (project) {
+          return [
+            `${project.title} (${project.id})`,
+            project.summary,
+            `source: ${project.source}`,
+            `open: ${project.url}`,
+          ];
+        }
+
+        const exp = findExperience(path);
+        if (exp) {
+          return [
+            `${exp.title} @ ${exp.organization}`,
+            exp.dates,
+            exp.description,
+            exp.url ? `open: ${exp.url}` : "",
+          ].filter(Boolean);
+        }
+
+        const edu = findEducation(path);
+        if (edu) {
+          return [
+            `${edu.title} — ${edu.organization}`,
+            edu.dates,
+            edu.description,
+            edu.url ? `open: ${edu.url}` : "",
+          ].filter(Boolean);
+        }
+
+        return [`cat: ${pathArg}: No such file`];
+      }
+
+      function commandGit(tokens: string[]) {
+        if (tokens[1] !== "log") return ["usage: git log"];
+        return data.gitLog.length
+          ? data.gitLog.map((entry) => `${entry.hash} ${entry.message}`)
+          : ["git history unavailable"];
+      }
+
+      function commandOpen(target = "") {
+        const normalized = normalizePath(target);
+        if (!normalized) return ["usage: open <project|github|linkedin|email>"];
+
+        let url = "";
+        let label = normalized;
+        if (normalized === "github") url = data.site.github;
+        if (normalized === "linkedin") url = data.site.linkedin;
+        if (normalized === "email") url = `mailto:${data.site.email}`;
+        if (normalized === "resume") {
+          return ["resume.md is generated inside this terminal: try `cat resume.md`."];
+        }
+        const project = findProject(normalized);
+        if (project) {
+          url = project.url;
+          label = project.title;
+        }
+
+        if (!url) return [`open: ${target}: unknown target. Try: ${openTargets.join("  ")}`];
+        if (url.startsWith("mailto:")) {
+          window.location.href = url;
+        } else {
+          window.open(url, "_blank", "noopener,noreferrer");
+        }
+        return [`opening ${label} → ${url}`];
+      }
+
+      function commandSwitch(versionArg = "") {
+        const normalized = aliases.get(versionArg) ?? versionArg;
+        if (!versions.includes(normalized)) {
+          return [`usage: switch <${versions.join("|")}>`];
+        }
+        window.location.href = `/?v=${encodeURIComponent(normalized)}`;
+        return [`switching to ${normalized}…`];
+      }
+
+      function commandHistory() {
+        return history.length ? history.map((cmd, idx) => `${idx + 1}  ${cmd}`) : ["history is empty"];
+      }
+
+      function answerQuestion(question: string) {
+        const q = question.toLowerCase();
+        if (!q.trim()) return ["usage: ask <question about Sean>"];
+
+        if (/email|contact|reach|linkedin|github/.test(q)) {
+          return [
+            "Sean's contact details from the site content:",
+            `- Email: ${data.site.email}`,
+            `- GitHub: ${data.site.github}`,
+            `- LinkedIn: ${data.site.linkedin}`,
+          ];
+        }
+
+        if (/education|degree|school|university|loyola|gpa/.test(q)) {
+          return [
+            "Sean's education:",
+            ...data.education.map((entry) => `- ${entry.title}, ${entry.organization} (${entry.dates}). ${entry.description}`),
+          ];
+        }
+
+        if (/project|portfolio|built|build|made|created|shipped/.test(q)) {
+          return [
+            "Projects represented in this terminal:",
+            ...data.projects.map((project) => `- ${project.title}: ${project.summary}`),
+          ];
+        }
+
+        if (/experience|work|career|job|capital one|kemper|r1|rcm/.test(q)) {
+          return [
+            "Sean's experience:",
+            ...data.experience.map((entry) => `- ${entry.title} @ ${entry.organization} (${entry.dates}): ${entry.description}`),
+          ];
+        }
+
+        const searchable = [
+          ...data.experience.map((entry) => ({
+            label: `${entry.title} @ ${entry.organization}`,
+            text: `${entry.title} ${entry.organization} ${entry.description}`,
+            answer: `${entry.title} @ ${entry.organization} (${entry.dates}): ${entry.description}`,
+          })),
+          ...data.projects.map((project) => ({
+            label: project.title,
+            text: `${project.title} ${project.id} ${project.summary} ${project.source}`,
+            answer: `${project.title}: ${project.summary}`,
+          })),
+          {
+            label: "about",
+            text: data.about.join(" "),
+            answer: data.about.join(" "),
+          },
+        ];
+        const terms = q
+          .split(/[^a-z0-9.+#]+/)
+          .filter((term) => term.length > 2 && !["what", "who", "how", "does", "did", "the", "and", "for", "with", "sean", "about"].includes(term));
+
+        const scored = searchable
+          .map((item) => ({
+            ...item,
+            score: terms.reduce((sum, term) => sum + (item.text.toLowerCase().includes(term) ? 1 : 0), 0),
+          }))
+          .filter((item) => item.score > 0)
+          .sort((a, b) => b.score - a.score)
+          .slice(0, 3);
+
+        if (!scored.length) {
+          return [
+            "I only answer from the content baked into this portfolio terminal.",
+            "Try asking about Sean's experience, education, projects, OAuth/API Gateway work, data engineering, machine learning, or contact info.",
+          ];
+        }
+
+        return [
+          "Static answer from the site content:",
+          ...scored.map((item) => `- ${item.answer}`),
+          "",
+          "Note: using the local fallback because /api/ask was unavailable or not configured.",
+        ];
+      }
+
+      async function runCommand(rawCommand: string, out: HTMLElement) {
+        const tokens = tokenize(rawCommand);
+        const [cmd = ""] = tokens;
+        const lower = cmd.toLowerCase();
+
+        if (!lower) return;
+
+        switch (lower) {
+          case "help":
+            printLines(out, commandHelp());
+            break;
+          case "ls":
+            printLines(out, commandLs(tokens[1]));
+            break;
+          case "cat":
+            printLines(out, commandCat(tokens.slice(1).join(" ")));
+            break;
+          case "open":
+            printLines(out, commandOpen(tokens.slice(1).join(" ")));
+            break;
+          case "git":
+            printLines(out, commandGit(tokens));
+            break;
+          case "switch":
+            printLines(out, commandSwitch(tokens[1]));
+            break;
+          case "ask": {
+            const question = rawCommand.replace(/^ask\s*/i, "").trim();
+            const streamed = question ? await streamRemoteAsk(out, question, data) : false;
+            if (streamed) break;
+            const lines = answerQuestion(question);
+            for (const line of lines) await typeLine(out, line);
+            break;
+          }
+          case "clear":
+            live.innerHTML = "";
+            break;
+          case "whoami":
+            printLines(out, [`${data.site.name} — ${data.site.title}`, data.site.tagline]);
+            break;
+          case "contact":
+            printLinkLine(out, "email", `mailto:${data.site.email}`);
+            printLinkLine(out, "github", data.site.github);
+            printLinkLine(out, "linkedin", data.site.linkedin);
+            break;
+          case "pwd":
+            printLines(out, ["/home/sean/portfolio"]);
+            break;
+          case "date":
+            printLines(out, [new Date().toString()]);
+            break;
+          case "history":
+            printLines(out, commandHistory());
+            break;
+          default:
+            printLines(out, [
+              `${cmd}: command not found`,
+              "Type `help` for available commands. Tab completes commands and known paths.",
+            ]);
+        }
+      }
+
+      function completionsFor(value: string) {
+        const beforeCursor = value;
+        const parts = beforeCursor.split(/\s+/);
+        const command = parts[0] ?? "";
+        const arg = parts.slice(1).join(" ");
+
+        if (parts.length <= 1 && !beforeCursor.endsWith(" ")) {
+          return commands.filter((candidate) => candidate.startsWith(command));
+        }
+
+        if (command === "ls") return lsTargets.filter((candidate) => candidate.startsWith(arg));
+        if (command === "cat") return catTargets.filter((candidate) => candidate.startsWith(arg));
+        if (command === "open") return openTargets.filter((candidate) => candidate.startsWith(arg));
+        if (command === "switch") return versions.filter((candidate) => candidate.startsWith(arg));
+        return [];
+      }
+
+      function applyCompletion() {
+        const value = input.value;
+        const options = completionsFor(value);
+        if (!options.length) {
+          setHint("No completions. Type help for commands.");
+          return;
+        }
+
+        const parts = value.split(/\s+/);
+        if (options.length === 1) {
+          if (parts.length <= 1 && !value.endsWith(" ")) {
+            input.value = `${options[0]} `;
+          } else {
+            input.value = `${parts[0]} ${options[0]}${options[0].endsWith("/") ? "" : " "}`;
+          }
+          setHint("Completed. Press Enter to run.");
+          return;
+        }
+
+        setHint(`Completions: ${options.join("  ")}`);
+      }
+
+      async function submitCommand(command: string) {
+        const trimmed = command.trim();
+        if (!trimmed) return;
+        history.push(trimmed);
+        historyIndex = history.length;
+        input.value = "";
+        setHint("↑/↓ history · Tab completion · type help anytime.");
+        const out = appendCommandBlock(trimmed);
+        scrollToBottom();
+        await runCommand(trimmed, out);
+        scrollToBottom();
+      }
+
+      const submitHandler = (e: SubmitEvent) => {
+        e.preventDefault();
+        void submitCommand(input.value);
+      };
+      const keyHandler = (e: KeyboardEvent) => {
+        if (e.key === "ArrowUp") {
+          e.preventDefault();
+          if (!history.length) return;
+          historyIndex = Math.max(0, historyIndex - 1);
+          input.value = history[historyIndex] ?? "";
+          input.setSelectionRange(input.value.length, input.value.length);
+        } else if (e.key === "ArrowDown") {
+          e.preventDefault();
+          if (!history.length) return;
+          historyIndex = Math.min(history.length, historyIndex + 1);
+          input.value = history[historyIndex] ?? "";
+          input.setSelectionRange(input.value.length, input.value.length);
+        } else if (e.key === "Tab") {
+          e.preventDefault();
+          applyCompletion();
+        }
+      };
+      const focusHandler = (e: MouseEvent) => {
+        const target = e.target as HTMLElement | null;
+        if (target?.closest("a, button, input, textarea, select, [contenteditable='true']")) return;
+        input.focus();
+      };
+
+      form.addEventListener("submit", submitHandler);
+      input.addEventListener("keydown", keyHandler);
+      terminalBody?.addEventListener("click", focusHandler);
+      cleanups.push(() => {
+        form.removeEventListener("submit", submitHandler);
+        input.removeEventListener("keydown", keyHandler);
+        terminalBody?.removeEventListener("click", focusHandler);
+      });
+
+      return () => {
+        form.dataset.ready = "true";
+        form.classList.remove("opacity-0");
+        input.disabled = false;
+        input.placeholder = "help";
+        input.focus({ preventScroll: true });
+        scrollToBottom();
+      };
+    }
+
+    async function setupTerminalPage() {
+      const previousCleanup = (window as any).__seanTerminalCleanup;
+      if (typeof previousCleanup === "function") previousCleanup();
+
+      const root = document.getElementById("terminal-session");
+      const data = parseTerminalData();
+      if (!root || !data) return;
+
+      const timers: number[] = [];
+      const cleanups: Array<() => void> = [() => timers.forEach((timer) => clearTimeout(timer))];
+      (window as any).__seanTerminalCleanup = () => {
+        cleanups.splice(0).forEach((cleanup) => cleanup());
+      };
+
+      const reduceMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+      const enablePrompt = setupCommandEngine(root, data, cleanups);
+
       // Wait for fonts so Pretext measures against the actual rendered font.
       if (document.fonts && document.fonts.ready) {
         try {
@@ -247,46 +996,76 @@ const education = experience.filter((e) => e.type === "education");
         } catch {}
       }
 
-      const jobsByBlock = layoutPretextParagraphs();
-
-      const commands = document.querySelectorAll<HTMLElement>(".typed-command");
+      const jobsByBlock = layoutPretextParagraphs(root);
+      const commands = root.querySelectorAll<HTMLElement>(".typed-command");
       let runningDelay = 0;
 
       commands.forEach((cmd) => {
         const text = cmd.textContent || "";
-        cmd.textContent = "";
-        cmd.style.visibility = "visible";
-
-        const commandStart = runningDelay;
-        setTimeout(() => {
-          let charIndex = 0;
-          const interval = setInterval(() => {
-            cmd.textContent = text.slice(0, charIndex + 1);
-            charIndex++;
-            if (charIndex >= text.length) clearInterval(interval);
-          }, COMMAND_CHAR_MS);
-        }, commandStart);
-
-        const commandEnd = commandStart + text.length * COMMAND_CHAR_MS;
         const block = cmd.closest(".terminal-block") as HTMLElement | null;
+        const output = block?.querySelector<HTMLElement>(".output");
         const jobs = block ? jobsByBlock.get(block) : undefined;
 
-        if (jobs && jobs.length > 0) {
-          const outputEnd = revealOutput(jobs, commandEnd + 80);
-          runningDelay = outputEnd + BLOCK_GAP_MS;
+        cmd.textContent = "";
+        cmd.style.visibility = "visible";
+        if (output) output.style.visibility = "hidden";
+
+        const commandStart = runningDelay;
+        if (reduceMotion) {
+          cmd.textContent = text;
         } else {
-          runningDelay = commandEnd + BLOCK_GAP_MS;
+          const timeout = window.setTimeout(() => {
+            let charIndex = 0;
+            const interval = window.setInterval(() => {
+              cmd.textContent = text.slice(0, charIndex + 1);
+              charIndex++;
+              if (charIndex >= text.length) clearInterval(interval);
+            }, COMMAND_CHAR_MS);
+          }, commandStart);
+          timers.push(timeout);
+        }
+
+        const commandEnd = reduceMotion ? commandStart : commandStart + text.length * COMMAND_CHAR_MS;
+        if (jobs && jobs.length > 0) {
+          const revealStart = commandEnd + 80;
+          const timeout = window.setTimeout(() => {
+            if (output) output.style.visibility = "visible";
+          }, reduceMotion ? 0 : revealStart);
+          timers.push(timeout);
+          const outputEnd = revealOutput(jobs, reduceMotion ? 0 : revealStart, timers, reduceMotion);
+          runningDelay = reduceMotion ? 0 : outputEnd + BLOCK_GAP_MS;
+        } else {
+          const revealAt = reduceMotion ? 0 : commandEnd + 80;
+          const timeout = window.setTimeout(() => {
+            if (output) output.style.visibility = "visible";
+          }, revealAt);
+          timers.push(timeout);
+          runningDelay = reduceMotion ? 0 : revealAt + BLOCK_GAP_MS;
         }
       });
+
+      const promptTimer = window.setTimeout(() => enablePrompt(), reduceMotion ? 0 : runningDelay + 120);
+      timers.push(promptTimer);
+      setupResizeHandler(root, cleanups);
     }
 
-    setupTypingAnimation();
-    setupResizeHandler();
-    document.addEventListener("astro:after-swap", setupTypingAnimation);
+    void setupTerminalPage();
+    if (!(window as any).__seanTerminalAfterSwapBound) {
+      document.addEventListener("astro:after-swap", () => void setupTerminalPage());
+      (window as any).__seanTerminalAfterSwapBound = true;
+    }
   </script>
   <style is:global>
     [data-pretext] {
       visibility: hidden;
+    }
+
+    #terminal-prompt[data-ready="false"] {
+      pointer-events: none;
+    }
+
+    kbd {
+      font-family: inherit;
     }
   </style>
 </TerminalLayout>

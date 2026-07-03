@@ -3,6 +3,7 @@
   "type": "module",
   "version": "0.0.1",
   "scripts": {
+    "prebuild": "node scripts/write-git-log.mjs",
     "dev": "astro dev",
     "build": "astro build",
     "preview": "npm run build && wrangler dev",
