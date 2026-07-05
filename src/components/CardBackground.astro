@@ -1,0 +1,607 @@
+<!-- Layered WebGL background: faint topographic contours + Chladni resonance particles.
+     Renders transparently over the body background so the CSS theme transition stays authoritative. -->
+<canvas id="card-bg" class="pointer-events-none fixed inset-0 -z-10 h-full w-full" aria-hidden="true"></canvas>
+
+<!-- Resets the particle field to its original load positions. Hidden until the WebGL
+     particle layer initializes (stays hidden under reduced motion / no WebGL). -->
+<button
+  id="bg-reset"
+  aria-label="Reset background particles"
+  title="Reset background"
+  class="hidden fixed bottom-5 right-16 rounded-full p-2 text-neutral-500 transition-colors hover:text-neutral-800 dark:text-neutral-400 dark:hover:text-neutral-100"
+>
+  <svg class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+    <path stroke-linecap="round" stroke-linejoin="round" d="M16.023 9.348h4.992v-.001M2.985 19.644v-4.992m0 0h4.992m-4.993 0 3.181 3.183a8.25 8.25 0 0 0 13.803-3.7M4.031 9.865a8.25 8.25 0 0 1 13.803-3.7l3.181 3.182m0-4.991v4.99" />
+  </svg>
+</button>
+
+<script>
+  import * as THREE from "three";
+
+  // Shaders output raw sRGB; keep THREE.Color components in sRGB too.
+  THREE.ColorManagement.enabled = false;
+
+  // --- tuning constants ---
+  const DPR_CAP = 1.5;
+  const PX_PER_PARTICLE = 120;
+  const PARTICLE_MIN = 4000;
+  const PARTICLE_MAX = 16000;
+  const POINT_SIZE = 2.0; // multiplied by pixel ratio
+  const HOLD_MIN_S = 15;
+  const HOLD_MAX_S = 25;
+  const FADE_S = 5;
+  const CHLADNI_STRENGTH = 0.02;
+  const JITTER = 0.012;
+  const DAMPING_TAU = 0.6;
+  const EDGE_MARGIN = 0.02;
+  const EDGE_SPRING = 8;
+  const CURSOR_STRENGTH = 0.3;
+  const CURSOR_RADIUS = 0.12;
+  const CURSOR_SMOOTH_TAU = 0.15;
+  const BOW_SWEEP = 0.7; // pattern orders per second while held
+  const BOW_M_RATIO = 1.35;
+  const BOW_MAX_ORDER = 7;
+  const BOW_JITTER_MULT = 2.5;
+  const THEME_TWEEN_MS = 2000; // matches body transition-colors duration-2000
+  const MAX_DT = 0.05;
+  // Chladni (n, m) pattern pool; sign is randomized per pattern
+  const PATTERN_POOL: [number, number][] = [
+    [1, 2], [1, 3], [1, 4], [1, 5], [2, 3], [2, 5], [3, 4], [3, 5],
+  ];
+
+  const THEMES = {
+    dark: {
+      contour: new THREE.Color("#39ff14"), // neon green
+      contourAlpha: 0.2,
+      particle: new THREE.Color("#818cf8").lerp(new THREE.Color("#6366f1"), 0.3),
+      particleAlpha: 0.55,
+    },
+    light: {
+      contour: new THREE.Color("#00cc44"), // deeper neon green for contrast on white
+      contourAlpha: 0.34,
+      particle: new THREE.Color("#4f46e5").lerp(new THREE.Color("#334155"), 0.3),
+      particleAlpha: 0.4,
+    },
+  };
+
+  const CONTOUR_VERT = /* glsl */ `
+    void main() {
+      gl_Position = vec4(position.xy, 0.0, 1.0);
+    }
+  `;
+
+  const CONTOUR_FRAG = /* glsl */ `
+    uniform float uTime;
+    uniform vec2 uResolution;
+    uniform vec3 uColor;
+    uniform float uAlpha;
+
+    float hash(vec2 p) {
+      return fract(sin(dot(p, vec2(127.1, 311.7))) * 43758.5453123);
+    }
+
+    float noise(vec2 p) {
+      vec2 i = floor(p);
+      vec2 f = fract(p);
+      vec2 u = f * f * (3.0 - 2.0 * f);
+      return mix(
+        mix(hash(i), hash(i + vec2(1.0, 0.0)), u.x),
+        mix(hash(i + vec2(0.0, 1.0)), hash(i + vec2(1.0, 1.0)), u.x),
+        u.y
+      );
+    }
+
+    float fbm(vec2 p) {
+      float v = 0.0;
+      float a = 0.5;
+      for (int i = 0; i < 4; i++) {
+        v += a * noise(p);
+        p = p * 2.02 + 11.3;
+        a *= 0.5;
+      }
+      return v;
+    }
+
+    void main() {
+      vec2 uv = gl_FragCoord.xy / uResolution;
+      float aspect = uResolution.x / uResolution.y;
+      vec2 p = vec2(uv.x * aspect, uv.y) * 2.2;
+      // slow breathing drift: domain drift plus a low-frequency warp
+      float n = fbm(p + vec2(uTime * 0.012, uTime * 0.008)
+                      + 0.25 * vec2(fbm(p + uTime * 0.02), fbm(p - uTime * 0.015)));
+      float bands = n * 9.0;
+      float f = fract(bands);
+      float d = min(f, 1.0 - f);
+      float line = 1.0 - smoothstep(0.0, fwidth(bands) * 1.5, d);
+      // keep the card's center calm
+      float r = distance(vec2(uv.x * aspect, uv.y), vec2(0.5 * aspect, 0.5));
+      float guard = smoothstep(0.18, 0.55, r);
+      gl_FragColor = vec4(uColor, uAlpha * line * guard);
+    }
+  `;
+
+  const PARTICLE_VERT = /* glsl */ `
+    attribute float aSeed;
+    attribute float aGlow;
+    uniform float uAspect;
+    uniform float uAlpha;
+    uniform float uSize;
+    uniform float uTime;
+    varying float vAlpha;
+
+    void main() {
+      float r = distance(vec2(position.x * uAspect, position.y), vec2(0.5 * uAspect, 0.5));
+      float guard = smoothstep(0.18, 0.55, r);
+      // slow per-particle shimmer plus a rare sharp glint, both keyed off aSeed
+      float tw = 0.8 + 0.2 * sin(uTime * mix(0.4, 1.3, fract(aSeed * 7.31)) + aSeed * 40.0);
+      float glint = pow(max(0.0, sin(uTime * mix(0.15, 0.45, fract(aSeed * 3.17)) + aSeed * 90.0)), 48.0);
+      float base = uAlpha * guard * (0.5 + 0.5 * aSeed);
+      // aGlow marks nodal intersections: anchor stars glow brighter
+      vAlpha = min(base * tw * (1.0 + 1.2 * aGlow) + glint * base, 0.95);
+      gl_PointSize = uSize * (0.6 + 0.8 * aSeed) * (1.0 + 0.5 * aGlow + 0.8 * glint);
+      gl_Position = vec4(position.xy * 2.0 - 1.0, 0.0, 1.0);
+    }
+  `;
+
+  const PARTICLE_FRAG = /* glsl */ `
+    uniform vec3 uColor;
+    varying float vAlpha;
+
+    void main() {
+      float d = length(gl_PointCoord - 0.5);
+      float alpha = vAlpha * (1.0 - smoothstep(0.25, 0.5, d));
+      if (alpha < 0.003) discard;
+      gl_FragColor = vec4(uColor, alpha);
+    }
+  `;
+
+  type Pattern = { n: number; m: number; s: number };
+
+  const smooth = (t: number) => t * t * (3 - 2 * t);
+  const isDark = () => document.documentElement.classList.contains("dark");
+  const activeTheme = () => (isDark() ? THEMES.dark : THEMES.light);
+
+  function randomPattern(exclude: Pattern | null): Pattern {
+    let n: number, m: number;
+    do {
+      [n, m] = PATTERN_POOL[Math.floor(Math.random() * PATTERN_POOL.length)];
+    } while (exclude !== null && n === exclude.n && m === exclude.m);
+    return { n, m, s: Math.random() < 0.5 ? 1 : -1 };
+  }
+
+  function init(): (() => void) | null {
+    const canvas = document.getElementById("card-bg") as HTMLCanvasElement | null;
+    if (!canvas) return null;
+
+    let renderer: THREE.WebGLRenderer;
+    try {
+      renderer = new THREE.WebGLRenderer({
+        canvas,
+        alpha: true,
+        antialias: false,
+        powerPreference: "low-power",
+      });
+    } catch {
+      return null; // no WebGL: transparent canvas leaves the flat CSS background
+    }
+
+    const reducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+    const pixelRatio = Math.min(window.devicePixelRatio, DPR_CAP);
+    renderer.setPixelRatio(pixelRatio);
+    renderer.setSize(window.innerWidth, window.innerHeight, false);
+    renderer.setClearColor(0x000000, 0);
+
+    const scene = new THREE.Scene();
+    const camera = new THREE.OrthographicCamera(-1, 1, 1, -1, 0, 1);
+    const timeOffset = Math.random() * 200; // vary the contour field per visit
+
+    const initial = activeTheme();
+
+    // --- layer 1: topographic contours ---
+    const contourUniforms = {
+      uTime: { value: timeOffset },
+      uResolution: {
+        value: new THREE.Vector2(window.innerWidth * pixelRatio, window.innerHeight * pixelRatio),
+      },
+      uColor: { value: initial.contour.clone() },
+      uAlpha: { value: initial.contourAlpha },
+    };
+    const contourMat = new THREE.ShaderMaterial({
+      vertexShader: CONTOUR_VERT,
+      fragmentShader: CONTOUR_FRAG,
+      uniforms: contourUniforms,
+      transparent: true,
+      depthTest: false,
+      depthWrite: false,
+    });
+    const quadGeo = new THREE.PlaneGeometry(2, 2);
+    const quad = new THREE.Mesh(quadGeo, contourMat);
+    quad.frustumCulled = false;
+    quad.renderOrder = 0;
+    scene.add(quad);
+
+    // --- layer 2: Chladni particles (skipped under reduced motion) ---
+    let particleGeo: THREE.BufferGeometry | null = null;
+    let particleMat: THREE.ShaderMaterial | null = null;
+    let posAttr: THREE.BufferAttribute | null = null;
+    let glowAttr: THREE.BufferAttribute | null = null;
+    let vel: Float32Array | null = null;
+    let initialPositions: Float32Array | null = null;
+    let resetBtn: HTMLButtonElement | null = null;
+    let count = 0;
+    const particleUniforms = {
+      uAspect: { value: window.innerWidth / window.innerHeight },
+      uColor: { value: initial.particle.clone() },
+      uAlpha: { value: initial.particleAlpha },
+      uSize: { value: POINT_SIZE * pixelRatio },
+      uTime: { value: 0 },
+    };
+
+    if (!reducedMotion) {
+      count = Math.min(
+        PARTICLE_MAX,
+        Math.max(PARTICLE_MIN, Math.round((window.innerWidth * window.innerHeight) / PX_PER_PARTICLE)),
+      );
+      const positions = new Float32Array(count * 3);
+      const seeds = new Float32Array(count);
+      for (let i = 0; i < count; i++) {
+        positions[i * 3] = Math.random();
+        positions[i * 3 + 1] = Math.random();
+        seeds[i] = Math.random();
+      }
+      vel = new Float32Array(count * 2);
+      initialPositions = positions.slice(); // snapshot for the reset button
+      particleGeo = new THREE.BufferGeometry();
+      posAttr = new THREE.BufferAttribute(positions, 3);
+      posAttr.setUsage(THREE.DynamicDrawUsage);
+      glowAttr = new THREE.BufferAttribute(new Float32Array(count), 1);
+      glowAttr.setUsage(THREE.DynamicDrawUsage);
+      particleGeo.setAttribute("position", posAttr);
+      particleGeo.setAttribute("aGlow", glowAttr);
+      particleGeo.setAttribute("aSeed", new THREE.BufferAttribute(seeds, 1));
+      particleMat = new THREE.ShaderMaterial({
+        vertexShader: PARTICLE_VERT,
+        fragmentShader: PARTICLE_FRAG,
+        uniforms: particleUniforms,
+        transparent: true,
+        depthTest: false,
+        depthWrite: false,
+      });
+      const points = new THREE.Points(particleGeo, particleMat);
+      points.frustumCulled = false;
+      points.renderOrder = 1;
+      scene.add(points);
+
+      resetBtn = document.getElementById("bg-reset") as HTMLButtonElement | null;
+      if (resetBtn) {
+        resetBtn.addEventListener("click", resetParticles);
+        resetBtn.classList.remove("hidden");
+      }
+    }
+
+    // Restore particles to their load-time positions and stop their motion.
+    function resetParticles() {
+      if (!posAttr || !vel || !initialPositions) return;
+      (posAttr.array as Float32Array).set(initialPositions);
+      vel.fill(0);
+      posAttr.needsUpdate = true;
+    }
+
+    // --- theme tweening (matches the 2000ms CSS transition on body) ---
+    let lastDark = isDark();
+    let tween: {
+      start: number;
+      fromContour: THREE.Color;
+      fromContourAlpha: number;
+      fromParticle: THREE.Color;
+      fromParticleAlpha: number;
+      to: (typeof THEMES)["dark"];
+    } | null = null;
+
+    function applyTheme(instant: boolean) {
+      const to = activeTheme();
+      if (instant) {
+        contourUniforms.uColor.value.copy(to.contour);
+        contourUniforms.uAlpha.value = to.contourAlpha;
+        particleUniforms.uColor.value.copy(to.particle);
+        particleUniforms.uAlpha.value = to.particleAlpha;
+        tween = null;
+      } else {
+        tween = {
+          start: performance.now(),
+          fromContour: contourUniforms.uColor.value.clone(),
+          fromContourAlpha: contourUniforms.uAlpha.value,
+          fromParticle: particleUniforms.uColor.value.clone(),
+          fromParticleAlpha: particleUniforms.uAlpha.value,
+          to,
+        };
+      }
+    }
+
+    function updateTween() {
+      if (!tween) return;
+      const e = smooth(Math.min(1, (performance.now() - tween.start) / THEME_TWEEN_MS));
+      contourUniforms.uColor.value.lerpColors(tween.fromContour, tween.to.contour, e);
+      contourUniforms.uAlpha.value = tween.fromContourAlpha + (tween.to.contourAlpha - tween.fromContourAlpha) * e;
+      particleUniforms.uColor.value.lerpColors(tween.fromParticle, tween.to.particle, e);
+      particleUniforms.uAlpha.value =
+        tween.fromParticleAlpha + (tween.to.particleAlpha - tween.fromParticleAlpha) * e;
+      if (e >= 1) tween = null;
+    }
+
+    const observer = new MutationObserver(() => {
+      const dark = isDark();
+      if (dark === lastDark) return; // class changed for another reason (e.g. vt-arrived)
+      lastDark = dark;
+      applyTheme(reducedMotion);
+      if (reducedMotion) renderOnce();
+    });
+    observer.observe(document.documentElement, { attributes: true, attributeFilter: ["class"] });
+
+    // --- Chladni pattern scheduling ---
+    let patA = randomPattern(null);
+    let patB = randomPattern(patA);
+    let phase: "hold" | "fade" = "hold";
+    let phaseElapsed = 0;
+    let holdDuration = HOLD_MIN_S + Math.random() * (HOLD_MAX_S - HOLD_MIN_S);
+    let mixT = 0;
+
+    // --- bowing: press-and-hold sweeps the resonance order upward like bowing
+    // the plate's edge; (n, m) glide through non-integer values so the nodal
+    // lines migrate continuously, then settle to the nearest integer mode ---
+    let bowing = false;
+    let bowPointerId = -1;
+    let bowN = 0;
+    let bowM = 0;
+    let bowS = 1;
+    const bowPat: Pattern = { n: 0, m: 0, s: 1 };
+
+    function onPointerDown(e: PointerEvent) {
+      if ((e.target as Element | null)?.closest?.("a, button")) return;
+      if (!bowing) {
+        // collapse any in-flight crossfade to its dominant pattern
+        if (phase === "fade") patA = mixT > 0.5 ? patB : patA;
+        phase = "hold";
+        mixT = 0;
+        bowN = patA.n;
+        bowM = patA.m;
+        bowS = patA.s;
+        bowing = true;
+      }
+      bowPointerId = e.pointerId;
+    }
+
+    function endBow(e?: PointerEvent) {
+      if (!bowing || (e && e.pointerId !== bowPointerId)) return;
+      bowing = false;
+      let n = Math.max(1, Math.round(bowN));
+      let m = Math.max(1, Math.round(bowM));
+      if (n === m) m += 1; // n === m with s = -1 is identically zero
+      patA = { n, m, s: bowS };
+      patB = randomPattern(patA);
+      phase = "hold";
+      phaseElapsed = 0;
+      holdDuration = HOLD_MIN_S + Math.random() * (HOLD_MAX_S - HOLD_MIN_S);
+      mixT = 0;
+    }
+    const onBlur = () => endBow();
+
+    if (!reducedMotion) {
+      window.addEventListener("pointerdown", onPointerDown);
+      window.addEventListener("pointerup", endBow);
+      window.addEventListener("pointercancel", endBow);
+      window.addEventListener("blur", onBlur);
+    }
+
+    function updatePatterns(dt: number) {
+      if (bowing) {
+        bowN = Math.min(BOW_MAX_ORDER, bowN + BOW_SWEEP * dt);
+        bowM = Math.min(BOW_MAX_ORDER, bowM + BOW_SWEEP * BOW_M_RATIO * dt);
+        return;
+      }
+      phaseElapsed += dt;
+      if (phase === "hold") {
+        if (phaseElapsed >= holdDuration) {
+          phase = "fade";
+          phaseElapsed = 0;
+        }
+      } else {
+        mixT = smooth(Math.min(1, phaseElapsed / FADE_S));
+        if (phaseElapsed >= FADE_S) {
+          patA = patB;
+          patB = randomPattern(patA);
+          mixT = 0;
+          phase = "hold";
+          phaseElapsed = 0;
+          holdDuration = HOLD_MIN_S + Math.random() * (HOLD_MAX_S - HOLD_MIN_S);
+        }
+      }
+    }
+
+    // Chladni plate function C, and its analytic gradient, written to scratch vars
+    let fieldC = 0;
+    let fieldGx = 0;
+    let fieldGy = 0;
+    function sampleField(x: number, y: number, pat: Pattern) {
+      const an = Math.PI * pat.n;
+      const am = Math.PI * pat.m;
+      const snx = Math.sin(an * x);
+      const cnx = Math.cos(an * x);
+      const smy = Math.sin(am * y);
+      const cmy = Math.cos(am * y);
+      const smx = Math.sin(am * x);
+      const cmx = Math.cos(am * x);
+      const sny = Math.sin(an * y);
+      const cny = Math.cos(an * y);
+      fieldC = snx * smy + pat.s * smx * sny;
+      fieldGx = an * cnx * smy + pat.s * am * cmx * sny;
+      fieldGy = am * snx * cmy + pat.s * an * smx * cny;
+    }
+
+    // --- cursor disturbance (fine pointers only; touch gets none) ---
+    const finePointer = window.matchMedia("(pointer: fine)").matches;
+    let cursorActive = false;
+    let cx = 0.5;
+    let cy = 0.5;
+    let cxTarget = 0.5;
+    let cyTarget = 0.5;
+    function onPointerMove(e: PointerEvent) {
+      cxTarget = e.clientX / window.innerWidth;
+      cyTarget = 1 - e.clientY / window.innerHeight;
+      if (!cursorActive) {
+        cursorActive = true;
+        cx = cxTarget;
+        cy = cyTarget;
+      }
+    }
+    // When the cursor leaves the window, stop disturbing the field so it doesn't
+    // leave a permanent "dent" frozen at the last edge position.
+    function onPointerLeave() {
+      cursorActive = false;
+    }
+    if (!reducedMotion && finePointer) {
+      window.addEventListener("pointermove", onPointerMove);
+      document.documentElement.addEventListener("pointerleave", onPointerLeave);
+    }
+
+    function updateParticles(dt: number) {
+      if (!posAttr || !glowAttr || !vel) return;
+      const k = 1 - Math.exp(-dt / CURSOR_SMOOTH_TAU);
+      cx += (cxTarget - cx) * k;
+      cy += (cyTarget - cy) * k;
+      const damp = Math.exp(-dt / DAMPING_TAU);
+      const jitter = JITTER * (bowing ? BOW_JITTER_MULT : 1) * Math.sqrt(dt);
+      const cursorR2 = CURSOR_RADIUS * CURSOR_RADIUS;
+      const pos = posAttr.array as Float32Array;
+      const glow = glowAttr.array as Float32Array;
+      let pA = patA;
+      let mt = mixT;
+      if (bowing) {
+        bowPat.n = bowN;
+        bowPat.m = bowM;
+        bowPat.s = bowS;
+        pA = bowPat;
+        mt = 0;
+      }
+      for (let i = 0; i < count; i++) {
+        const ix = i * 3;
+        const x = pos[ix];
+        const y = pos[ix + 1];
+        sampleField(x, y, pA);
+        let c = fieldC;
+        let gx = fieldGx;
+        let gy = fieldGy;
+        if (mt > 0) {
+          sampleField(x, y, patB);
+          c += (fieldC - c) * mt;
+          gx += (fieldGx - gx) * mt;
+          gy += (fieldGy - gy) * mt;
+        }
+        // nodal intersections have both C and |grad C| near zero: anchor stars
+        glow[i] = Math.exp(-(c * c * 25 + (gx * gx + gy * gy) * 0.02));
+        // descend |C| toward nodal lines
+        let fx = -c * gx * CHLADNI_STRENGTH;
+        let fy = -c * gy * CHLADNI_STRENGTH;
+        if (x < EDGE_MARGIN) fx += (EDGE_MARGIN - x) * EDGE_SPRING;
+        else if (x > 1 - EDGE_MARGIN) fx -= (x - (1 - EDGE_MARGIN)) * EDGE_SPRING;
+        if (y < EDGE_MARGIN) fy += (EDGE_MARGIN - y) * EDGE_SPRING;
+        else if (y > 1 - EDGE_MARGIN) fy -= (y - (1 - EDGE_MARGIN)) * EDGE_SPRING;
+        if (cursorActive) {
+          const dx = x - cx;
+          const dy = y - cy;
+          const d2 = dx * dx + dy * dy;
+          const w = Math.exp(-d2 / cursorR2);
+          if (w > 0.01) {
+            const f = (CURSOR_STRENGTH * w) / (Math.sqrt(d2) + 1e-4);
+            fx += dx * f;
+            fy += dy * f;
+          }
+        }
+        const iv = i * 2;
+        vel[iv] = (vel[iv] + fx * dt + (Math.random() - 0.5) * jitter) * damp;
+        vel[iv + 1] = (vel[iv + 1] + fy * dt + (Math.random() - 0.5) * jitter) * damp;
+        pos[ix] = x + vel[iv] * dt;
+        pos[ix + 1] = y + vel[iv + 1] * dt;
+      }
+      posAttr.needsUpdate = true;
+      glowAttr.needsUpdate = true;
+    }
+
+    function renderOnce() {
+      renderer.render(scene, camera);
+    }
+
+    // --- resize ---
+    function onResize() {
+      const pr = renderer.getPixelRatio();
+      renderer.setSize(window.innerWidth, window.innerHeight, false);
+      contourUniforms.uResolution.value.set(window.innerWidth * pr, window.innerHeight * pr);
+      particleUniforms.uAspect.value = window.innerWidth / window.innerHeight;
+      if (reducedMotion) renderOnce();
+    }
+    window.addEventListener("resize", onResize);
+
+    // --- animation loop ---
+    const clock = new THREE.Clock();
+    let elapsed = 0;
+    let raf = 0;
+    let stopped = false;
+
+    function frame() {
+      raf = requestAnimationFrame(frame);
+      const dt = Math.min(clock.getDelta(), MAX_DT);
+      elapsed += dt;
+      updateTween();
+      updatePatterns(dt);
+      updateParticles(dt);
+      contourUniforms.uTime.value = timeOffset + elapsed;
+      particleUniforms.uTime.value = elapsed;
+      renderer.render(scene, camera);
+    }
+
+    function onVisibility() {
+      if (document.hidden) {
+        cancelAnimationFrame(raf);
+      } else if (!stopped) {
+        clock.getDelta(); // flush the hidden gap
+        frame();
+      }
+    }
+
+    if (reducedMotion) {
+      renderOnce();
+    } else {
+      document.addEventListener("visibilitychange", onVisibility);
+      frame();
+    }
+
+    return () => {
+      stopped = true;
+      cancelAnimationFrame(raf);
+      observer.disconnect();
+      window.removeEventListener("resize", onResize);
+      window.removeEventListener("pointermove", onPointerMove);
+      document.documentElement.removeEventListener("pointerleave", onPointerLeave);
+      window.removeEventListener("pointerdown", onPointerDown);
+      window.removeEventListener("pointerup", endBow);
+      window.removeEventListener("pointercancel", endBow);
+      window.removeEventListener("blur", onBlur);
+      document.removeEventListener("visibilitychange", onVisibility);
+      if (resetBtn) {
+        resetBtn.removeEventListener("click", resetParticles);
+        resetBtn.classList.add("hidden");
+      }
+      quadGeo.dispose();
+      contourMat.dispose();
+      particleGeo?.dispose();
+      particleMat?.dispose();
+      renderer.dispose();
+    };
+  }
+
+  let teardown = init();
+  document.addEventListener("astro:after-swap", () => {
+    teardown?.();
+    teardown = init();
+  });
+</script>

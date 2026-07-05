@@ -2,6 +2,7 @@
 import "../styles/global.css";
 import "../styles/transitions.css";
 import VersionSwitcher from "../components/VersionSwitcher.astro";
+import CardBackground from "../components/CardBackground.astro";
 import { ViewTransitions } from "astro:transitions";
 
 interface Props {
@@ -51,7 +52,8 @@ const { title, description = "Sean Higgins — Software Engineer" } = Astro.prop
       })();
     </script>
   </head>
-  <body class="h-screen overflow-hidden font-sans antialiased">
+  <body class="isolate h-dvh overflow-hidden font-sans antialiased">
+    <CardBackground />
     <slot />
     <VersionSwitcher current="b-card" />
 

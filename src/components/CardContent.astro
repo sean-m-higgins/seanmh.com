@@ -4,13 +4,15 @@ import { Image } from "astro:assets";
 import headshot from "../assets/images/headshot.jpeg";
 ---
 
-<div class="flex h-screen items-center justify-center px-6">
+<div class="flex h-dvh items-center justify-center px-6">
   <div class="vt-skip-intro animate-fade-in flex flex-col items-center gap-6 text-center">
     <Image
       src={headshot}
       alt={site.name}
       width={320}
       height={320}
+      loading="eager"
+      fetchpriority="high"
       class="h-40 w-40 rounded-full object-cover ring-2 ring-neutral-200 dark:ring-neutral-700"
     />
 
