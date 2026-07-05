@@ -15,6 +15,16 @@
   </svg>
 </button>
 
+<!-- Discoverability hint for the press-and-hold "bow" interaction. Shown only when the
+     particle layer initializes; fades out after the user performs a real hold. -->
+<p
+  id="bg-hint"
+  class="hidden fixed bottom-5 left-5 select-none font-mono text-xs text-neutral-400 transition-opacity duration-1000 dark:text-neutral-600"
+  aria-hidden="true"
+>
+  press &amp; hold anywhere, then watch
+</p>
+
 <script>
   import * as THREE from "three";
 
@@ -42,6 +52,10 @@
   const BOW_M_RATIO = 1.35;
   const BOW_MAX_ORDER = 7;
   const BOW_JITTER_MULT = 2.5;
+  const TILT_STRENGTH = 0.5; // gravity accel at full tilt
+  const TILT_MAX_DEG = 25; // tilt (from the neutral holding angle) that maps to full strength
+  const TILT_SMOOTH_TAU = 0.25;
+  const HINT_DISMISS_HOLD_MS = 1200; // a hold this long proves the hint was understood
   const THEME_TWEEN_MS = 2000; // matches body transition-colors duration-2000
   const MAX_DT = 0.05;
   // Chladni (n, m) pattern pool; sign is randomized per pattern
@@ -228,6 +242,7 @@
     let vel: Float32Array | null = null;
     let initialPositions: Float32Array | null = null;
     let resetBtn: HTMLButtonElement | null = null;
+    let hint: HTMLElement | null = null;
     let count = 0;
     const particleUniforms = {
       uAspect: { value: window.innerWidth / window.innerHeight },
@@ -277,6 +292,15 @@
         resetBtn.addEventListener("click", resetParticles);
         resetBtn.classList.remove("hidden");
       }
+
+      hint = document.getElementById("bg-hint");
+      hint?.classList.remove("hidden");
+    }
+
+    // Fade the hint away once the user has actually bowed the plate.
+    function dismissHint() {
+      hint?.classList.add("opacity-0");
+      hint = null;
     }
 
     // Restore particles to their load-time positions and stop their motion.
@@ -354,10 +378,15 @@
     let bowN = 0;
     let bowM = 0;
     let bowS = 1;
+    let bowStart = 0;
     const bowPat: Pattern = { n: 0, m: 0, s: 1 };
 
     function onPointerDown(e: PointerEvent) {
       if ((e.target as Element | null)?.closest?.("a, button")) return;
+      if (needsTiltPermission) {
+        needsTiltPermission = false;
+        requestTilt(); // iOS: must be called from a user gesture
+      }
       if (!bowing) {
         // collapse any in-flight crossfade to its dominant pattern
         if (phase === "fade") patA = mixT > 0.5 ? patB : patA;
@@ -367,6 +396,7 @@
         bowM = patA.m;
         bowS = patA.s;
         bowing = true;
+        bowStart = performance.now();
       }
       bowPointerId = e.pointerId;
     }
@@ -383,6 +413,7 @@
       phaseElapsed = 0;
       holdDuration = HOLD_MIN_S + Math.random() * (HOLD_MAX_S - HOLD_MIN_S);
       mixT = 0;
+      if (performance.now() - bowStart >= HINT_DISMISS_HOLD_MS) dismissHint();
     }
     const onBlur = () => endBow();
 
@@ -464,11 +495,65 @@
       document.documentElement.addEventListener("pointerleave", onPointerLeave);
     }
 
+    // --- tilt gravity (touch devices): particles slide "downhill" as the phone
+    // tilts away from the neutral angle it was held at when tracking started.
+    // iOS gates the sensor behind a permission prompt that must come from a user
+    // gesture, so there it's requested on the first background press. ---
+    let needsTiltPermission = false;
+    let tiltEnabled = false;
+    let tiltBase: { beta: number; gamma: number } | null = null;
+    let tiltX = 0;
+    let tiltY = 0;
+    let tiltXT = 0;
+    let tiltYT = 0;
+
+    function onDeviceOrientation(e: DeviceOrientationEvent) {
+      if (e.beta === null || e.gamma === null) return;
+      if (!tiltBase) tiltBase = { beta: e.beta, gamma: e.gamma }; // neutral = current grip
+      let sx = e.gamma - tiltBase.gamma; // right tilt -> slide right
+      let sy = e.beta - tiltBase.beta; // tilt toward upright -> slide toward screen bottom
+      const angle = screen.orientation?.angle ?? 0;
+      if (angle === 90) [sx, sy] = [sy, -sx];
+      else if (angle === 180) [sx, sy] = [-sx, -sy];
+      else if (angle === 270) [sx, sy] = [-sy, sx];
+      tiltXT = Math.max(-1, Math.min(1, sx / TILT_MAX_DEG));
+      tiltYT = Math.max(-1, Math.min(1, -sy / TILT_MAX_DEG)); // canvas y is up
+    }
+
+    function enableTilt() {
+      if (tiltEnabled) return;
+      tiltEnabled = true;
+      window.addEventListener("deviceorientation", onDeviceOrientation);
+    }
+
+    function requestTilt() {
+      const D = DeviceOrientationEvent as unknown as { requestPermission?: () => Promise<string> };
+      D.requestPermission?.()
+        .then((state) => {
+          if (state === "granted") enableTilt();
+        })
+        .catch(() => {});
+    }
+
+    if (!reducedMotion && window.matchMedia("(pointer: coarse)").matches
+        && typeof DeviceOrientationEvent !== "undefined") {
+      if (typeof (DeviceOrientationEvent as any).requestPermission === "function") {
+        needsTiltPermission = true; // iOS: wait for a gesture
+      } else {
+        enableTilt(); // Android and friends: no permission needed
+      }
+    }
+
     function updateParticles(dt: number) {
       if (!posAttr || !glowAttr || !vel) return;
       const k = 1 - Math.exp(-dt / CURSOR_SMOOTH_TAU);
       cx += (cxTarget - cx) * k;
       cy += (cyTarget - cy) * k;
+      const kt = 1 - Math.exp(-dt / TILT_SMOOTH_TAU);
+      tiltX += (tiltXT - tiltX) * kt;
+      tiltY += (tiltYT - tiltY) * kt;
+      const tfx = TILT_STRENGTH * tiltX;
+      const tfy = TILT_STRENGTH * tiltY;
       const damp = Math.exp(-dt / DAMPING_TAU);
       const jitter = JITTER * (bowing ? BOW_JITTER_MULT : 1) * Math.sqrt(dt);
       const cursorR2 = CURSOR_RADIUS * CURSOR_RADIUS;
@@ -500,8 +585,8 @@
         // nodal intersections have both C and |grad C| near zero: anchor stars
         glow[i] = Math.exp(-(c * c * 25 + (gx * gx + gy * gy) * 0.02));
         // descend |C| toward nodal lines
-        let fx = -c * gx * CHLADNI_STRENGTH;
-        let fy = -c * gy * CHLADNI_STRENGTH;
+        let fx = -c * gx * CHLADNI_STRENGTH + tfx;
+        let fy = -c * gy * CHLADNI_STRENGTH + tfy;
         if (x < EDGE_MARGIN) fx += (EDGE_MARGIN - x) * EDGE_SPRING;
         else if (x > 1 - EDGE_MARGIN) fx -= (x - (1 - EDGE_MARGIN)) * EDGE_SPRING;
         if (y < EDGE_MARGIN) fy += (EDGE_MARGIN - y) * EDGE_SPRING;
@@ -586,11 +671,15 @@
       window.removeEventListener("pointerup", endBow);
       window.removeEventListener("pointercancel", endBow);
       window.removeEventListener("blur", onBlur);
+      window.removeEventListener("deviceorientation", onDeviceOrientation);
       document.removeEventListener("visibilitychange", onVisibility);
       if (resetBtn) {
         resetBtn.removeEventListener("click", resetParticles);
         resetBtn.classList.add("hidden");
       }
+      const hintEl = document.getElementById("bg-hint");
+      hintEl?.classList.add("hidden");
+      hintEl?.classList.remove("opacity-0");
       quadGeo.dispose();
       contourMat.dispose();
       particleGeo?.dispose();
