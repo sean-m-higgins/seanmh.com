@@ -11,13 +11,20 @@ const DOCUMENT_CACHE_CONTROL = 'private, no-store';
 // The terminal version's `ask <question>` command POSTs here. The Worker owns
 // /api/* and answers it directly, before any version proxying. The Anthropic
 // API key lives only in a Worker secret (ANTHROPIC_API_KEY); it never reaches
-// the client. A KV namespace (ASK_RL) provides a soft per-IP rate limit.
+// the client.
 //
-// This route degrades gracefully: if the secret/binding is missing, it returns
+// The endpoint is NOT public: callers must present the shared access secret
+// (ASK_SECRET Worker secret) that the terminal client collects at its masked
+// prompt and sends as `secret` in the JSON body. No valid secret ⇒ no paid
+// model call. Rotate ASK_SECRET to revoke access. The KV namespace (ASK_RL)
+// still applies a soft per-IP rate limit, which also throttles brute-force
+// guesses at the secret.
+//
+// This route degrades gracefully: if a secret/binding is missing, it returns
 // a friendly 503 and the terminal client falls back to its local, content-
 // grounded answer — so the site keeps working before the infra is provisioned.
-const ASK_MODEL = 'claude-haiku-4-5-20251001'; // verify id before going live
-const ASK_MAX_TOKENS = 512;
+const ASK_MODEL = 'claude-sonnet-5';
+const ASK_MAX_TOKENS = 600;
 const ASK_RATE_LIMIT = 10; // requests per window
 const ASK_RATE_WINDOW_S = 3600; // 1 hour
 const ASK_MAX_QUESTION_LEN = 500;
@@ -46,6 +53,19 @@ function clientIp(request) {
   return request.headers.get('CF-Connecting-IP')
     || request.headers.get('X-Forwarded-For')
     || 'unknown';
+}
+
+// Length-independent comparison so we don't leak the secret via response timing.
+function timingSafeEqual(a, b) {
+  const enc = new TextEncoder();
+  const ab = enc.encode(a);
+  const bb = enc.encode(b);
+  const len = Math.max(ab.length, bb.length);
+  let diff = ab.length ^ bb.length;
+  for (let i = 0; i < len; i++) {
+    diff |= (ab[i] ?? 0) ^ (bb[i] ?? 0);
+  }
+  return diff === 0;
 }
 
 // Soft, best-effort rate limit. If KV isn't bound we simply skip limiting
@@ -87,13 +107,22 @@ async function handleAsk(request, env) {
   }
 
   const apiKey = env && env.ANTHROPIC_API_KEY;
-  if (!apiKey) {
+  const askSecret = env && env.ASK_SECRET;
+  if (!apiKey || !askSecret) {
     // Infra not provisioned yet \u2014 let the client fall back locally.
     return askError(503, 'ask service not configured');
   }
 
+  // Rate limit before the secret check so brute-force guesses burn quota too.
   if (await isRateLimited(env, clientIp(request))) {
     return askError(429, 'Rate limit reached \u2014 please try again later.');
+  }
+
+  // Secret gate \u2014 no valid secret means we never call the paid model. The
+  // terminal client treats 401 as "re-prompt for the secret".
+  const secret = body && typeof body.secret === 'string' ? body.secret : '';
+  if (!secret || !timingSafeEqual(secret, askSecret)) {
+    return askError(401, 'invalid secret');
   }
 
   // Grounding context is supplied by the client (it already has the baked-in
@@ -114,6 +143,9 @@ async function handleAsk(request, env) {
       body: JSON.stringify({
         model: ASK_MODEL,
         max_tokens: ASK_MAX_TOKENS,
+        // Sonnet 5 runs adaptive thinking when the field is omitted; disable it
+        // so responses start fast and the whole budget goes to the answer.
+        thinking: { type: 'disabled' },
         stream: true,
         system: ASK_SYSTEM_PROMPT,
         messages: [
