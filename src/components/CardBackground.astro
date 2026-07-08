@@ -25,6 +25,16 @@
   press &amp; hold anywhere, then watch
 </p>
 
+<!-- Touch + iOS only: explicit opt-in for the motion sensor, which iOS gates
+     behind a permission prompt that must be triggered by a direct tap. The
+     script reveals it only when needed and removes it once access is granted. -->
+<button
+  id="bg-tilt"
+  class="hidden fixed bottom-20 left-1/2 -translate-x-1/2 select-none rounded-full border border-neutral-200 bg-white/80 px-3 py-1.5 font-mono text-xs text-neutral-500 shadow-sm backdrop-blur-sm transition-opacity duration-500 dark:border-neutral-700 dark:bg-neutral-900/80 dark:text-neutral-400"
+>
+  tap to enable tilt
+</button>
+
 <script>
   import * as THREE from "three";
 
@@ -383,10 +393,6 @@
 
     function onPointerDown(e: PointerEvent) {
       if ((e.target as Element | null)?.closest?.("a, button")) return;
-      if (needsTiltPermission) {
-        needsTiltPermission = false;
-        requestTilt(); // iOS: must be called from a user gesture
-      }
       if (!bowing) {
         // collapse any in-flight crossfade to its dominant pattern
         if (phase === "fade") patA = mixT > 0.5 ? patB : patA;
@@ -497,11 +503,11 @@
 
     // --- tilt gravity (touch devices): particles slide "downhill" as the phone
     // tilts away from the neutral angle it was held at when tracking started.
-    // iOS gates the sensor behind a permission prompt that must come from a user
-    // gesture, so there it's requested on the first background press. ---
-    let needsTiltPermission = false;
+    // iOS gates the sensor behind a permission prompt that must come from a
+    // direct tap, so there an explicit "tap to enable tilt" button drives it. ---
     let tiltEnabled = false;
     let tiltBase: { beta: number; gamma: number } | null = null;
+    let tiltBtn: HTMLButtonElement | null = null;
     let tiltX = 0;
     let tiltY = 0;
     let tiltXT = 0;
@@ -526,19 +532,40 @@
       window.addEventListener("deviceorientation", onDeviceOrientation);
     }
 
-    function requestTilt() {
+    function hideTiltButton() {
+      if (!tiltBtn) return;
+      const b = tiltBtn;
+      b.classList.add("opacity-0", "pointer-events-none");
+      setTimeout(() => b.classList.add("hidden"), 500);
+    }
+
+    // The tap itself is the user gesture iOS requires to grant the sensor.
+    function onTiltButtonClick() {
       const D = DeviceOrientationEvent as unknown as { requestPermission?: () => Promise<string> };
       D.requestPermission?.()
         .then((state) => {
-          if (state === "granted") enableTilt();
+          if (state === "granted") {
+            enableTilt();
+            hideTiltButton();
+          } else if (tiltBtn) {
+            tiltBtn.textContent = "motion blocked — allow in iOS Settings › Safari";
+          }
         })
-        .catch(() => {});
+        .catch(() => {
+          if (tiltBtn) tiltBtn.textContent = "motion blocked — allow in iOS Settings › Safari";
+        });
     }
 
     if (!reducedMotion && window.matchMedia("(pointer: coarse)").matches
         && typeof DeviceOrientationEvent !== "undefined") {
       if (typeof (DeviceOrientationEvent as any).requestPermission === "function") {
-        needsTiltPermission = true; // iOS: wait for a gesture
+        // iOS: reveal the explicit opt-in button
+        tiltBtn = document.getElementById("bg-tilt") as HTMLButtonElement | null;
+        if (tiltBtn) {
+          tiltBtn.textContent = "tap to enable tilt"; // reset if a prior init left denied text
+          tiltBtn.addEventListener("click", onTiltButtonClick);
+          tiltBtn.classList.remove("hidden");
+        }
       } else {
         enableTilt(); // Android and friends: no permission needed
       }
@@ -680,6 +707,11 @@
       const hintEl = document.getElementById("bg-hint");
       hintEl?.classList.add("hidden");
       hintEl?.classList.remove("opacity-0");
+      if (tiltBtn) {
+        tiltBtn.removeEventListener("click", onTiltButtonClick);
+        tiltBtn.classList.add("hidden");
+        tiltBtn.classList.remove("opacity-0", "pointer-events-none");
+      }
       quadGeo.dispose();
       contourMat.dispose();
       particleGeo?.dispose();
