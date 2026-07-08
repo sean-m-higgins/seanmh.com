@@ -15,6 +15,20 @@
   </svg>
 </button>
 
+<!-- Toggles tilt gravity once the motion sensor is available. Hidden until tilt
+     is first enabled; dimmed while tilt is switched off. -->
+<button
+  id="bg-tilt-toggle"
+  aria-label="Toggle tilt response"
+  aria-pressed="true"
+  title="Toggle tilt"
+  class="hidden fixed bottom-5 right-[6.75rem] rounded-full p-2 text-neutral-500 transition-colors hover:text-neutral-800 dark:text-neutral-400 dark:hover:text-neutral-100"
+>
+  <svg class="h-5 w-5 rotate-12" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+    <path stroke-linecap="round" stroke-linejoin="round" d="M10.5 1.5H8.25A2.25 2.25 0 0 0 6 3.75v16.5a2.25 2.25 0 0 0 2.25 2.25h7.5A2.25 2.25 0 0 0 18 20.25V3.75a2.25 2.25 0 0 0-2.25-2.25H13.5m-3 0V3h3V1.5m-3 0h3" />
+  </svg>
+</button>
+
 <!-- Discoverability hint for the press-and-hold "bow" interaction. Shown only when the
      particle layer initializes; fades out after the user performs a real hold. -->
 <p
@@ -137,8 +151,11 @@
       float f = fract(bands);
       float d = min(f, 1.0 - f);
       float line = 1.0 - smoothstep(0.0, fwidth(bands) * 1.5, d);
-      // keep the card's center calm
-      float r = distance(vec2(uv.x * aspect, uv.y), vec2(0.5 * aspect, 0.5));
+      // keep the card's center calm; clamp the guard's aspect to >= 1 so on
+      // tall/narrow screens it stays a card-shaped ellipse instead of a circle
+      // that would swallow the whole mid-height band
+      float ga = max(aspect, 1.0);
+      float r = distance(vec2(uv.x * ga, uv.y), vec2(0.5 * ga, 0.5));
       float guard = smoothstep(0.18, 0.55, r);
       gl_FragColor = vec4(uColor, uAlpha * line * guard);
     }
@@ -154,7 +171,9 @@
     varying float vAlpha;
 
     void main() {
-      float r = distance(vec2(position.x * uAspect, position.y), vec2(0.5 * uAspect, 0.5));
+      // guard aspect clamped to >= 1: see the contour shader's guard comment
+      float ga = max(uAspect, 1.0);
+      float r = distance(vec2(position.x * ga, position.y), vec2(0.5 * ga, 0.5));
       float guard = smoothstep(0.18, 0.55, r);
       // slow per-particle shimmer plus a rare sharp glint, both keyed off aSeed
       float tw = 0.8 + 0.2 * sin(uTime * mix(0.4, 1.3, fract(aSeed * 7.31)) + aSeed * 40.0);
@@ -505,9 +524,11 @@
     // tilts away from the neutral angle it was held at when tracking started.
     // iOS gates the sensor behind a permission prompt that must come from a
     // direct tap, so there an explicit "tap to enable tilt" button drives it. ---
-    let tiltEnabled = false;
+    let tiltGranted = false; // sensor authorized/available; the on/off toggle is visible
+    let tiltOn = false; // listener attached, gravity applied
     let tiltBase: { beta: number; gamma: number } | null = null;
     let tiltBtn: HTMLButtonElement | null = null;
+    let tiltToggleBtn: HTMLButtonElement | null = null;
     let tiltX = 0;
     let tiltY = 0;
     let tiltXT = 0;
@@ -526,11 +547,38 @@
       tiltYT = Math.max(-1, Math.min(1, -sy / TILT_MAX_DEG)); // canvas y is up
     }
 
-    function enableTilt() {
-      if (tiltEnabled) return;
-      tiltEnabled = true;
-      window.addEventListener("deviceorientation", onDeviceOrientation);
+    function updateTiltToggle() {
+      if (!tiltToggleBtn) return;
+      tiltToggleBtn.setAttribute("aria-pressed", String(tiltOn));
+      tiltToggleBtn.classList.toggle("opacity-40", !tiltOn);
     }
+
+    function attachTilt() {
+      if (tiltOn) return;
+      tiltOn = true;
+      tiltBase = null; // recalibrate neutral to the current grip
+      window.addEventListener("deviceorientation", onDeviceOrientation);
+      updateTiltToggle();
+    }
+
+    function detachTilt() {
+      if (!tiltOn) return;
+      tiltOn = false;
+      window.removeEventListener("deviceorientation", onDeviceOrientation);
+      tiltXT = 0;
+      tiltYT = 0; // gravity eases back to zero via the smoothing
+      updateTiltToggle();
+    }
+
+    function enableTilt() {
+      if (!tiltGranted) {
+        tiltGranted = true;
+        tiltToggleBtn?.classList.remove("hidden");
+      }
+      attachTilt();
+    }
+
+    const onTiltToggle = () => (tiltOn ? detachTilt() : attachTilt());
 
     function hideTiltButton() {
       if (!tiltBtn) return;
@@ -558,6 +606,8 @@
 
     if (!reducedMotion && window.matchMedia("(pointer: coarse)").matches
         && typeof DeviceOrientationEvent !== "undefined") {
+      tiltToggleBtn = document.getElementById("bg-tilt-toggle") as HTMLButtonElement | null;
+      tiltToggleBtn?.addEventListener("click", onTiltToggle);
       if (typeof (DeviceOrientationEvent as any).requestPermission === "function") {
         // iOS: reveal the explicit opt-in button
         tiltBtn = document.getElementById("bg-tilt") as HTMLButtonElement | null;
@@ -711,6 +761,11 @@
         tiltBtn.removeEventListener("click", onTiltButtonClick);
         tiltBtn.classList.add("hidden");
         tiltBtn.classList.remove("opacity-0", "pointer-events-none");
+      }
+      if (tiltToggleBtn) {
+        tiltToggleBtn.removeEventListener("click", onTiltToggle);
+        tiltToggleBtn.classList.add("hidden");
+        tiltToggleBtn.classList.remove("opacity-40");
       }
       quadGeo.dispose();
       contourMat.dispose();
