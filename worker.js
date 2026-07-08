@@ -18,7 +18,8 @@ const DOCUMENT_CACHE_CONTROL = 'private, no-store';
 // prompt and sends as `secret` in the JSON body. No valid secret ⇒ no paid
 // model call. Rotate ASK_SECRET to revoke access. The KV namespace (ASK_RL)
 // still applies a soft per-IP rate limit, which also throttles brute-force
-// guesses at the secret.
+// guesses at the secret, and doubles as storage for optional server-side
+// grounding context (see ASK_SERVER_CONTEXT_KEY below).
 //
 // This route degrades gracefully: if a secret/binding is missing, it returns
 // a friendly 503 and the terminal client falls back to its local, content-
@@ -28,6 +29,18 @@ const ASK_MAX_TOKENS = 600;
 const ASK_RATE_LIMIT = 10; // requests per window
 const ASK_RATE_WINDOW_S = 3600; // 1 hour
 const ASK_MAX_QUESTION_LEN = 500;
+
+// Optional server-side grounding context, stored as a KV value so it never
+// ships to the browser and never lives in this (public) repo. It is appended
+// to the client-built context after the secret gate, so only secret-holders
+// can even query it — but anything here can still surface in answers, so keep
+// it "share with a recruiter" private, not actually-sensitive.
+//
+// To set/update: Cloudflare Dashboard → KV → (the ASK_RL namespace) → add a
+// text entry under this key (e.g. a detailed Markdown résumé). No entry ⇒ the
+// endpoint behaves exactly as before.
+const ASK_SERVER_CONTEXT_KEY = 'server-context';
+const ASK_SERVER_CONTEXT_MAX = 24000; // chars (~7.5K tokens)
 
 const ASK_SYSTEM_PROMPT = [
   'You are the assistant embedded in the terminal version of Sean Higgins\u2019',
@@ -88,6 +101,18 @@ async function isRateLimited(env, ip) {
   return false;
 }
 
+// Best-effort read of the server-side context. Missing binding, missing key,
+// or a KV error all degrade to "no extra context" rather than failing the ask.
+async function serverContext(env) {
+  if (!env || !env.ASK_RL) return '';
+  try {
+    const value = await env.ASK_RL.get(ASK_SERVER_CONTEXT_KEY);
+    return value ? value.slice(0, ASK_SERVER_CONTEXT_MAX) : '';
+  } catch {
+    return '';
+  }
+}
+
 async function handleAsk(request, env) {
   if (request.method !== 'POST') {
     return askError(405, 'Use POST /api/ask with a JSON body {"question": "..."}.');
@@ -127,9 +152,16 @@ async function handleAsk(request, env) {
 
   // Grounding context is supplied by the client (it already has the baked-in
   // site content). We still cap and scope it via the system prompt.
-  const context = body && typeof body.context === 'string'
+  const clientContext = body && typeof body.context === 'string'
     ? body.context.slice(0, 6000)
     : '';
+
+  // Server-side context (detailed résumé etc.) is appended only after the
+  // secret gate — it never ships to the browser. See ASK_SERVER_CONTEXT_KEY.
+  const extraContext = await serverContext(env);
+  const context = extraContext
+    ? `${clientContext}\n\n## Detailed background (server-side; not shown on the site)\n${extraContext}`
+    : clientContext;
 
   let anthropicResp;
   try {
