@@ -38,20 +38,20 @@
 <body>
 
 <h1>seanmh.com — Continuation Plan</h1>
-<p class="muted">Written June 2026, end of the Phase 1 session. Companion to <code>plans/execution-plan.html</code> (the full 5-phase vision) and <code>plans/next-level-plan.html</code> (idea origins). This file captures exact current state + the immediately actionable next steps.</p>
+<p class="muted">Written June 2026, end of the Phase 1 session. <strong>Updated July 7, 2026:</strong> Phase 1 is pushed/live, Phase 2 (interactive terminal + <code>ask</code>) is done, and the wiki is refreshed. Next up: the a-scroll scroll experience (<code>plans/scroll-experience-plan.html</code>) and Phase 3. Companion to <code>plans/execution-plan.html</code> (the full 5-phase vision) and <code>plans/next-level-plan.html</code> (idea origins). This file captures exact current state + the immediately actionable next steps.</p>
 
 <h2>Where things stand</h2>
 
-<h3 class="done">✓ Phase 1 — Cinematic in-cluster switching <span class="tag t-done">DONE, committed, NOT pushed</span></h3>
-<p>The "universe dial" switcher + cross-document View Transitions are built and committed on every branch. Verified locally via headless Chromium screenshots + the dev proxy (routing, cookie stickiness, <code>?v=</code> override all confirmed).</p>
+<h3 class="done">✓ Phase 1 — Cinematic in-cluster switching <span class="tag t-done">DONE &amp; PUSHED</span></h3>
+<p>The "universe dial" switcher + cross-document View Transitions are built, committed, and <strong>pushed to origin on every branch</strong>. Verified locally via headless Chromium screenshots + the dev proxy (routing, cookie stickiness, <code>?v=</code> override all confirmed).</p>
 
 <table>
-  <tr><th>Branch</th><th>Commit</th><th>Contents</th></tr>
+  <tr><th>Branch</th><th>Commit (July 2026)</th><th>Contents</th></tr>
   <tr><td><code>version/a-scroll</code></td><td><code>7c791f5</code></td><td>Kit + <code>Hero.astro</code> headline tagged <code>vt-sean-name vt-skip-intro</code></td></tr>
-  <tr><td><code>version/b-card</code></td><td><code>0f5d91d</code></td><td>Kit + <code>CardContent.astro</code> headline tagged</td></tr>
-  <tr><td><code>version/c-terminal</code></td><td><code>377e71e</code></td><td>Kit + <code>index.astro</code> <code>whoami</code> line tagged</td></tr>
-  <tr><td><code>content</code></td><td><code>1284c8c</code></td><td>Canonical copy of the two kit files (cherry-pick source going forward)</td></tr>
-  <tr><td><code>main</code></td><td><code>e6b4c97</code>, <code>9730840</code></td><td>Worker cookie refresh (document-only), <code>scripts/dev-proxy.mjs</code>, plans</td></tr>
+  <tr><td><code>version/b-card</code></td><td><code>d9fad6e</code> pushed; <code>6ddb6b7</code> local</td><td>Kit + tilt toggle, particle fade fix, press-and-hold hint polish. <strong>⚠ <code>6ddb6b7</code> (hint centering) not on origin yet.</strong></td></tr>
+  <tr><td><code>version/c-terminal</code></td><td><code>3fac500</code></td><td>Kit + full Phase 2 terminal (see below)</td></tr>
+  <tr><td><code>content</code></td><td><code>015ce44</code></td><td>Canonical kit files + shared project content</td></tr>
+  <tr><td><code>main</code></td><td><code>aad5088</code></td><td>Hardened weighted proxy, <code>scripts/dev-proxy.mjs</code>, <code>/api/ask</code> route, plans</td></tr>
 </table>
 
 <p><strong>The "kit" = two byte-identical files on every version branch:</strong></p>
@@ -65,25 +65,21 @@
 
 <div class="gotcha"><strong>Kit-sync rule:</strong> the three version copies must stay byte-identical. Future edits: change on <code>content</code>, then cherry-pick to each version branch. (Phase 1's first commit went direct-to-branch because the pre-existing switchers differed and would have conflicted — that's resolved now; they're identical.)</p></div>
 
-<h3>⧗ Open housekeeping before/around Phase 2</h3>
+<h3>⧗ Housekeeping status <span class="tag t-done">MOSTLY DONE (July 2026)</span></h3>
 <div class="panel">
 <ol>
-  <li><strong>Push + deploy Phase 1</strong> (user gates this):
-    <pre>git push origin version/a-scroll version/b-card version/c-terminal content main
-# then publish the worker:
-npx wrangler deploy   # (run from a checkout that has worker.js; confirm wrangler.jsonc target)</pre>
-    Pages auto-deploys the three <code>version/*</code> branches. <code>content</code> + <code>main</code> are not deployed sites.</li>
-  <li><strong>Smoke-test on real browsers</strong> post-deploy: Chrome/Edge (morph), Safari/Firefox (clean fallback, no breakage), mobile (tap-to-open dial), reduced-motion OS setting.</li>
-  <li><strong>Update the wiki:</strong> <code>Version-Switcher.md</code> still describes the old pill. Rewrite for the dial + transitions + kit-sync rule. (<code>wiki/</code> is an untracked sibling dir.)</li>
-  <li><strong>Worktrees</strong> live at <code>../wt/{a-scroll,b-card,c-terminal,content}</code>. Reuse them for Phase 2 or <code>git worktree remove</code> when done.</li>
+  <li><strong class="done">✓ Push + deploy Phase 1</strong> — all branches are on origin (<code>main</code>, <code>content</code>, all three <code>version/*</code>). Worker development has continued on <code>main</code> (<code>/api/ask</code>), so the worker deploy pipeline is active. <span class="muted">Exception: <code>version/b-card</code> local commit <code>6ddb6b7</code> still needs a push.</span></li>
+  <li><strong>⧗ Smoke-test on real browsers</strong> — still worth a deliberate pass: Chrome/Edge (morph), Safari/Firefox (clean fallback, no breakage), mobile (tap-to-open dial), reduced-motion OS setting.</li>
+  <li><strong class="done">✓ Update the wiki</strong> — <code>Version-Switcher.md</code> now documents the universe dial + transitions; new pages added for the terminal command engine and window controls.</li>
+  <li><strong>Worktrees</strong> live at <code>../wt/{a-scroll,b-card,c-terminal,content}</code> and stay — <code>wt/a-scroll</code> is the home of the next work item (scroll experience).</li>
 </ol>
 </div>
 
-<h2>Next: Phase 2 — Make the terminal real <span class="tag t-next">UP NEXT</span></h2>
-<p class="muted">All work on <code>version/c-terminal</code> except the <code>/api/ask</code> route (worker, on <code>main</code>). Content pulled from the existing <code>src/content/site.ts</code> + <code>experience.ts</code> contract so it never drifts.</p>
+<h2 class="done">✓ Phase 2 — Make the terminal real <span class="tag t-done">DONE (July 2026)</span></h2>
+<p class="muted">Shipped. 2a landed as <code>f91ae20</code> (interactive engine) + <code>df0233f</code> (git-log build artifact) + <code>e59ef78</code> (leaner boot sequence) on <code>version/c-terminal</code>. 2b landed as <code>71e0893</code> → <code>5586d10</code> → <code>aad5088</code> on <code>main</code>, with deviations from the plan below: the model was upgraded to <strong>Claude Sonnet 5</strong> (not Haiku), the endpoint is <strong>gated behind a shared secret</strong>, and grounding context is served from <strong>KV</strong> rather than baked into the worker. Original spec kept below for reference.</p>
 
-<div class="panel next">
-<h3>2a. Interactive command engine</h3>
+<div class="panel">
+<h3 class="done">✓ 2a. Interactive command engine <span class="tag t-done">DONE</span></h3>
 <p>Today <code>index.astro</code> renders a <em>scripted</em> typing animation of fake command output (via <code>@chenglou/pretext</code> for line layout). Phase 2 turns the bottom blinking-cursor line into a <strong>real prompt</strong> that accepts input, while keeping the scripted intro as the "boot sequence."</p>
 <ul>
   <li>Add an input line (contenteditable or hidden input + rendered span) after the boot sequence completes.</li>
@@ -102,8 +98,8 @@ npx wrangler deploy   # (run from a checkout that has worker.js; confirm wrangle
 <div class="verify"><strong>Verify:</strong> each command produces correct output; history + tab-completion work; <code>switch</code> triggers the morph; unknown commands handled; boot sequence still plays first; mobile keyboard usable.</div>
 </div>
 
-<div class="panel next">
-<h3>2b. <code>ask &lt;question&gt;</code> — Claude-grounded answers</h3>
+<div class="panel">
+<h3 class="done">✓ 2b. <code>ask &lt;question&gt;</code> — Claude-grounded answers <span class="tag t-done">DONE</span> <span class="muted" style="font-size:.8rem">(shipped with Sonnet 5 + shared-secret gate + KV grounding)</span></h3>
 <ul>
   <li><strong>Worker route</strong> <code>/api/ask</code> in <code>worker.js</code>: handle <code>/api/*</code> <em>before</em> the version proxy. POST <code>{question}</code> → Anthropic API, stream back via SSE.</li>
   <li><strong>Model:</strong> Claude Haiku 4.5 (<code>claude-haiku-4-5-20251001</code>) — cheap, fast first token. <span class="muted">(Verify current model id against the claude-api skill before shipping.)</span></li>
@@ -114,6 +110,9 @@ npx wrangler deploy   # (run from a checkout that has worker.js; confirm wrangle
 <div class="verify"><strong>Verify:</strong> first token &lt;3s; answer grounded in real content; off-topic politely refused; key never in client bundle/network; rate-limit returns a friendly in-terminal message; works through the live worker (not just local).</div>
 <div class="gotcha"><strong>New infra this introduces:</strong> a KV namespace (rate limiting) and a Worker secret (API key). Document both in the wiki. This is the first time the worker does more than proxy — keep <code>/api/*</code> handling isolated and well-commented.</div>
 </div>
+
+<h2>Next: a-scroll scroll experience <span class="tag t-next">UP NEXT</span></h2>
+<p class="muted">New track inserted July 2026, before Phase 3: a major scroll-driven visual upgrade of <code>version/a-scroll</code> (Apple/landonorris.com-style pinned scenes, scroll-linked reveals, kinetic type). Full plan: <code>plans/scroll-experience-plan.html</code>. Work happens in <code>wt/a-scroll</code>.</p>
 
 <h2>Then: Phases 3–5 <span class="tag t-later">LATER</span></h2>
 <p class="muted">Full detail in <code>plans/execution-plan.html</code>. Summary + the key architectural decisions to carry forward:</p>
