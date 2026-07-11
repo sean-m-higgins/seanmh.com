@@ -1,6 +1,8 @@
 {
   "main": "dist/_worker.js/index.js",
-  "name": "seanmhdotcom",
+  // NOT "seanmhdotcom" — that's the production router worker (deployed from
+  // main). Deploying this Astro app under that name would replace the router.
+  "name": "seanmh-terminal",
   "compatibility_date": "2025-09-27",
   "compatibility_flags": [
     "global_fetch_strictly_public",
