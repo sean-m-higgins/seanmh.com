@@ -1,0 +1,22 @@
+// Wrangler config for the front routing Worker (seanmh.com / www.seanmh.com).
+// Deploy with: npx wrangler deploy   (from this directory, on the main branch)
+//
+// - Secrets (ANTHROPIC_API_KEY, ASK_SECRET) are managed separately via
+//   `wrangler secret put <NAME>` or the dashboard; deploys never touch them.
+// - `keep_vars` preserves any plaintext vars set in the dashboard.
+// - Routes are managed in the dashboard and left untouched by deploys.
+{
+  "name": "seanmhdotcom",
+  "main": "worker.js",
+  "compatibility_date": "2025-09-27",
+  "keep_vars": true,
+  "kv_namespaces": [
+    {
+      "binding": "ASK_RL",
+      "id": "7b12ce88edfe424d82f6545da98cc646"
+    }
+  ],
+  "observability": {
+    "enabled": true
+  }
+}
