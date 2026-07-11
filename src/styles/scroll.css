@@ -1,0 +1,34 @@
+/* a-scroll motion foundation — version-specific, NOT part of the switcher kit
+   (transitions.css stays byte-identical across version branches). */
+
+/* Lenis recommended styles. `.lenis.lenis-smooth` overrides the native
+   scroll-behavior:smooth from global.css while Lenis is driving; reduced-motion
+   visitors never get these classes and keep native smooth scrolling. */
+html.lenis,
+html.lenis body {
+  height: auto;
+}
+.lenis.lenis-smooth {
+  scroll-behavior: auto !important;
+}
+.lenis.lenis-smooth [data-lenis-prevent] {
+  overscroll-behavior: contain;
+}
+.lenis.lenis-stopped {
+  overflow: hidden;
+}
+
+/* Scroll progress bar. ScrollTrigger drives scaleX 0→1; at 0 it is invisible,
+   so reduced-motion/no-JS visitors simply never see it. */
+#scroll-progress {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 2px;
+  background: var(--color-accent, #6366f1);
+  transform: scaleX(0);
+  transform-origin: 0 50%;
+  z-index: 60; /* above the z-50 nav */
+  pointer-events: none;
+}

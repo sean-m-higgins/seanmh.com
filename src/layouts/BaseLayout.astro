@@ -1,6 +1,7 @@
 ---
 import "../styles/global.css";
 import "../styles/transitions.css";
+import "../styles/scroll.css";
 import Navigation from "../components/Navigation.astro";
 import Footer from "../components/Footer.astro";
 import VersionSwitcher from "../components/VersionSwitcher.astro";
@@ -55,12 +56,22 @@ const { title, description = "Sean Higgins — Software Engineer" } = Astro.prop
     </script>
   </head>
   <body class="min-h-screen font-sans antialiased">
+    <div id="scroll-progress" aria-hidden="true"></div>
     <Navigation />
     <main>
       <slot />
     </main>
     <Footer />
     <VersionSwitcher current="a-scroll" />
+
+    <!-- Motion foundation: Lenis smooth scroll + GSAP ScrollTrigger -->
+    <script>
+      import { initScroll, destroyScroll } from "../scripts/scroll";
+
+      initScroll();
+      document.addEventListener("astro:page-load", initScroll);
+      document.addEventListener("astro:before-swap", destroyScroll);
+    </script>
 
     <!-- Scroll-triggered fade-in for sections -->
     <script>
