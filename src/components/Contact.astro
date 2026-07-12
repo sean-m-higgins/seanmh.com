@@ -7,6 +7,16 @@ import SectionHeading from "./SectionHeading.astro";
   <div class="mx-auto max-w-4xl px-6">
     <SectionHeading title="Contact" />
 
+    <p
+      class="mb-14 text-[clamp(2.5rem,7vw,5.5rem)] font-bold leading-[1.05] tracking-tight text-neutral-900 dark:text-neutral-100"
+    >
+      <span class="block overflow-hidden"
+        ><span class="block" data-contact-line
+          >Let's build <span class="text-accent">something.</span></span
+        ></span
+      >
+    </p>
+
     <div class="grid gap-12 md:grid-cols-2">
       <div>
         <p class="mb-6 text-neutral-600 dark:text-neutral-400">
@@ -107,6 +117,7 @@ import SectionHeading from "./SectionHeading.astro";
         </div>
         <button
           type="submit"
+          data-magnetic
           class="rounded-lg bg-accent px-6 py-2.5 text-sm font-medium text-white transition-all hover:bg-accent-light hover:shadow-lg hover:shadow-accent/25 disabled:opacity-50"
         >
           Send Message

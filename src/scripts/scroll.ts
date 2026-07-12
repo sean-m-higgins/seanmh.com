@@ -9,7 +9,7 @@ const NAV_OFFSET = -80;
 let lenis: Lenis | null = null;
 let rafTick: ((time: number) => void) | null = null;
 let heroMedia: gsap.MatchMedia | null = null;
-let heroSplit: SplitText | null = null;
+let splits: SplitText[] = [];
 
 // Lenis replaces native scrolling, so same-page anchor clicks must be routed
 // through it or they jump without the nav offset.
@@ -55,7 +55,8 @@ function setupHero() {
     );
   });
 
-  heroSplit = new SplitText(name, { type: "words,chars", aria: "auto" });
+  const heroSplit = new SplitText(name, { type: "words,chars", aria: "auto" });
+  splits.push(heroSplit);
   const chars = heroSplit.chars;
   const mid = (chars.length - 1) / 2;
 
@@ -110,6 +111,145 @@ function setupHero() {
   });
 }
 
+// Section choreography: one-shot reveals as content enters the viewport
+// (never re-hidden on scroll-up), plus the Experience rail that draws with
+// scroll. Initial hidden states are applied here in JS so no-JS visitors see
+// everything.
+function setupSections() {
+  const reveal = { duration: 0.7, ease: "power2.out" } as const;
+
+  // Section headings: text masks up, accent rule draws left→right.
+  document.querySelectorAll<HTMLElement>("[data-sh]").forEach((h) => {
+    const tl = gsap.timeline({
+      scrollTrigger: { trigger: h, start: "top 85%", once: true },
+    });
+    const text = h.querySelector("[data-sh-text]");
+    const rule = h.querySelector("[data-sh-rule]");
+    if (text) tl.fromTo(text, { yPercent: 110 }, { yPercent: 0, ...reveal }, 0);
+    if (rule)
+      tl.fromTo(
+        rule,
+        { scaleX: 0 },
+        { scaleX: 1, duration: 0.6, ease: "power2.out", transformOrigin: "0 50%" },
+        0.15
+      );
+  });
+
+  // About: headshot wipes in and drifts gently; copy reveals line by line.
+  const photo = document.querySelector<HTMLElement>("[data-about-photo]");
+  if (photo) {
+    gsap.fromTo(
+      photo,
+      { clipPath: "inset(0 100% 0 0)" },
+      {
+        clipPath: "inset(0 0% 0 0)",
+        duration: 0.9,
+        ease: "power2.inOut",
+        scrollTrigger: { trigger: photo, start: "top 80%", once: true },
+      }
+    );
+    gsap.to(photo, {
+      y: -16,
+      ease: "none",
+      scrollTrigger: { trigger: "#about", start: "top bottom", end: "bottom top", scrub: true },
+    });
+  }
+  const copy = document.querySelector<HTMLElement>("[data-about-copy]");
+  if (copy) {
+    splits.push(
+      SplitText.create(copy.querySelectorAll("p"), {
+        type: "lines",
+        mask: "lines",
+        autoSplit: true,
+        onSplit: (self) =>
+          gsap.fromTo(
+            self.lines,
+            { yPercent: 110 },
+            {
+              yPercent: 0,
+              stagger: 0.08,
+              ...reveal,
+              scrollTrigger: { trigger: copy, start: "top 80%", once: true },
+            }
+          ),
+      })
+    );
+  }
+
+  // Experience: each rail segment draws with scroll; dots pop and content
+  // rises once as items enter.
+  document.querySelectorAll<HTMLElement>("[data-exp-item]").forEach((item) => {
+    const line = item.querySelector("[data-exp-line]");
+    const dot = item.querySelector("[data-exp-dot]");
+    const content = item.querySelector("[data-exp-content]");
+    if (line)
+      gsap.fromTo(
+        line,
+        { scaleY: 0 },
+        {
+          scaleY: 1,
+          ease: "none",
+          transformOrigin: "50% 0",
+          scrollTrigger: { trigger: item, start: "top 80%", end: "bottom 65%", scrub: true },
+        }
+      );
+    if (dot)
+      gsap.fromTo(
+        dot,
+        { scale: 0 },
+        {
+          scale: 1,
+          duration: 0.5,
+          ease: "back.out(1.7)",
+          scrollTrigger: { trigger: item, start: "top 85%", once: true },
+        }
+      );
+    if (content)
+      gsap.fromTo(
+        content,
+        { y: 24, autoAlpha: 0 },
+        {
+          y: 0,
+          autoAlpha: 1,
+          ...reveal,
+          scrollTrigger: { trigger: item, start: "top 85%", once: true },
+        }
+      );
+  });
+
+  // Contact: the oversized line masks up like the headings.
+  const contactLine = document.querySelector<HTMLElement>("[data-contact-line]");
+  if (contactLine)
+    gsap.fromTo(
+      contactLine,
+      { yPercent: 110 },
+      {
+        yPercent: 0,
+        duration: 0.8,
+        ease: "power2.out",
+        scrollTrigger: { trigger: contactLine, start: "top 88%", once: true },
+      }
+    );
+}
+
+// Magnetic hover for tagged buttons — pointer devices only.
+function setupMagnetic() {
+  if (!window.matchMedia("(hover: hover) and (pointer: fine)").matches) return;
+  document.querySelectorAll<HTMLElement>("[data-magnetic]").forEach((el) => {
+    const xTo = gsap.quickTo(el, "x", { duration: 0.4, ease: "power3.out" });
+    const yTo = gsap.quickTo(el, "y", { duration: 0.4, ease: "power3.out" });
+    el.addEventListener("pointermove", (e) => {
+      const r = el.getBoundingClientRect();
+      xTo((e.clientX - (r.left + r.width / 2)) * 0.3);
+      yTo((e.clientY - (r.top + r.height / 2)) * 0.3);
+    });
+    el.addEventListener("pointerleave", () => {
+      xTo(0);
+      yTo(0);
+    });
+  });
+}
+
 export function initScroll() {
   // Idempotent: astro:page-load fires after the module's initial call too.
   if (lenis) return;
@@ -133,6 +273,8 @@ export function initScroll() {
   });
 
   setupHero();
+  setupSections();
+  setupMagnetic();
 }
 
 export function destroyScroll() {
@@ -140,8 +282,8 @@ export function destroyScroll() {
   document.removeEventListener("click", onAnchorClick);
   heroMedia?.revert();
   heroMedia = null;
-  heroSplit?.revert();
-  heroSplit = null;
+  splits.forEach((s) => s.revert());
+  splits = [];
   ScrollTrigger.getAll().forEach((trigger) => trigger.kill());
   if (rafTick) gsap.ticker.remove(rafTick);
   rafTick = null;

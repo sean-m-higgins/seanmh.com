@@ -8,6 +8,13 @@ const { title } = Astro.props;
 
 <h2
   class="mb-12 text-2xl font-bold tracking-tight text-neutral-900 dark:text-neutral-100"
+  data-sh
 >
-  <span class="text-accent">/</span> {title}
+  <span class="block overflow-hidden">
+    <span class="block" data-sh-text><span class="text-accent">/</span> {title}</span>
+  </span>
+  <span
+    class="mt-3 block h-px w-16 bg-accent/60"
+    data-sh-rule
+    aria-hidden="true"></span>
 </h2>
