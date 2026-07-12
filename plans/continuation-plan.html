@@ -48,7 +48,7 @@
 <table>
   <tr><th>Branch</th><th>Commit (July 2026)</th><th>Contents</th></tr>
   <tr><td><code>version/a-scroll</code></td><td><code>7c791f5</code></td><td>Kit + <code>Hero.astro</code> headline tagged <code>vt-sean-name vt-skip-intro</code></td></tr>
-  <tr><td><code>version/b-card</code></td><td><code>d9fad6e</code> pushed; <code>6ddb6b7</code> local</td><td>Kit + tilt toggle, particle fade fix, press-and-hold hint polish. <strong>⚠ <code>6ddb6b7</code> (hint centering) not on origin yet.</strong></td></tr>
+  <tr><td><code>version/b-card</code></td><td><code>6ddb6b7</code></td><td>Kit + tilt toggle, particle fade fix, press-and-hold hint polish</td></tr>
   <tr><td><code>version/c-terminal</code></td><td><code>3fac500</code></td><td>Kit + full Phase 2 terminal (see below)</td></tr>
   <tr><td><code>content</code></td><td><code>015ce44</code></td><td>Canonical kit files + shared project content</td></tr>
   <tr><td><code>main</code></td><td><code>aad5088</code></td><td>Hardened weighted proxy, <code>scripts/dev-proxy.mjs</code>, <code>/api/ask</code> route, plans</td></tr>
@@ -68,7 +68,7 @@
 <h3>⧗ Housekeeping status <span class="tag t-done">MOSTLY DONE (July 2026)</span></h3>
 <div class="panel">
 <ol>
-  <li><strong class="done">✓ Push + deploy Phase 1</strong> — all branches are on origin (<code>main</code>, <code>content</code>, all three <code>version/*</code>). Worker development has continued on <code>main</code> (<code>/api/ask</code>), so the worker deploy pipeline is active. <span class="muted">Exception: <code>version/b-card</code> local commit <code>6ddb6b7</code> still needs a push.</span></li>
+  <li><strong class="done">✓ Push + deploy Phase 1</strong> — all branches are on origin (<code>main</code>, <code>content</code>, all three <code>version/*</code>). Worker development has continued on <code>main</code> (<code>/api/ask</code>), so the worker deploy pipeline is active.</li>
   <li><strong>⧗ Smoke-test on real browsers</strong> — still worth a deliberate pass: Chrome/Edge (morph), Safari/Firefox (clean fallback, no breakage), mobile (tap-to-open dial), reduced-motion OS setting.</li>
   <li><strong class="done">✓ Update the wiki</strong> — <code>Version-Switcher.md</code> now documents the universe dial + transitions; new pages added for the terminal command engine and window controls.</li>
   <li><strong>Worktrees</strong> live at <code>../wt/{a-scroll,b-card,c-terminal,content}</code> and stay — <code>wt/a-scroll</code> is the home of the next work item (scroll experience).</li>
