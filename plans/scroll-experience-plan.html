@@ -40,6 +40,7 @@
 
 <h1>a-scroll — Scroll Experience Plan</h1>
 <p class="muted">Written July 2026. Scope: <code>version/a-scroll</code> only (worktree <code>wt/a-scroll</code>). Goal: turn the scroll version from a polished-but-static page into a scroll-driven cinematic experience — the version that <em>earns its name</em>. Companion to <code>plans/continuation-plan.html</code>.</p>
+<p><strong>Status (July 12, 2026):</strong> ✅ S1 (<code>1c10104</code>), ✅ S2 (<code>aa4fa52</code>), ✅ S3 (<code>ad9382b</code>) — built, browser-verified, committed on <code>version/a-scroll</code>, not pushed. Option A (GSAP + Lenis) chosen. Next: S4 (blocked on content from Sean) and S5. Notes: headless-automation cannot render cross-document view-transition arrivals (rAF freezes even on unmodified pages) — the dial morph needs its manual real-Chrome smoke test before deploy; magnetic elements must exclude <code>transform</code> from CSS transitions (handled in <code>scroll.css</code>).</p>
 
 <h2>Where a-scroll is today</h2>
 <ul>
