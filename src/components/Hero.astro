@@ -4,40 +4,69 @@ import { site } from "../content/site";
 
 <section
   class="relative flex min-h-screen items-center justify-center overflow-hidden"
+  data-hero
 >
-  <!-- Gradient mesh background -->
+  <!-- Gradient mesh background, split into layers so the scroll scene can
+       drift them at different rates. Oversized so drifting never exposes an
+       edge. -->
   <div
-    class="absolute inset-0 -z-10 bg-[radial-gradient(ellipse_at_top_right,_rgba(99,102,241,0.15),_transparent_50%),_radial-gradient(ellipse_at_bottom_left,_rgba(99,102,241,0.1),_transparent_50%)]"
+    class="absolute -inset-[10%] -z-10 bg-[radial-gradient(ellipse_at_top_right,_rgba(99,102,241,0.15),_transparent_50%)]"
+    data-hero-orb-1
+  >
+  </div>
+  <div
+    class="absolute -inset-[10%] -z-10 bg-[radial-gradient(ellipse_at_bottom_left,_rgba(99,102,241,0.1),_transparent_50%)]"
+    data-hero-orb-2
   >
   </div>
 
-  <div class="mx-auto max-w-4xl px-6 py-24 text-center">
+  <div class="vt-skip-intro mx-auto w-full max-w-6xl px-6 py-24 text-center">
     <p
       class="mb-4 font-mono text-sm tracking-wider text-accent animate-fade-in"
+      data-hero-greeting
     >
       Hello, I'm
     </p>
     <h1
-      class="vt-sean-name vt-skip-intro mb-4 text-5xl font-bold tracking-tight text-neutral-900 dark:text-neutral-100 sm:text-6xl lg:text-7xl animate-fade-in [animation-delay:100ms]"
+      class="vt-sean-name vt-skip-intro mb-6 text-[clamp(3.5rem,11vw,9rem)] font-bold leading-[0.95] tracking-tight text-neutral-900 dark:text-neutral-100 animate-fade-in [animation-delay:100ms]"
+      data-hero-name
     >
       {site.name}
     </h1>
     <p
       class="mb-6 text-xl text-neutral-600 dark:text-neutral-400 sm:text-2xl animate-fade-in [animation-delay:200ms]"
+      data-hero-title
     >
       {site.title}
     </p>
     <p
       class="mb-10 text-lg text-neutral-500 dark:text-neutral-500 animate-fade-in [animation-delay:300ms]"
+      data-hero-tagline
     >
       {site.tagline}
     </p>
     <a
       href="#contact"
       class="inline-block rounded-lg bg-accent px-6 py-3 text-sm font-medium text-white transition-all hover:bg-accent-light hover:shadow-lg hover:shadow-accent/25 animate-fade-in [animation-delay:400ms]"
+      data-hero-cta
     >
       Get in Touch
     </a>
+  </div>
+
+  <div
+    class="vt-skip-intro absolute bottom-8 left-1/2 -translate-x-1/2 text-center animate-fade-in [animation-delay:600ms]"
+    data-hero-cue
+    aria-hidden="true"
+  >
+    <span
+      class="font-mono text-[10px] uppercase tracking-[0.3em] text-neutral-400 dark:text-neutral-600"
+    >
+      Scroll
+    </span>
+    <span
+      class="mx-auto mt-2 block h-10 w-px bg-gradient-to-b from-neutral-400 to-transparent dark:from-neutral-600"
+    ></span>
   </div>
 </section>
 
