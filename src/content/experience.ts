@@ -60,6 +60,7 @@ export const experience: ExperienceEntry[] = [
     organization: "Loyola University Chicago",
     dates: "Jan 2020 – Dec 2020",
     highlights: [
+      "GPA 3.7/4.0.",
       "Teaching Assistant for Database Programming, Intermediate Object-Oriented Programming, Machine Learning, and Operating Systems.",
       "Research Assistant — developed novel NLP techniques to classify drug misuse from patients' electronic health records using convolutional neural networks.",
     ],
