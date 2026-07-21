@@ -1,0 +1,31 @@
+---
+import SectionHeading from "./SectionHeading.astro";
+import { testimonials } from "../content/about";
+---
+
+<section id="testimonials" class="py-24">
+  <div class="mx-auto max-w-4xl px-6">
+    <SectionHeading title="What Peers Say" />
+
+    <div class="grid gap-6 sm:grid-cols-2">
+      {
+        testimonials.map((t) => (
+          <blockquote
+            data-quote
+            class="rounded-xl border border-neutral-200 p-6 dark:border-neutral-800"
+          >
+            <span class="font-serif text-4xl leading-none text-accent/30" aria-hidden="true">
+              "
+            </span>
+            <p class="-mt-3 text-neutral-700 italic dark:text-neutral-300">
+              {t.quote}
+            </p>
+            <footer class="mt-4 font-mono text-xs font-medium uppercase tracking-widest text-neutral-500">
+              — {t.role}
+            </footer>
+          </blockquote>
+        ))
+      }
+    </div>
+  </div>
+</section>

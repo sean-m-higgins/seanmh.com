@@ -2,12 +2,21 @@
 import SectionHeading from "./SectionHeading.astro";
 import { Image } from "astro:assets";
 import headshot from "../assets/images/headshot.jpeg";
+import flower from "../assets/images/flower.png";
+import orange from "../assets/images/orange.png";
+import red from "../assets/images/red.png";
+import space from "../assets/images/space.png";
+import table from "../assets/images/table.jpeg";
+import { currentFocus } from "../content/about";
 ---
 
 <section id="about" class="py-24">
-  <div class="mx-auto max-w-4xl px-6">
+  <div class="mx-auto max-w-6xl px-6">
     <SectionHeading title="About" />
-    <div class="flex flex-col items-start gap-8 md:flex-row md:items-center">
+
+    <div
+      class="mx-auto flex max-w-4xl flex-col items-start gap-8 md:flex-row md:items-center"
+    >
       <Image
         src={headshot}
         alt="Sean Higgins"
@@ -16,21 +25,107 @@ import headshot from "../assets/images/headshot.jpeg";
         class="h-40 w-40 shrink-0 rounded-2xl object-cover"
         data-about-photo
       />
-      <div class="space-y-4 text-neutral-600 dark:text-neutral-400" data-about-copy>
-        <p>
-          Software engineer with a M.S. in Software Engineering and a B.S. in
-          Computer Science from Loyola University Chicago. Currently working on
-          a high-performing enterprise platform team building authentication and
-          API gateway infrastructure at scale. I enjoy building clean, practical
-          software and have experience across front-end, back-end, data
-          engineering, and machine learning.
-        </p>
-        <p>
+      <p class="text-neutral-600 dark:text-neutral-400" data-about-copy>
+        Software engineer with a M.S. in Software Engineering and a B.S. in
+        Computer Science from Loyola University Chicago. Currently working on
+        a high-performing enterprise platform team building authentication and
+        API gateway infrastructure at scale. I enjoy building clean, practical
+        software and have experience across front-end, back-end, data
+        engineering, and machine learning.
+      </p>
+    </div>
+
+    <!-- Currently: highlighted callout for the present-day focus -->
+    <div
+      class="mx-auto mt-16 max-w-3xl rounded-r-xl border-l-4 border-accent bg-accent/5 p-6 sm:p-8"
+      data-currently
+    >
+      <p class="text-xl font-semibold leading-snug text-neutral-900 sm:text-2xl dark:text-neutral-100">
+        {currentFocus.lead}
+      </p>
+      <p class="mt-4 text-neutral-600 dark:text-neutral-400">
+        {currentFocus.body}
+      </p>
+    </div>
+
+    <!-- Off the clock: personal paragraph flanked by art, with a woodworking
+         photo beneath. Art columns hide below lg — the pieces reappear in a
+         simple row so nothing is lost, just the leaning gallery effect. -->
+    <div class="mt-20 grid grid-cols-1 items-center gap-10 lg:grid-cols-[1fr_minmax(0,34rem)_1fr]">
+      <div class="hidden flex-col items-center gap-10 lg:flex" aria-hidden="true">
+        <Image
+          src={flower}
+          alt=""
+          width={300}
+          class="-rotate-3 drop-shadow-xl"
+          data-art
+          data-art-side="left"
+        />
+        <Image
+          src={orange}
+          alt=""
+          width={210}
+          class="rotate-2 drop-shadow-xl"
+          data-art
+          data-art-side="left"
+        />
+      </div>
+
+      <div class="order-first lg:order-none">
+        <p class="text-center text-neutral-600 dark:text-neutral-400 lg:text-left">
           When I'm not writing code, you can find me in the boxing ring, on the
-          mountain snowboarding, enjoying a live concert, or at home building furniture and making
-          art. World traveler. Eagle Scout. Cat dad to Sunny.
+          mountain snowboarding, enjoying a live concert, or at home building
+          furniture and making art. World traveler. Eagle Scout. Cat dad to
+          Sunny.
         </p>
+        <p class="sr-only">
+          Four original paintings by Sean Higgins — a colorful floral field,
+          two warm abstract pieces in orange and red, and a dark abstract
+          night-sky piece — are shown alongside this text.
+        </p>
+
+        <figure class="mx-auto mt-8 max-w-md lg:mx-0" data-table-photo>
+          <Image
+            src={table}
+            alt="A coffee table Sean built from oak, with a glass inset top"
+            width={480}
+            class="rounded-xl object-cover shadow-lg"
+          />
+          <figcaption class="mt-2 text-center text-xs text-neutral-500 lg:text-left">
+            A coffee table, built from scratch.
+          </figcaption>
+        </figure>
+
+        <!-- Small screens: the art pieces still appear, just stacked plainly. -->
+        <div class="mt-8 grid grid-cols-2 gap-6 lg:hidden" aria-hidden="true">
+          <Image src={flower} alt="" width={220} class="-rotate-2 drop-shadow-lg" />
+          <Image src={orange} alt="" width={160} class="rotate-2 justify-self-end drop-shadow-lg" />
+          <Image src={red} alt="" width={160} class="-rotate-2 drop-shadow-lg" />
+          <Image src={space} alt="" width={220} class="rotate-2 justify-self-end drop-shadow-lg" />
+        </div>
+      </div>
+
+      <div class="hidden flex-col items-center gap-10 lg:flex" aria-hidden="true">
+        <Image
+          src={space}
+          alt=""
+          width={300}
+          class="rotate-3 drop-shadow-xl"
+          data-art
+          data-art-side="right"
+        />
+        <Image
+          src={red}
+          alt=""
+          width={210}
+          class="-rotate-2 drop-shadow-xl"
+          data-art
+          data-art-side="right"
+        />
       </div>
     </div>
+    <p class="mt-4 text-center text-xs text-neutral-500" aria-hidden="true">
+      Original paintings by Sean Higgins.
+    </p>
   </div>
 </section>

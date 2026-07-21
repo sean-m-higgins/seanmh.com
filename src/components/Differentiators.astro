@@ -1,0 +1,28 @@
+---
+import SectionHeading from "./SectionHeading.astro";
+import { differentiators } from "../content/about";
+---
+
+<section id="highlights" class="py-24">
+  <div class="mx-auto max-w-4xl px-6">
+    <SectionHeading title="Highlights" />
+
+    <div class="grid gap-x-10 gap-y-12 sm:grid-cols-2">
+      {
+        differentiators.map((d, i) => (
+          <div data-highlight>
+            <span class="font-mono text-sm font-semibold text-accent/60">
+              {String(i + 1).padStart(2, "0")}
+            </span>
+            <h3 class="mt-2 text-lg font-bold text-neutral-900 dark:text-neutral-100">
+              {d.title}
+            </h3>
+            <p class="mt-2 text-sm text-neutral-600 dark:text-neutral-400">
+              {d.body}
+            </p>
+          </div>
+        ))
+      }
+    </div>
+  </div>
+</section>

@@ -217,6 +217,84 @@ function setupSections() {
       );
   });
 
+  // Currently panel: rises in as one beat.
+  const currently = document.querySelector<HTMLElement>("[data-currently]");
+  if (currently)
+    gsap.fromTo(
+      currently,
+      { y: 24, autoAlpha: 0 },
+      {
+        y: 0,
+        autoAlpha: 1,
+        ...reveal,
+        scrollTrigger: { trigger: currently, start: "top 85%", once: true },
+      }
+    );
+
+  // Art gallery: each piece slides in from its side and settles into its
+  // resting tilt (the CSS class already sets the resting rotation, so the
+  // entrance only needs to add extra distance/rotation to unwind from).
+  document.querySelectorAll<HTMLElement>("[data-art]").forEach((art, i) => {
+    const fromLeft = art.dataset.artSide === "left";
+    gsap.fromTo(
+      art,
+      { x: fromLeft ? -60 : 60, autoAlpha: 0, rotate: fromLeft ? -14 : 14 },
+      {
+        x: 0,
+        autoAlpha: 1,
+        rotate: 0,
+        duration: 0.8,
+        delay: i * 0.12,
+        ease: "power2.out",
+        scrollTrigger: { trigger: art, start: "top 90%", once: true },
+      }
+    );
+  });
+  const tablePhoto = document.querySelector<HTMLElement>("[data-table-photo]");
+  if (tablePhoto)
+    gsap.fromTo(
+      tablePhoto,
+      { y: 24, autoAlpha: 0 },
+      {
+        y: 0,
+        autoAlpha: 1,
+        ...reveal,
+        scrollTrigger: { trigger: tablePhoto, start: "top 90%", once: true },
+      }
+    );
+
+  // Highlights: staggered rise, a beat apart so the number leads the eye.
+  const highlights = gsap.utils.toArray<HTMLElement>("[data-highlight]");
+  if (highlights.length)
+    gsap.fromTo(
+      highlights,
+      { y: 20, autoAlpha: 0 },
+      {
+        y: 0,
+        autoAlpha: 1,
+        duration: 0.6,
+        ease: "power2.out",
+        stagger: 0.08,
+        scrollTrigger: { trigger: highlights[0].closest("section"), start: "top 75%", once: true },
+      }
+    );
+
+  // Testimonials: staggered rise, matching the highlights rhythm.
+  const quotes = gsap.utils.toArray<HTMLElement>("[data-quote]");
+  if (quotes.length)
+    gsap.fromTo(
+      quotes,
+      { y: 20, autoAlpha: 0 },
+      {
+        y: 0,
+        autoAlpha: 1,
+        duration: 0.6,
+        ease: "power2.out",
+        stagger: 0.1,
+        scrollTrigger: { trigger: quotes[0].closest("section"), start: "top 75%", once: true },
+      }
+    );
+
   // Contact: the oversized line masks up like the headings.
   const contactLine = document.querySelector<HTMLElement>("[data-contact-line]");
   if (contactLine)
