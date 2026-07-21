@@ -279,21 +279,20 @@ function setupSections() {
       }
     );
 
-  // Testimonials: staggered rise, matching the highlights rhythm.
-  const quotes = gsap.utils.toArray<HTMLElement>("[data-quote]");
-  if (quotes.length)
+  // Quotes: interstitials spread across the page (not grouped in one
+  // section), so each reveals independently as it enters the viewport.
+  document.querySelectorAll<HTMLElement>("[data-quote]").forEach((q) => {
     gsap.fromTo(
-      quotes,
-      { y: 20, autoAlpha: 0 },
+      q,
+      { y: 24, autoAlpha: 0 },
       {
         y: 0,
         autoAlpha: 1,
-        duration: 0.6,
-        ease: "power2.out",
-        stagger: 0.1,
-        scrollTrigger: { trigger: quotes[0].closest("section"), start: "top 75%", once: true },
+        ...reveal,
+        scrollTrigger: { trigger: q, start: "top 85%", once: true },
       }
     );
+  });
 
   // Contact: the oversized line masks up like the headings.
   const contactLine = document.querySelector<HTMLElement>("[data-contact-line]");

@@ -1,6 +1,6 @@
 export const currentFocus = {
   lead: "Currently, core contributor and subject-matter expert on the Authorization Server — the enterprise OAuth 2.0 implementation handling workforce and consumer authorization flows.",
-  body: "It issues and revokes every OAuth token for enterprise API access. Active ownership keeps this security-critical system covered and spreads the institutional knowledge that keeps it resilient, reinforced by peer recognition on a recent high-stakes partner release.",
+  body: "It issues and revokes every OAuth token for enterprise API access. Active ownership keeps this security-critical system covered and spreads the institutional knowledge that keeps it resilient, reinforced by peer recognition on several high-stakes partner releases.",
 } as const;
 
 export interface Differentiator {

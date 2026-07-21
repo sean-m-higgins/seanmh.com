@@ -4,15 +4,19 @@ import Hero from "../components/Hero.astro";
 import About from "../components/About.astro";
 import Experience from "../components/Experience.astro";
 import Differentiators from "../components/Differentiators.astro";
-import Testimonials from "../components/Testimonials.astro";
 import Contact from "../components/Contact.astro";
+import Quote from "../components/Quote.astro";
+import { testimonials } from "../content/about";
 ---
 
 <BaseLayout title="Sean Higgins — Software Engineer">
   <Hero />
+  <Quote {...testimonials[0]} />
   <About />
+  <Quote {...testimonials[1]} />
   <Experience />
+  <Quote {...testimonials[2]} />
   <Differentiators />
-  <Testimonials />
+  <Quote {...testimonials[3]} />
   <Contact />
 </BaseLayout>

@@ -1,0 +1,22 @@
+---
+interface Props {
+  quote: string;
+  role: string;
+}
+
+const { quote, role } = Astro.props;
+---
+
+<div class="py-16">
+  <div class="mx-auto max-w-3xl px-6 text-center" data-quote>
+    <span class="font-serif text-5xl leading-none text-accent/30" aria-hidden="true">
+      "
+    </span>
+    <p class="-mt-4 text-2xl font-medium leading-snug text-neutral-800 italic sm:text-3xl dark:text-neutral-200">
+      {quote}
+    </p>
+    <p class="mt-4 font-mono text-xs font-medium uppercase tracking-widest text-neutral-500">
+      — {role}
+    </p>
+  </div>
+</div>
