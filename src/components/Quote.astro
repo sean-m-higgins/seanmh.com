@@ -2,21 +2,34 @@
 interface Props {
   quote: string;
   role: string;
+  align?: "left" | "right";
 }
 
-const { quote, role } = Astro.props;
+const { quote, role, align = "left" } = Astro.props;
+const isRight = align === "right";
+// Resting tilt via the standalone `rotate` property (inline) so it composes
+// with the GSAP transform used by the reveal instead of being overwritten.
+const tilt = isRight ? "1.8deg" : "-1.8deg";
 ---
 
-<div class="py-16">
-  <div class="mx-auto max-w-3xl px-6 text-center" data-quote>
-    <span class="font-serif text-5xl leading-none text-accent/30" aria-hidden="true">
-      "
-    </span>
-    <p class="-mt-4 text-2xl font-medium leading-snug text-neutral-800 italic sm:text-3xl dark:text-neutral-200">
+<div class="mx-auto max-w-6xl px-6 py-12 sm:py-16">
+  <figure
+    data-quote
+    style={`rotate: ${tilt}`}
+    class:list={[
+      "max-w-md",
+      isRight ? "ml-auto text-right" : "mr-auto text-left",
+    ]}
+  >
+    <blockquote
+      class="font-handwriting text-2xl leading-tight text-accent sm:text-3xl"
+    >
       {quote}
-    </p>
-    <p class="mt-4 font-mono text-xs font-medium uppercase tracking-widest text-neutral-500">
+    </blockquote>
+    <figcaption
+      class="mt-2 font-handwriting text-xl text-neutral-500 dark:text-neutral-400"
+    >
       — {role}
-    </p>
-  </div>
+    </figcaption>
+  </figure>
 </div>

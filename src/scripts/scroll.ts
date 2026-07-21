@@ -111,17 +111,17 @@ function setupHero() {
   });
 }
 
-// Section choreography: one-shot reveals as content enters the viewport
-// (never re-hidden on scroll-up), plus the Experience rail that draws with
-// scroll. Initial hidden states are applied here in JS so no-JS visitors see
-// everything.
+// Section choreography: reveals as content enters the viewport — reversible,
+// so they re-hide (and replay) when scrolled back above — plus the Experience
+// rail that draws with scroll. Initial hidden states are applied here in JS so
+// no-JS visitors see everything.
 function setupSections() {
   const reveal = { duration: 0.7, ease: "power2.out" } as const;
 
   // Section headings: text masks up, accent rule draws left→right.
   document.querySelectorAll<HTMLElement>("[data-sh]").forEach((h) => {
     const tl = gsap.timeline({
-      scrollTrigger: { trigger: h, start: "top 85%", once: true },
+      scrollTrigger: { trigger: h, start: "top 85%", toggleActions: "play none none reverse" },
     });
     const text = h.querySelector("[data-sh-text]");
     const rule = h.querySelector("[data-sh-rule]");
@@ -145,7 +145,7 @@ function setupSections() {
         clipPath: "inset(0 0% 0 0)",
         duration: 0.9,
         ease: "power2.inOut",
-        scrollTrigger: { trigger: photo, start: "top 80%", once: true },
+        scrollTrigger: { trigger: photo, start: "top 80%", toggleActions: "play none none reverse" },
       }
     );
     gsap.to(photo, {
@@ -169,7 +169,7 @@ function setupSections() {
               yPercent: 0,
               stagger: 0.08,
               ...reveal,
-              scrollTrigger: { trigger: copy, start: "top 80%", once: true },
+              scrollTrigger: { trigger: copy, start: "top 80%", toggleActions: "play none none reverse" },
             }
           ),
       })
@@ -201,7 +201,7 @@ function setupSections() {
           scale: 1,
           duration: 0.5,
           ease: "back.out(1.7)",
-          scrollTrigger: { trigger: item, start: "top 85%", once: true },
+          scrollTrigger: { trigger: item, start: "top 85%", toggleActions: "play none none reverse" },
         }
       );
     if (content)
@@ -212,7 +212,7 @@ function setupSections() {
           y: 0,
           autoAlpha: 1,
           ...reveal,
-          scrollTrigger: { trigger: item, start: "top 85%", once: true },
+          scrollTrigger: { trigger: item, start: "top 85%", toggleActions: "play none none reverse" },
         }
       );
   });
@@ -227,7 +227,7 @@ function setupSections() {
         y: 0,
         autoAlpha: 1,
         ...reveal,
-        scrollTrigger: { trigger: currently, start: "top 85%", once: true },
+        scrollTrigger: { trigger: currently, start: "top 85%", toggleActions: "play none none reverse" },
       }
     );
 
@@ -246,7 +246,7 @@ function setupSections() {
         duration: 0.8,
         delay: i * 0.12,
         ease: "power2.out",
-        scrollTrigger: { trigger: art, start: "top 90%", once: true },
+        scrollTrigger: { trigger: art, start: "top 90%", toggleActions: "play none none reverse" },
       }
     );
   });
@@ -259,7 +259,7 @@ function setupSections() {
         y: 0,
         autoAlpha: 1,
         ...reveal,
-        scrollTrigger: { trigger: tablePhoto, start: "top 90%", once: true },
+        scrollTrigger: { trigger: tablePhoto, start: "top 90%", toggleActions: "play none none reverse" },
       }
     );
   const sunny = document.querySelector<HTMLElement>("[data-sunny]");
@@ -274,7 +274,7 @@ function setupSections() {
         duration: 0.6,
         delay: 0.35,
         ease: "back.out(1.6)",
-        scrollTrigger: { trigger: tablePhoto ?? sunny, start: "top 90%", once: true },
+        scrollTrigger: { trigger: tablePhoto ?? sunny, start: "top 90%", toggleActions: "play none none reverse" },
       }
     );
 
@@ -290,12 +290,12 @@ function setupSections() {
         duration: 0.6,
         ease: "power2.out",
         stagger: 0.08,
-        scrollTrigger: { trigger: highlights[0].closest("section"), start: "top 75%", once: true },
+        scrollTrigger: { trigger: highlights[0].closest("section"), start: "top 75%", toggleActions: "play none none reverse" },
       }
     );
 
-  // Quotes: interstitials spread across the page (not grouped in one
-  // section), so each reveals independently as it enters the viewport.
+  // Quotes: handwritten-note interstitials tucked into the dead space between
+  // sections; each reveals independently (rotation stays from CSS).
   document.querySelectorAll<HTMLElement>("[data-quote]").forEach((q) => {
     gsap.fromTo(
       q,
@@ -304,7 +304,7 @@ function setupSections() {
         y: 0,
         autoAlpha: 1,
         ...reveal,
-        scrollTrigger: { trigger: q, start: "top 85%", once: true },
+        scrollTrigger: { trigger: q, start: "top 85%", toggleActions: "play none none reverse" },
       }
     );
   });
@@ -319,7 +319,7 @@ function setupSections() {
         yPercent: 0,
         duration: 0.8,
         ease: "power2.out",
-        scrollTrigger: { trigger: contactLine, start: "top 88%", once: true },
+        scrollTrigger: { trigger: contactLine, start: "top 88%", toggleActions: "play none none reverse" },
       }
     );
 }
