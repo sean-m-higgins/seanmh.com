@@ -35,7 +35,7 @@ export const differentiators: Differentiator[] = [
   },
   {
     title: "Proactive knowledge sharing",
-    body: "Reduces bus factor through training presentations, comprehensive documentation, knowledge-transfer sessions, AI Lunch & Learns, and CODA DOJO mentorship.",
+    body: "Reduces key-person risk through training presentations, comprehensive documentation, knowledge-transfer sessions, AI Lunch & Learns, and CODA DOJO mentorship.",
   },
 ];
 
