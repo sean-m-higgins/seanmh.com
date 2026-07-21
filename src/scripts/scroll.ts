@@ -304,7 +304,7 @@ function setupSections() {
         y: 0,
         autoAlpha: 1,
         ...reveal,
-        scrollTrigger: { trigger: q, start: "top 85%", toggleActions: "play none none reverse" },
+        scrollTrigger: { trigger: q, start: "top 92%", toggleActions: "play none none reverse" },
       }
     );
   });

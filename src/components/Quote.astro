@@ -3,16 +3,25 @@ interface Props {
   quote: string;
   role: string;
   align?: "left" | "right";
+  // Set on a quote that sits directly above the footer: the footer has far
+  // less padding than a section, so the negative bottom margin is dropped to
+  // avoid overlapping it.
+  last?: boolean;
 }
 
-const { quote, role, align = "left" } = Astro.props;
+const { quote, role, align = "left", last = false } = Astro.props;
 const isRight = align === "right";
 // Resting tilt via the standalone `rotate` property (inline) so it composes
 // with the GSAP transform used by the reveal instead of being overwritten.
 const tilt = isRight ? "1.8deg" : "-1.8deg";
+// Negative vertical margins pull the note into the neighboring sections' large
+// padding so the gap reads as an annotation, not a full section break.
+const wrapper = last
+  ? "mx-auto -mt-10 max-w-6xl px-6 pt-2 pb-6 sm:-mt-12 sm:pt-3"
+  : "mx-auto -my-10 max-w-6xl px-6 py-2 sm:-my-12 sm:py-3";
 ---
 
-<div class="mx-auto max-w-6xl px-6 py-12 sm:py-16">
+<div class={wrapper}>
   <figure
     data-quote
     style={`rotate: ${tilt}`}

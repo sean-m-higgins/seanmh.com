@@ -49,16 +49,20 @@ import { currentFocus } from "../content/about";
       </p>
     </div>
 
-    <!-- Off the clock: personal paragraph flanked by art, with a woodworking
-         photo beneath. Art columns hide below lg — the pieces reappear in a
-         simple row so nothing is lost, just the leaning gallery effect. -->
-    <div class="mt-20 grid grid-cols-1 items-center gap-10 lg:grid-cols-[1fr_minmax(0,34rem)_1fr]">
-      <div class="hidden flex-col items-center gap-10 lg:flex" aria-hidden="true">
+    <!-- Off the clock: personal paragraph + table flanked by the leaning art
+         gallery. Same flanking composition at every breakpoint — on mobile the
+         grid goes full-bleed and the paintings shrink and bleed off the screen
+         edges (clipped by overflow-hidden), preserving the desktop layout in
+         miniature instead of a separate stacked grid. -->
+    <div
+      class="mt-20 -mx-6 grid grid-cols-[4.5rem_1fr_4.5rem] items-center overflow-hidden lg:mx-0 lg:grid-cols-[1fr_minmax(0,34rem)_1fr] lg:gap-10 lg:overflow-visible"
+    >
+      <div class="flex flex-col items-end gap-6 lg:items-center lg:gap-10" aria-hidden="true">
         <Image
           src={flower}
           alt=""
           width={300}
-          class="-rotate-3 drop-shadow-xl"
+          class="h-auto w-36 max-w-none -rotate-3 drop-shadow-xl lg:w-[300px]"
           data-art
           data-art-side="left"
         />
@@ -66,13 +70,13 @@ import { currentFocus } from "../content/about";
           src={orange}
           alt=""
           width={210}
-          class="rotate-2 drop-shadow-xl"
+          class="h-auto w-28 max-w-none rotate-2 drop-shadow-xl lg:w-[210px]"
           data-art
           data-art-side="left"
         />
       </div>
 
-      <div class="order-first lg:order-none">
+      <div class="px-4 lg:px-0">
         <p class="text-center text-neutral-600 dark:text-neutral-400 lg:text-left">
           When I'm not writing code, you can find me in the boxing ring, on the
           mountain snowboarding, enjoying a live concert, or at home building
@@ -85,7 +89,7 @@ import { currentFocus } from "../content/about";
           night-sky piece — are shown alongside this text.
         </p>
 
-        <figure class="mx-auto mt-8 max-w-md" data-table-photo>
+        <figure class="mx-auto mt-8 max-w-[13rem] sm:max-w-xs lg:max-w-md" data-table-photo>
           <div class="relative mx-auto w-fit">
             <Image
               src={table}
@@ -105,22 +109,14 @@ import { currentFocus } from "../content/about";
             A coffee table, designed and built from scratch. (feat. Sunny)
           </figcaption>
         </figure>
-
-        <!-- Small screens: the art pieces still appear, just stacked plainly. -->
-        <div class="mt-8 grid grid-cols-2 gap-6 lg:hidden" aria-hidden="true">
-          <Image src={flower} alt="" width={220} class="-rotate-2 drop-shadow-lg" />
-          <Image src={orange} alt="" width={160} class="rotate-2 justify-self-end drop-shadow-lg" />
-          <Image src={red} alt="" width={160} class="-rotate-2 drop-shadow-lg" />
-          <Image src={space} alt="" width={220} class="rotate-2 justify-self-end drop-shadow-lg" />
-        </div>
       </div>
 
-      <div class="hidden flex-col items-center gap-10 lg:flex" aria-hidden="true">
+      <div class="flex flex-col items-start gap-6 lg:items-center lg:gap-10" aria-hidden="true">
         <Image
           src={space}
           alt=""
           width={300}
-          class="rotate-3 drop-shadow-xl"
+          class="h-auto w-36 max-w-none rotate-3 drop-shadow-xl lg:w-[300px]"
           data-art
           data-art-side="right"
         />
@@ -128,7 +124,7 @@ import { currentFocus } from "../content/about";
           src={red}
           alt=""
           width={210}
-          class="-rotate-2 drop-shadow-xl"
+          class="h-auto w-28 max-w-none -rotate-2 drop-shadow-xl lg:w-[210px]"
           data-art
           data-art-side="right"
         />
