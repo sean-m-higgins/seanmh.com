@@ -262,6 +262,21 @@ function setupSections() {
         scrollTrigger: { trigger: tablePhoto, start: "top 90%", once: true },
       }
     );
+  const sunny = document.querySelector<HTMLElement>("[data-sunny]");
+  if (sunny)
+    gsap.fromTo(
+      sunny,
+      { scale: 0.6, autoAlpha: 0, rotate: -8 },
+      {
+        scale: 1,
+        autoAlpha: 1,
+        rotate: 1,
+        duration: 0.6,
+        delay: 0.35,
+        ease: "back.out(1.6)",
+        scrollTrigger: { trigger: tablePhoto ?? sunny, start: "top 90%", once: true },
+      }
+    );
 
   // Highlights: staggered rise, a beat apart so the number leads the eye.
   const highlights = gsap.utils.toArray<HTMLElement>("[data-highlight]");

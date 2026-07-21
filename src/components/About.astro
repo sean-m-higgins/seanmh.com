@@ -7,6 +7,7 @@ import orange from "../assets/images/orange.png";
 import red from "../assets/images/red.png";
 import space from "../assets/images/space.png";
 import table from "../assets/images/table.jpeg";
+import sunny from "../assets/images/sunny.png";
 import { currentFocus } from "../content/about";
 ---
 
@@ -85,14 +86,23 @@ import { currentFocus } from "../content/about";
         </p>
 
         <figure class="mx-auto mt-8 max-w-md" data-table-photo>
-          <Image
-            src={table}
-            alt="A coffee table Sean built from oak, with a glass inset top"
-            width={480}
-            class="mx-auto rounded-xl object-cover shadow-lg"
-          />
+          <div class="relative mx-auto w-fit">
+            <Image
+              src={table}
+              alt="A coffee table Sean built from oak, with a glass inset top"
+              width={480}
+              class="mx-auto rounded-xl object-cover shadow-lg"
+            />
+            <Image
+              src={sunny}
+              alt="Sunny the cat, lounging on the table"
+              width={260}
+              class="absolute bottom-[18%] left-1/2 w-[58%] -translate-x-1/2 rotate-1 drop-shadow-xl"
+              data-sunny
+            />
+          </div>
           <figcaption class="mt-2 text-center text-xs text-neutral-500">
-            A coffee table, designed and built from scratch.
+            A coffee table, designed and built from scratch. (And Sunny.)
           </figcaption>
         </figure>
 
