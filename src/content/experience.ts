@@ -3,7 +3,7 @@ export interface ExperienceEntry {
   title: string;
   organization: string;
   dates: string;
-  description: string;
+  highlights: string[];
   url?: string;
 }
 
@@ -13,8 +13,13 @@ export const experience: ExperienceEntry[] = [
     title: "Senior Software Engineer",
     organization: "Capital One",
     dates: "Dec 2023 – Present",
-    description:
-      "OAuth2.0 subject matter expert for API Gateway Platform. Architect authentication features including Workforce SSO and Step-Up Auth. Own the Consent UI full-stack Angular app on AWS CloudFront. Core maintainer of the Lua-based API Gateway, delivering feature development and leading inner-source contributions.",
+    highlights: [
+      "OAuth 2.0 subject-matter expert for the API Gateway Platform — architected and shipped Workforce SSO, Step-Up Authentication, and a custom Identity Provider integration for consumer sign-in, all compliant with the OAuth 2.0 spec for enterprise-wide API security.",
+      "Own the Consent UI, a full-stack Angular app on AWS CloudFront powering customer consent experiences for third-party data sharing — leading feature development and welcoming inner-source contributions from partner teams.",
+      "Core maintainer of the largely Lua-based API Gateway, delivering feature work, AWS DevOps improvements, and the technical leadership behind initiatives like the UK gateway migration and CFPB Open Banking compliance.",
+      "Mentored entry-level associate engineers through a 10-week program across two projects: modernizing a legacy application into a well-managed AWS Batch (Python) job for data extraction and data-lake publication, and building a circuit breaker for a shared Redis connector library.",
+      "Organized and led an AI Hackathon on Capital One's internal AI Sandbox — running tool tutorials for entrants, guiding a project team to completion, and authoring a blog post on the outcomes and learnings.",
+    ],
     url: "https://www.capitalone.com",
   },
   {
@@ -22,8 +27,10 @@ export const experience: ExperienceEntry[] = [
     title: "Data Engineer",
     organization: "Capital One",
     dates: "Nov 2021 – Dec 2023",
-    description:
-      "Built a full-stack Angular/Java application automating Scala ETL workflows for credit card partner conversions, reducing conversion length by 4 months. Transformed 10M+ trailing transactions across 1-2M customer accounts for 3 successful conversion events on AWS EMR.",
+    highlights: [
+      "Built a full-stack Angular and Java application that automated the creation and execution of Scala ETL workflows for credit-card partner conversions, cutting average conversion time by four months.",
+      "Transformed 10M+ trailing transactions across 1–2M customer accounts through three successful partner conversions, running custom Scala ETL as daily batch jobs on AWS EMR.",
+    ],
     url: "https://www.capitalone.com",
   },
   {
@@ -31,8 +38,10 @@ export const experience: ExperienceEntry[] = [
     title: "Data Scientist",
     organization: "R1 RCM",
     dates: "Nov 2020 – Oct 2021",
-    description:
-      "Designed a scalable ML training pipeline on AzureML GPU clusters, speeding up training 2x and increasing experiments 4x+. Trained classification models to predict hospital/physician claim traits, resulting in $1-2M/year savings.",
+    highlights: [
+      "Designed a scalable ML training pipeline — ETL, training, testing, and evaluation — and migrated it from a single remote Windows server to AzureML GPU clusters, doubling training speed and enabling 4×+ more experiments.",
+      "Researched and trained classification models that predicted hospital and physician claim traits ahead of insurance review, saving an estimated $1–2M per year by accelerating claim processing and eliminating avoidable costs.",
+    ],
     url: "https://www.r1rcm.com",
   },
   {
@@ -40,8 +49,9 @@ export const experience: ExperienceEntry[] = [
     title: "Data Engineer",
     organization: "Kemper",
     dates: "Nov 2019 – Nov 2020",
-    description:
-      "Full-stack developer on Micro-Automation Portal for employees to manage automations like the CFO report and accounting journals, built on Angular, Python ETL, and AWS DynamoDB.",
+    highlights: [
+      "Full-stack developer on a Micro-Automation Portal that let employees manage automations — like the CFO report and accounting journals — for quick analysis and visualization, built with Angular, Python ETL, and AWS DynamoDB.",
+    ],
     url: "https://www.kemper.com",
   },
   {
@@ -49,8 +59,10 @@ export const experience: ExperienceEntry[] = [
     title: "M.S. Software Engineering",
     organization: "Loyola University Chicago",
     dates: "Jan 2020 – Dec 2020",
-    description:
-      "GPA: 3.7/4.0. Teaching Assistant for Database Programming, ML, and Operating Systems. Research Assistant developing NLP techniques for medical data classification.",
+    highlights: [
+      "Teaching Assistant for Database Programming, Intermediate Object-Oriented Programming, Machine Learning, and Operating Systems.",
+      "Research Assistant — developed novel NLP techniques to classify drug misuse from patients' electronic health records using convolutional neural networks.",
+    ],
     url: "https://www.luc.edu",
   },
   {
@@ -58,8 +70,10 @@ export const experience: ExperienceEntry[] = [
     title: "B.S. Computer Science",
     organization: "Loyola University Chicago",
     dates: "Aug 2016 – Dec 2019",
-    description:
-      "GPA: 3.6/4.0, Major GPA: 3.8/4.0. Research Assistant developing NLP applications for keyphrase extraction and GitHub issue classification.",
+    highlights: [
+      "Cumulative GPA 3.6/4.0 · Major GPA 3.8/4.0.",
+      "Research Assistant — built two NLP applications: automated keyphrase extraction from a small text corpus, and GitHub issue classification with neural networks.",
+    ],
     url: "https://www.luc.edu",
   },
 ];
