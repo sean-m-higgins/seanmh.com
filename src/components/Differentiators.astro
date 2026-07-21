@@ -1,6 +1,7 @@
 ---
 import SectionHeading from "./SectionHeading.astro";
-import { differentiators } from "../content/about";
+import QuoteNote from "./QuoteNote.astro";
+import { differentiators, testimonials } from "../content/about";
 ---
 
 <section id="highlights" class="py-24">
@@ -23,6 +24,8 @@ import { differentiators } from "../content/about";
           </div>
         ))
       }
+      <!-- Fills the empty final grid cell (7 highlights leave one open). -->
+      <QuoteNote {...testimonials[2]} align="left" class="self-center" />
     </div>
   </div>
 </section>

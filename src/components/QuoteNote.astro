@@ -1,0 +1,39 @@
+---
+// A single handwritten-note testimonial. Renders bare (no page-width wrapper)
+// so it can sit in a section's dead space; Quote.astro wraps it for standalone
+// interstitial use. Reveal + reduced-motion handled via the [data-quote] hook.
+interface Props {
+  quote: string;
+  role: string;
+  align?: "left" | "right";
+  wide?: boolean;
+  class?: string;
+}
+
+const { quote, role, align = "left", wide = false, class: extra = "" } = Astro.props;
+const isRight = align === "right";
+// Resting tilt via the standalone `rotate` property so it composes with the
+// GSAP transform used by the reveal instead of being overwritten.
+const tilt = isRight ? "1.8deg" : "-1.8deg";
+---
+
+<figure
+  data-quote
+  style={`rotate: ${tilt}`}
+  class:list={[
+    wide ? "max-w-2xl" : "max-w-md",
+    isRight ? "ml-auto text-right" : "mr-auto text-left",
+    extra,
+  ]}
+>
+  <blockquote
+    class="font-handwriting text-2xl leading-tight text-accent sm:text-3xl"
+  >
+    {quote}
+  </blockquote>
+  <figcaption
+    class="mt-2 font-handwriting text-xl text-neutral-500 dark:text-neutral-400"
+  >
+    — {role}
+  </figcaption>
+</figure>

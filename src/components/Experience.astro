@@ -1,7 +1,9 @@
 ---
 import SectionHeading from "./SectionHeading.astro";
 import ExperienceItem from "./ExperienceItem.astro";
+import QuoteNote from "./QuoteNote.astro";
 import { experience } from "../content/experience";
+import { testimonials } from "../content/about";
 
 const work = experience.filter((e) => e.type === "work");
 const education = experience.filter((e) => e.type === "education");
@@ -26,6 +28,8 @@ const education = experience.filter((e) => e.type === "education");
           Education
         </h3>
         {education.map((entry) => <ExperienceItem entry={entry} />)}
+        <!-- Fills the white space below Education (Work runs longer). -->
+        <QuoteNote {...testimonials[0]} align="right" class="mt-16" />
       </div>
     </div>
   </div>

@@ -1,44 +1,25 @@
 ---
+import QuoteNote from "./QuoteNote.astro";
+
+// Standalone interstitial quote (a note that sits between two sections). The
+// negative margins pull it into the neighboring sections' padding so the gap
+// reads as an annotation rather than a section break.
 interface Props {
   quote: string;
   role: string;
   align?: "left" | "right";
-  // Set on a quote that sits directly above the footer: the footer has far
-  // less padding than a section, so the negative bottom margin is dropped to
-  // avoid overlapping it.
-  last?: boolean;
+  wide?: boolean;
+  // Drop the space below (used when the note should sit flush against the
+  // section that follows it).
+  flushBottom?: boolean;
 }
 
-const { quote, role, align = "left", last = false } = Astro.props;
-const isRight = align === "right";
-// Resting tilt via the standalone `rotate` property (inline) so it composes
-// with the GSAP transform used by the reveal instead of being overwritten.
-const tilt = isRight ? "1.8deg" : "-1.8deg";
-// Negative vertical margins pull the note into the neighboring sections' large
-// padding so the gap reads as an annotation, not a full section break.
-const wrapper = last
-  ? "mx-auto -mt-10 max-w-6xl px-6 pt-2 pb-6 sm:-mt-12 sm:pt-3"
+const { quote, role, align = "left", wide = false, flushBottom = false } = Astro.props;
+const wrapper = flushBottom
+  ? "mx-auto -mt-10 -mb-20 max-w-6xl px-6 pt-2 pb-0 sm:-mt-12"
   : "mx-auto -my-10 max-w-6xl px-6 py-2 sm:-my-12 sm:py-3";
 ---
 
 <div class={wrapper}>
-  <figure
-    data-quote
-    style={`rotate: ${tilt}`}
-    class:list={[
-      "max-w-md",
-      isRight ? "ml-auto text-right" : "mr-auto text-left",
-    ]}
-  >
-    <blockquote
-      class="font-handwriting text-2xl leading-tight text-accent sm:text-3xl"
-    >
-      {quote}
-    </blockquote>
-    <figcaption
-      class="mt-2 font-handwriting text-xl text-neutral-500 dark:text-neutral-400"
-    >
-      — {role}
-    </figcaption>
-  </figure>
+  <QuoteNote quote={quote} role={role} align={align} wide={wide} />
 </div>

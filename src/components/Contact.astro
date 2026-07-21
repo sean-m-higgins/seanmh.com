@@ -1,6 +1,8 @@
 ---
 import { site } from "../content/site";
 import SectionHeading from "./SectionHeading.astro";
+import QuoteNote from "./QuoteNote.astro";
+import { testimonials } from "../content/about";
 ---
 
 <section id="contact" class="py-24">
@@ -70,6 +72,8 @@ import SectionHeading from "./SectionHeading.astro";
             </svg>
           </a>
         </div>
+        <!-- Fills the white space below the contact links (the form runs longer). -->
+        <QuoteNote {...testimonials[3]} align="left" class="mt-12 md:mt-16" />
       </div>
 
       <form id="contact-form" class="space-y-4">
