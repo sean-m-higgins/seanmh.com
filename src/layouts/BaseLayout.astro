@@ -65,18 +65,12 @@ const { title, description = "Sean Higgins — Software Engineer" } = Astro.prop
       (function () {
         var l = document.getElementById("loader");
         if (!l) return;
-        var reduce = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
-        var seen;
-        try {
-          seen = sessionStorage.getItem("sh-loaded");
-        } catch (e) {}
-        if (reduce || seen) {
+        // Show on every load — a refresh replays the intro. Still skipped for
+        // reduced motion (and no-JS, via the noscript rule).
+        if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
           l.parentNode.removeChild(l);
           return;
         }
-        try {
-          sessionStorage.setItem("sh-loaded", "1");
-        } catch (e) {}
         var bar = document.getElementById("loader-bar");
         requestAnimationFrame(function () {
           requestAnimationFrame(function () {
