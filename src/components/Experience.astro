@@ -11,16 +11,8 @@ const work = experience.filter((e) => e.type === "work");
 const education = experience.filter((e) => e.type === "education");
 ---
 
-<section id="experience" class="relative overflow-hidden py-24">
-  <!-- Decorative: Sunny peeks in from the right margin (wide screens only). -->
-  <Image
-    src={sunnyRed}
-    alt=""
-    aria-hidden="true"
-    width={400}
-    class="pointer-events-none absolute -right-16 bottom-16 hidden w-56 rotate-3 xl:block"
-  />
-  <div class="relative mx-auto max-w-4xl px-6">
+<section id="experience" class="pt-24 pb-8">
+  <div class="mx-auto max-w-4xl px-6">
     <SectionHeading title="Experience" />
     <div class="grid gap-16 md:grid-cols-2">
       <div>
@@ -43,5 +35,14 @@ const education = experience.filter((e) => e.type === "education");
         <QuoteNote {...testimonials[4]} align="left" class="mt-20" />
       </div>
     </div>
+    <!-- Decorative: a slowly rotating Sunny, centered below the columns. -->
+    <Image
+      src={sunnyRed}
+      alt=""
+      aria-hidden="true"
+      width={400}
+      data-sunny-spin
+      class="pointer-events-none mx-auto mt-8 w-48"
+    />
   </div>
 </section>

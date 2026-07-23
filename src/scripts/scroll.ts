@@ -309,6 +309,22 @@ function setupSections() {
     );
   });
 
+  // Sunny beside the Contact heading slides + settles in on scroll.
+  const sunnyCute = document.querySelector<HTMLElement>("[data-sunny-cute]");
+  if (sunnyCute)
+    gsap.fromTo(
+      sunnyCute,
+      { x: 40, autoAlpha: 0, rotate: -6 },
+      {
+        x: 0,
+        autoAlpha: 1,
+        rotate: 0,
+        duration: 0.8,
+        ease: "power2.out",
+        scrollTrigger: { trigger: sunnyCute, start: "top 90%", toggleActions: "play none none reverse" },
+      }
+    );
+
   // Contact: the oversized line masks up like the headings.
   const contactLine = document.querySelector<HTMLElement>("[data-contact-line]");
   if (contactLine)

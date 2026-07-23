@@ -25,6 +25,19 @@ html.lenis body {
   transition-property: color, background-color, border-color, box-shadow, opacity;
 }
 
+/* Decorative Sunny (sunny-red): a slow, continuous rotation — pure fun.
+   Disabled under reduced motion. */
+@keyframes sunny-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+@media (prefers-reduced-motion: no-preference) {
+  [data-sunny-spin] {
+    animation: sunny-spin 24s linear infinite;
+  }
+}
+
 /* Scroll progress bar. ScrollTrigger drives scaleX 0→1; at 0 it is invisible,
    so reduced-motion/no-JS visitors simply never see it. */
 #scroll-progress {

@@ -66,7 +66,7 @@ export const testimonials: Testimonial[] = [
   },
   {
     quote:
-      "As a Data Scientist on my Machine Learning team, Sean led the successful effort in transitioning our Machine Learning pipelines onto Microsoft AzureML in a larger intent to modernize Data Science at the company. He also developed and implemented many DNN Tensorflow models to solve huge cardinality problems in healthcare space. Sean showed the qualities of a young and curious engineer such as continuous improvement, quick learner, and a team player. He is a true asset both as a technical resource and thought leader. It was a pleasure to have him on the team!",
+      "Sean led the successful effort in transitioning our Machine Learning pipelines onto Microsoft AzureML in a larger intent to modernize Data Science at the company. He also developed and implemented many DNN Tensorflow models to solve huge cardinality problems in healthcare space. Sean showed the qualities of a young and curious engineer... He is a true asset both as a technical resource and thought leader.",
     role: "Manager, R1 RCM",
   },
 ];

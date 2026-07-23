@@ -2,18 +2,18 @@
 import SectionHeading from "./SectionHeading.astro";
 import QuoteNote from "./QuoteNote.astro";
 import { Image } from "astro:assets";
-import sunnyWall from "../assets/images/sunny-wall.png";
+import sunnyFace from "../assets/images/sunny-face.png";
 import { differentiators, testimonials } from "../content/about";
 ---
 
-<section id="highlights" class="relative overflow-hidden py-24">
-  <!-- Decorative: Sunny sits at the left edge of the page (wide screens only). -->
+<section id="highlights" class="relative overflow-hidden pt-8 pb-24">
+  <!-- Decorative: Sunny's close-up peeks in at the left edge (wide screens only). -->
   <Image
-    src={sunnyWall}
+    src={sunnyFace}
     alt=""
     aria-hidden="true"
-    width={320}
-    class="pointer-events-none absolute bottom-0 left-0 hidden w-40 xl:block"
+    width={300}
+    class="pointer-events-none absolute bottom-0 left-0 hidden w-36 xl:block"
   />
   <div class="relative mx-auto max-w-4xl px-6">
     <SectionHeading title="Highlights" />
