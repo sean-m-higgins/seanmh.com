@@ -1,11 +1,13 @@
 ---
 import { site } from "../content/site";
+import Constellation from "./Constellation.astro";
 ---
 
 <section
   class="relative flex min-h-screen items-center justify-center overflow-hidden"
   data-hero
 >
+  <Constellation />
   <!-- Gradient mesh background, split into layers so the scroll scene can
        drift them at different rates. Oversized so drifting never exposes an
        edge. -->
