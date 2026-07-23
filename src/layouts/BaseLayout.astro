@@ -79,12 +79,12 @@ const { title, description = "Sean Higgins — Software Engineer" } = Astro.prop
           l.classList.add("loader-finish");
           setTimeout(function () {
             l.classList.add("loader-done");
-          }, 300);
+          }, 230);
           setTimeout(function () {
             if (l.parentNode) l.parentNode.removeChild(l);
-          }, 1120);
+          }, 900);
         }
-        var t = setTimeout(done, 1500);
+        var t = setTimeout(done, 1050);
         l.addEventListener("click", function () {
           clearTimeout(t);
           done();
