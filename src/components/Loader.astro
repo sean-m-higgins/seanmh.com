@@ -1,29 +1,16 @@
 ---
-// First-load intro: the boxers spar under the SH monogram while a progress
-// line fills, then the whole panel lifts away. Shown once per session; skipped
-// entirely for reduced motion and no-JS (see BaseLayout).
+// First-load intro: two boxers spar, the left lands a finishing jab, then the
+// panel lifts away. Shown on every load; skipped for reduced motion and no-JS
+// (see BaseLayout).
 import Sparring from "./Sparring.astro";
 ---
 
 <div
   id="loader"
-  class="fixed inset-0 z-[100] flex flex-col items-center justify-center gap-10 bg-white dark:bg-[#0a0a0a]"
+  class="fixed inset-0 z-[100] flex items-center justify-center bg-white dark:bg-[#0a0a0a]"
   aria-hidden="true"
 >
-  <div class="flex flex-col items-center gap-4">
-    <span class="text-6xl font-bold tracking-tight text-accent sm:text-7xl"
-      >SH</span
-    >
-    <Sparring class="w-52 sm:w-56" />
-  </div>
-  <div
-    class="h-[3px] w-44 overflow-hidden rounded-full bg-neutral-200 dark:bg-neutral-800"
-  >
-    <span
-      id="loader-bar"
-      class="block h-full w-full origin-left scale-x-0 rounded-full bg-accent transition-transform duration-[1400ms] ease-out"
-    ></span>
-  </div>
+  <Sparring class="w-64 sm:w-72" />
 </div>
 
 <style>

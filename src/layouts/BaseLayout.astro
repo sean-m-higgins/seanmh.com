@@ -71,15 +71,6 @@ const { title, description = "Sean Higgins — Software Engineer" } = Astro.prop
           l.parentNode.removeChild(l);
           return;
         }
-        var bar = document.getElementById("loader-bar");
-        requestAnimationFrame(function () {
-          requestAnimationFrame(function () {
-            if (bar) {
-              bar.classList.remove("scale-x-0");
-              bar.classList.add("scale-x-100");
-            }
-          });
-        });
         var removed = false;
         function done() {
           if (removed) return;
