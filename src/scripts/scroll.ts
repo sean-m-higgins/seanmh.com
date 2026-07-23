@@ -309,6 +309,20 @@ function setupSections() {
     );
   });
 
+  // Boxing glove throws a jab when the hobbies line scrolls in, and again on
+  // hover — a nod to "boxing ring" without needing a photo.
+  const boxing = document.querySelector<HTMLElement>("[data-boxing]");
+  const glove = boxing?.querySelector<HTMLElement>("[data-glove]");
+  if (boxing && glove) {
+    const jab = () =>
+      gsap
+        .timeline()
+        .to(glove, { x: 9, rotate: -24, scale: 1.3, duration: 0.1, ease: "power2.out" })
+        .to(glove, { x: 0, rotate: 0, scale: 1, duration: 0.55, ease: "elastic.out(1, 0.45)" });
+    ScrollTrigger.create({ trigger: boxing, start: "top 85%", onEnter: jab, onEnterBack: jab });
+    boxing.addEventListener("mouseenter", jab);
+  }
+
   // Sunny beside the Contact heading slides + settles in on scroll.
   const sunnyCute = document.querySelector<HTMLElement>("[data-sunny-cute]");
   if (sunnyCute)

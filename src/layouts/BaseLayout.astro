@@ -5,6 +5,7 @@ import "../styles/scroll.css";
 import Navigation from "../components/Navigation.astro";
 import Footer from "../components/Footer.astro";
 import VersionSwitcher from "../components/VersionSwitcher.astro";
+import Loader from "../components/Loader.astro";
 import { ViewTransitions } from "astro:transitions";
 
 interface Props {
@@ -41,6 +42,9 @@ const { title, description = "Sean Higgins — Software Engineer" } = Astro.prop
     <title>{title}</title>
     <ViewTransitions />
 
+    <!-- No-JS: never trap the page behind the intro loader. -->
+    <noscript><style>#loader { display: none !important; }</style></noscript>
+
     <!-- Dark mode: read preference before paint to avoid flash -->
     <script is:inline>
       (function () {
@@ -56,6 +60,52 @@ const { title, description = "Sean Higgins — Software Engineer" } = Astro.prop
     </script>
   </head>
   <body class="min-h-screen overflow-x-clip font-sans antialiased">
+    <Loader />
+    <script is:inline>
+      (function () {
+        var l = document.getElementById("loader");
+        if (!l) return;
+        var reduce = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+        var seen;
+        try {
+          seen = sessionStorage.getItem("sh-loaded");
+        } catch (e) {}
+        if (reduce || seen) {
+          l.parentNode.removeChild(l);
+          return;
+        }
+        try {
+          sessionStorage.setItem("sh-loaded", "1");
+        } catch (e) {}
+        var bar = document.getElementById("loader-bar");
+        requestAnimationFrame(function () {
+          requestAnimationFrame(function () {
+            if (bar) {
+              bar.classList.remove("scale-x-0");
+              bar.classList.add("scale-x-100");
+            }
+          });
+        });
+        var removed = false;
+        function done() {
+          if (removed) return;
+          removed = true;
+          // Land a final jab, then wipe the panel up.
+          l.classList.add("loader-finish");
+          setTimeout(function () {
+            l.classList.add("loader-done");
+          }, 300);
+          setTimeout(function () {
+            if (l.parentNode) l.parentNode.removeChild(l);
+          }, 1120);
+        }
+        var t = setTimeout(done, 1500);
+        l.addEventListener("click", function () {
+          clearTimeout(t);
+          done();
+        });
+      })();
+    </script>
     <div id="scroll-progress" aria-hidden="true"></div>
     <Navigation />
     <main>

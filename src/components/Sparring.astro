@@ -1,0 +1,170 @@
+---
+// Two boxer silhouettes trading jabs — a lightweight, transparent, no-photo
+// nod to boxing. Pure SVG + CSS; the loop is disabled under reduced motion.
+// The loader adds a "finishing jab" beat via the .loader-finish hooks
+// (see global.css).
+interface Props {
+  class?: string;
+}
+const { class: className = "" } = Astro.props;
+---
+
+<div
+  class:list={["spar text-neutral-800 dark:text-neutral-100", className]}
+  aria-hidden="true"
+>
+  <svg viewBox="0 0 260 150" class="h-auto w-full">
+    <ellipse class="shadow spar-shadow-l" cx="80" cy="141" rx="30" ry="4" />
+    <ellipse class="shadow spar-shadow-r" cx="180" cy="141" rx="30" ry="4" />
+
+    <!-- Left boxer, facing right -->
+    <g class="boxer boxer-l">
+      <path class="leg" d="M75 84 L62 108 L58 134" />
+      <path class="foot" d="M50 136 L67 136" />
+      <path class="leg" d="M79 84 L92 106 L96 134" />
+      <path class="foot" d="M89 136 L106 136" />
+      <path
+        class="body"
+        d="M73 90 L69 58 Q70 46 81 46 Q92 46 91 60 L86 90 Q79 94 73 90 Z"
+      />
+      <circle class="body" cx="82" cy="35" r="13" />
+      <path class="arm" d="M77 60 L74 50" />
+      <circle class="glove" cx="75" cy="44" r="9" />
+      <g class="jab jab-l">
+        <path class="arm" d="M83 62 L106 63" />
+        <circle class="glove" cx="110" cy="63" r="10" />
+      </g>
+    </g>
+
+    <!-- Right boxer, facing left -->
+    <g class="boxer boxer-r">
+      <path class="leg" d="M185 84 L198 108 L202 134" />
+      <path class="foot" d="M193 136 L210 136" />
+      <path class="leg" d="M181 84 L168 106 L164 134" />
+      <path class="foot" d="M154 136 L171 136" />
+      <path
+        class="body"
+        d="M187 90 L191 58 Q190 46 179 46 Q168 46 169 60 L174 90 Q181 94 187 90 Z"
+      />
+      <circle class="body" cx="178" cy="35" r="13" />
+      <path class="arm" d="M183 60 L186 50" />
+      <circle class="glove" cx="185" cy="44" r="9" />
+      <g class="jab jab-r">
+        <path class="arm" d="M177 62 L154 63" />
+        <circle class="glove" cx="150" cy="63" r="10" />
+      </g>
+    </g>
+  </svg>
+</div>
+
+<style>
+  .spar svg {
+    overflow: visible;
+  }
+  .body {
+    fill: currentColor;
+  }
+  .leg,
+  .arm,
+  .foot {
+    stroke: currentColor;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+    fill: none;
+  }
+  .leg {
+    stroke-width: 11;
+  }
+  .arm {
+    stroke-width: 8;
+  }
+  .foot {
+    stroke-width: 6;
+  }
+  .glove {
+    fill: #ef4444;
+  }
+  .shadow {
+    fill: rgba(0, 0, 0, 0.1);
+  }
+  :global(.dark) .shadow {
+    fill: rgba(255, 255, 255, 0.09);
+  }
+
+  .spar-shadow-l,
+  .spar-shadow-r {
+    transform-box: fill-box;
+    transform-origin: center;
+  }
+
+  @media (prefers-reduced-motion: no-preference) {
+    .boxer-l {
+      animation: spar-bob 1.05s ease-in-out infinite;
+    }
+    .boxer-r {
+      animation: spar-bob 1.05s ease-in-out infinite;
+      animation-delay: -0.52s;
+    }
+    .jab-l {
+      animation: spar-jab-l 3s ease-in-out infinite;
+    }
+    .jab-r {
+      animation: spar-jab-r 3s ease-in-out infinite;
+      animation-delay: 1.5s;
+    }
+    .spar-shadow-l {
+      animation: spar-shadow 1.05s ease-in-out infinite;
+    }
+    .spar-shadow-r {
+      animation: spar-shadow 1.05s ease-in-out infinite;
+      animation-delay: -0.52s;
+    }
+  }
+
+  @keyframes spar-bob {
+    0%,
+    100% {
+      transform: translateY(0);
+    }
+    50% {
+      transform: translateY(-5px);
+    }
+  }
+  @keyframes spar-shadow {
+    0%,
+    100% {
+      transform: scaleX(1);
+      opacity: 1;
+    }
+    50% {
+      transform: scaleX(0.85);
+      opacity: 0.7;
+    }
+  }
+  @keyframes spar-jab-l {
+    0%,
+    58%,
+    100% {
+      transform: translateX(0);
+    }
+    12% {
+      transform: translateX(15px);
+    }
+    26% {
+      transform: translateX(0);
+    }
+  }
+  @keyframes spar-jab-r {
+    0%,
+    58%,
+    100% {
+      transform: translateX(0);
+    }
+    12% {
+      transform: translateX(-15px);
+    }
+    26% {
+      transform: translateX(0);
+    }
+  }
+</style>

@@ -24,3 +24,28 @@
     @apply bg-accent/20 text-accent;
   }
 }
+
+/* Loader "finishing jab": the left boxer lands a big jab and the right boxer
+   recoils, held as a freeze-frame while the panel wipes away. */
+#loader.loader-finish .boxer-l,
+#loader.loader-finish .jab-r,
+#loader.loader-finish .spar-shadow-l,
+#loader.loader-finish .spar-shadow-r {
+  animation-play-state: paused;
+}
+#loader.loader-finish .jab-l {
+  animation: loader-jab-land 0.24s cubic-bezier(0.2, 0, 0.1, 1) forwards;
+}
+#loader.loader-finish .boxer-r {
+  animation: loader-recoil 0.45s cubic-bezier(0.3, 0, 0.15, 1) forwards;
+}
+@keyframes loader-jab-land {
+  to {
+    transform: translateX(28px);
+  }
+}
+@keyframes loader-recoil {
+  to {
+    transform: translate(22px, -5px) rotate(7deg);
+  }
+}
