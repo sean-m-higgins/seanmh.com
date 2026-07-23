@@ -2,12 +2,31 @@
 import { site } from "../content/site";
 import SectionHeading from "./SectionHeading.astro";
 import QuoteNote from "./QuoteNote.astro";
+import { Image } from "astro:assets";
+import sunnyCute from "../assets/images/sunny-cute.png";
+import sunnyFace from "../assets/images/sunny-face.png";
 import { testimonials } from "../content/about";
 ---
 
-<section id="contact" class="py-24">
-  <div class="mx-auto max-w-4xl px-6">
-    <SectionHeading title="Contact" />
+<section id="contact" class="relative overflow-hidden py-24">
+  <!-- Decorative: Sunny's close-up peeks in from the right (wide screens only). -->
+  <Image
+    src={sunnyFace}
+    alt=""
+    aria-hidden="true"
+    width={280}
+    class="pointer-events-none absolute -right-10 bottom-0 hidden w-36 xl:block"
+  />
+  <div class="relative mx-auto max-w-4xl px-6">
+    <div class="flex items-center justify-between gap-6">
+      <SectionHeading title="Contact" />
+      <Image
+        src={sunnyCute}
+        alt="Sunny the cat, curled up asleep"
+        width={480}
+        class="hidden h-auto w-48 shrink-0 self-start rounded-lg sm:block md:w-60"
+      />
+    </div>
 
     <p
       class="mb-14 text-[clamp(2.5rem,7vw,5.5rem)] font-bold leading-[1.05] tracking-tight text-neutral-900 dark:text-neutral-100"

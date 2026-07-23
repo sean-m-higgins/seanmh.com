@@ -2,6 +2,8 @@
 import SectionHeading from "./SectionHeading.astro";
 import ExperienceItem from "./ExperienceItem.astro";
 import QuoteNote from "./QuoteNote.astro";
+import { Image } from "astro:assets";
+import sunnyRed from "../assets/images/sunny-red.png";
 import { experience } from "../content/experience";
 import { testimonials } from "../content/about";
 
@@ -9,8 +11,16 @@ const work = experience.filter((e) => e.type === "work");
 const education = experience.filter((e) => e.type === "education");
 ---
 
-<section id="experience" class="py-24">
-  <div class="mx-auto max-w-4xl px-6">
+<section id="experience" class="relative overflow-hidden py-24">
+  <!-- Decorative: Sunny peeks in from the right margin (wide screens only). -->
+  <Image
+    src={sunnyRed}
+    alt=""
+    aria-hidden="true"
+    width={400}
+    class="pointer-events-none absolute -right-16 bottom-16 hidden w-56 rotate-3 xl:block"
+  />
+  <div class="relative mx-auto max-w-4xl px-6">
     <SectionHeading title="Experience" />
     <div class="grid gap-16 md:grid-cols-2">
       <div>
@@ -30,6 +40,7 @@ const education = experience.filter((e) => e.type === "education");
         {education.map((entry) => <ExperienceItem entry={entry} />)}
         <!-- Fills the white space below Education (Work runs longer). -->
         <QuoteNote {...testimonials[0]} align="right" class="mt-16" />
+        <QuoteNote {...testimonials[4]} align="left" class="mt-20" />
       </div>
     </div>
   </div>

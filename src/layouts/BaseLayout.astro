@@ -16,7 +16,7 @@ const { title, description = "Sean Higgins — Software Engineer" } = Astro.prop
 ---
 
 <!doctype html>
-<html lang="en" class="dark">
+<html lang="en" class="dark overflow-x-clip">
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
@@ -55,7 +55,7 @@ const { title, description = "Sean Higgins — Software Engineer" } = Astro.prop
       })();
     </script>
   </head>
-  <body class="min-h-screen font-sans antialiased">
+  <body class="min-h-screen overflow-x-clip font-sans antialiased">
     <div id="scroll-progress" aria-hidden="true"></div>
     <Navigation />
     <main>
