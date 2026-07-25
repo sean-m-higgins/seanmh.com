@@ -23,6 +23,7 @@
   .gotcha strong { color: var(--orange); }
   .ask { background: rgba(188,140,255,.08); border-left: 3px solid var(--purple); padding: .5rem 1rem; margin-top: .75rem; border-radius: 4px; font-size: .92rem; }
   .ask strong { color: var(--purple); }
+  .done { color: var(--green); }
   .muted { color: var(--muted); }
   code { background: rgba(110,118,129,.2); padding: .1rem .35rem; border-radius: 4px; font-size: .88em; }
   pre { background: #010409; border: 1px solid var(--border); border-radius: 8px; padding: 1rem; overflow-x: auto; font-size: .82rem; line-height: 1.5; }
@@ -40,14 +41,18 @@
 
 <h1>a-scroll — Scroll Experience Plan</h1>
 <p class="muted">Written July 2026. Scope: <code>version/a-scroll</code> only (worktree <code>wt/a-scroll</code>). Goal: turn the scroll version from a polished-but-static page into a scroll-driven cinematic experience — the version that <em>earns its name</em>. Companion to <code>plans/continuation-plan.html</code>.</p>
-<p><strong>Status (July 12, 2026):</strong> ✅ S1 (<code>1c10104</code>), ✅ S2 (<code>aa4fa52</code>), ✅ S3 (<code>ad9382b</code>) — built, browser-verified, committed on <code>version/a-scroll</code>, not pushed. Option A (GSAP + Lenis) chosen. Next: S4 (blocked on content from Sean) and S5. Notes: headless-automation cannot render cross-document view-transition arrivals (rAF freezes even on unmodified pages) — the dial morph needs its manual real-Chrome smoke test before deploy; magnetic elements must exclude <code>transform</code> from CSS transitions (handled in <code>scroll.css</code>).</p>
+<p><strong>Status (July 25, 2026):</strong> ✅ S1 (<code>1c10104</code>), ✅ S2 (<code>aa4fa52</code>), and ✅ S3 (<code>ad9382b</code>) are built, browser-verified, committed, and pushed. The branch was then heavily extended through <code>41d44c3</code> with an expanded About, original-art gallery, Highlights, richer Experience content, handwritten testimonials, Sunny decorations, boxing touches, an intro loader, and a live constellation hero background. The original S4 pinned story was not built; S5 is partial. A local switcher-a11y follow-up (<code>a2df6b8</code>) is committed but not yet pushed.</p>
 
 <h2>Where a-scroll is today</h2>
 <ul>
-  <li>Four static sections: <code>Hero</code> → <code>About</code> → <code>Experience</code> → <code>Contact</code>, each a simple <code>py-24</code> block inside <code>max-w-4xl</code>.</li>
-  <li>The only motion is a one-shot CSS <code>fade-in</code> stagger in the hero on page load. Nothing responds to scrolling.</li>
-  <li>Stack: Astro 5.17, Tailwind 4.2, no animation libraries. Phase 1 switcher kit is present (<code>VersionSwitcher.astro</code>, <code>transitions.css</code>, <code>vt-sean-name</code>/<code>vt-skip-intro</code> tags on the hero headline).</li>
+  <li><strong>Motion foundation:</strong> Lenis smooth scrolling bridged to GSAP ScrollTrigger, a progress bar, anchor handling, teardown/re-init around Astro navigation, and a reduced-motion hard off-switch.</li>
+  <li><strong>Hero:</strong> oversized identity type, pinned scrubbed choreography on desktop, responsive mobile degradation, drifting gradient depth, a canvas constellation particle network, and a boxing sparring intro loader.</li>
+  <li><strong>Page choreography:</strong> reversible heading/copy/art/quote reveals, clip-path headshot reveal, scroll-drawn Experience rails, magnetic contact button, and scroll-aware decorative motion.</li>
+  <li><strong>Content expansion:</strong> “Currently” focus, leaning original-art gallery, Highlights grid, multi-bullet Experience entries, handwritten testimonial notes, furniture/boxing details, and multiple Sunny cameos.</li>
+  <li><strong>Stack:</strong> Astro 5.17, Tailwind 4.2, GSAP/ScrollTrigger/SplitText, and Lenis. Phase 1 switcher compatibility remains intact.</li>
 </ul>
+
+<div class="gotcha"><strong>Scope decision still needed:</strong> the delivered experience is already a major complete-feeling redesign, but it does not match the original S4/S5 checklist exactly. Decide whether to close the track as shipped or add the pinned stats/projects story, velocity accents, marquee, active nav, and formal QA/performance sign-off.</div>
 
 <h2>Inspiration → concrete techniques</h2>
 <p>Two reference points, each contributing different moves:</p>
@@ -94,7 +99,7 @@
 </ul>
 
 <div class="phase panel">
-<h2>Phase S1 — Motion foundation</h2>
+<h2>Phase S1 — Motion foundation <span class="tag t-rec">DONE &amp; PUSHED</span></h2>
 <ol>
   <li>Add deps to the branch: <code>gsap</code>, <code>lenis</code>.</li>
   <li>Create <code>src/scripts/scroll.ts</code>: single entry that (a) bails on reduced motion, (b) boots Lenis and bridges it to ScrollTrigger (<code>lenis.on('scroll', ScrollTrigger.update)</code> + gsap ticker), (c) registers all effects, (d) exposes teardown. Load from <code>BaseLayout.astro</code> with <code>&lt;script&gt;</code> (this version is a single page — init on load and on <code>pagereveal</code> arrival is enough).</li>
@@ -105,7 +110,7 @@
 </div>
 
 <div class="phase panel">
-<h2>Phase S2 — Hero set piece (the first impression)</h2>
+<h2>Phase S2 — Hero set piece (the first impression) <span class="tag t-rec">DONE &amp; PUSHED</span></h2>
 <p>Pin the hero for ~1.5 viewport-heights of scroll and scrub a transformation, landonorris-style oversized type included:</p>
 <ul>
   <li>Upgrade the name to oversized display type (<code>clamp</code> up to ~10rem, tight tracking) — it's the identity element that morphs between versions, so bigger = a better morph too.</li>
@@ -118,51 +123,52 @@
 </div>
 
 <div class="phase panel">
-<h2>Phase S3 — Section choreography (reveals &amp; kinetic details)</h2>
+<h2>Phase S3 — Section choreography (reveals &amp; kinetic details) <span class="tag t-rec">DONE &amp; PUSHED</span></h2>
 <ul>
   <li><strong>SectionHeading:</strong> heading masks in from below (SplitText line reveal); its underline/rule draws left→right on enter.</li>
   <li><strong>About:</strong> headshot reveals with a <code>clip-path</code> wipe + subtle parallax drift; paragraphs reveal line-by-line with a soft mask (Apple-style text beats, triggered — not scrubbed).</li>
   <li><strong>Experience:</strong> a vertical timeline rule that <em>draws</em> with scroll progress through the section; each <code>ExperienceItem</code> rises/fades staggered as it enters; dates/company names get a slight secondary parallax.</li>
   <li><strong>Contact:</strong> oversized "Get in touch" line (biggest type on the page after the hero) revealed with a mask; the button gets a magnetic-hover microinteraction.</li>
-  <li>All reveals fire once (no re-hiding on scroll-up) — re-triggering reads as gimmicky.</li>
+  <li><strong>Delivered differently:</strong> enter reveals use <code>toggleActions: "play none none reverse"</code>, so they reverse on scroll-up and replay on re-entry. This was an intentional post-S3 refinement in <code>1744ff3</code>.</li>
 </ul>
-<div class="verify"><strong>Verify:</strong> every section fully legible with JS disabled · reveals fire exactly once at sensible thresholds · SplitText respects wrapping at all breakpoints (re-split on resize) · dark + light themes both clean.</div>
+<div class="verify"><strong>Verify:</strong> every section fully legible with JS disabled · reveals play/reverse/replay at sensible thresholds · SplitText respects wrapping at all breakpoints (re-split on resize) · dark + light themes both clean.</div>
 </div>
 
 <div class="phase panel">
-<h2>Phase S4 — Signature pinned story <span class="tag t-ask">NEEDS CONTENT</span></h2>
+<h2>Phase S4 — Signature pinned story <span class="tag t-ask">OPTIONAL / NOT BUILT</span></h2>
 <p>The Apple-style centerpiece: a new full-viewport section between About and Experience that pins and scrubs through 3–4 narrative beats. Two candidate shapes — pick when content exists:</p>
 <ol>
   <li><strong>"By the numbers" story:</strong> pinned dark stage; each beat is a short statement + a huge animated stat (counters scrub with scroll), e.g. years building, systems shipped, scale handled. Punchy, needs only facts.</li>
   <li><strong>Projects strip:</strong> pinned section that translates horizontally through 3–5 project cards (screenshot, name, one-liner, link) — the landonorris gallery move. Richer, needs real project assets. Content would live in <code>src/content/projects.ts</code> on the <code>content</code> branch so other versions can adopt it later.</li>
 </ol>
-<div class="ask"><strong>Content ask (Sean):</strong> to unlock this phase — <br>· 3–5 projects: name, one-line description, link (repo or live), and a screenshot/image each <em>(for shape 2)</em><br>· 3–4 true stats/facts worth shouting (years, scale, favorite numbers) <em>(for shape 1)</em><br>· Optional: any high-res imagery you'd enjoy seeing parallaxed (workspace, art, snowboarding, Sunny the cat).</div>
+<div class="ask"><strong>Decision/content ask:</strong> first decide whether this additional pinned section would improve the now content-rich page or make it feel overbuilt. If proceeding: provide 3–5 project cards with imagery, or 3–4 true stats/facts worth featuring. The art, furniture, boxing, testimonials, and Sunny imagery requested by the original plan have already been incorporated elsewhere.</div>
 <div class="verify"><strong>Verify:</strong> pinned scene enters/exits without jump · beats readable at every scroll speed (no skipped states on fast flicks) · horizontal strip (if chosen) works with touch + trackpad + keyboard · section is skippable and screen-reader-sane (content is ordinary DOM under the hood).</div>
 </div>
 
 <div class="phase panel">
-<h2>Phase S5 — Ambient polish &amp; ship</h2>
+<h2>Phase S5 — Ambient polish &amp; ship <span class="tag t-alt">PARTIAL</span></h2>
 <ul>
-  <li><strong>Velocity accents:</strong> tie scroll velocity to a subtle skew or parallax intensity on large type (cap it — 2–3° max).</li>
-  <li><strong>Marquee strip:</strong> an infinite skills/interests ticker (velocity-reactive direction/speed) as a section divider.</li>
-  <li><strong>Nav:</strong> backdrop-blur + shrink after the hero releases; active-section indicator driven by the same ScrollTriggers.</li>
-  <li><strong>Easing pass:</strong> one shared ease vocabulary (e.g. <code>power2.out</code> for reveals, linear for scrubs); remove any effect that hasn't earned its place — Apple's restraint is the bar.</li>
-  <li><strong>Full QA matrix:</strong> Chrome/Edge/Safari/Firefox desktop · iOS Safari + Android Chrome · reduced motion · light + dark · version-switch arrival/departure morphs · Lighthouse vs baseline · no-JS render.</li>
-  <li>Update wiki (<code>wiki/</code>) with a new <code>Scroll-Experience.md</code>: stack, init/teardown pattern, kit-interaction rules. Push <code>version/a-scroll</code> when Sean gives the go-ahead.</li>
+  <li><strong class="muted">Pending — velocity accents:</strong> tie scroll velocity to a subtle skew or parallax intensity on large type (cap it — 2–3° max).</li>
+  <li><strong class="muted">Pending — marquee strip:</strong> an infinite skills/interests ticker (velocity-reactive direction/speed) as a section divider.</li>
+  <li><strong class="muted">Pending — nav:</strong> backdrop-blur + shrink after the hero releases; active-section indicator driven by the same ScrollTriggers.</li>
+  <li><strong class="done">✓ Additional polish delivered instead:</strong> constellation background, intro loader, boxing glove interaction, art/gallery motion, handwritten quote composition, decorative Sunny motion, responsive spacing, and repeated easing/restraint passes.</li>
+  <li><strong>QA still open:</strong> full Chrome/Edge/Safari/Firefox desktop matrix; iOS Safari + Android Chrome; reduced motion; light + dark; version-switch arrival/departure morphs; Lighthouse vs baseline; no-JS render.</li>
+  <li><strong class="done">✓ Documentation and push:</strong> the branch through <code>41d44c3</code> is pushed. Wiki pages cover the scroll system, intro loader, and constellation. The July 25 a11y-only commit remains local.</li>
 </ul>
 <div class="verify"><strong>Verify:</strong> QA matrix green · Lighthouse within 5 pts · JS payload delta ≤ ~80 KB gz · the page still reads as a portfolio first, showpiece second.</div>
 </div>
 
 <h2>Sequence &amp; effort</h2>
 <table>
-  <tr><th>#</th><th>Phase</th><th>Depends on</th><th>Rough size</th></tr>
-  <tr><td>S1</td><td>Motion foundation (GSAP + Lenis + init module)</td><td>—</td><td>S — one session</td></tr>
-  <tr><td>S2</td><td>Pinned hero + oversized type</td><td>S1</td><td>M</td></tr>
-  <tr><td>S3</td><td>Section reveals &amp; timeline draw</td><td>S1</td><td>M</td></tr>
-  <tr><td>S4</td><td>Signature pinned story</td><td>S1 + <strong>content from Sean</strong></td><td>M–L</td></tr>
-  <tr><td>S5</td><td>Velocity polish, marquee, QA, ship</td><td>S2–S4</td><td>M</td></tr>
+  <tr><th>#</th><th>Phase</th><th>Status</th><th>Notes</th></tr>
+  <tr><td>S1</td><td>Motion foundation</td><td><strong class="done">Done / pushed</strong></td><td><code>1c10104</code></td></tr>
+  <tr><td>S2</td><td>Pinned hero + oversized type</td><td><strong class="done">Done / pushed</strong></td><td><code>aa4fa52</code>; later enhanced with constellation.</td></tr>
+  <tr><td>S3</td><td>Section reveals &amp; timeline draw</td><td><strong class="done">Done / pushed</strong></td><td><code>ad9382b</code>; later changed to reversible reveals.</td></tr>
+  <tr><td>Extensions</td><td>Content, art, quotes, Sunny, boxing, loader, constellation</td><td><strong class="done">Done / pushed</strong></td><td><code>a0ba28e</code> through <code>41d44c3</code>.</td></tr>
+  <tr><td>S4</td><td>Signature pinned story</td><td>Not built</td><td>Optional; decide whether it still adds value.</td></tr>
+  <tr><td>S5</td><td>Velocity, marquee, nav, QA</td><td>Partial</td><td>Alternative polish and docs shipped; formal QA items remain.</td></tr>
 </table>
-<p class="muted">S2 and S3 are independent after S1 and can be built in either order. S4 is the only phase blocked on content — S1–S3 can ship value without it.</p>
+<p class="muted">The branch has already shipped substantial value without S4. The next action is a scope call, not an implementation prerequisite.</p>
 
 <h2>Risks &amp; mitigations</h2>
 <ul>

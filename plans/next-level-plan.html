@@ -20,6 +20,8 @@
   .novel { background: rgba(188,140,255,.15); color: var(--purple); }
   .wow { background: rgba(210,153,34,.15); color: var(--orange); }
   .easy { background: rgba(63,185,80,.15); color: var(--green); }
+  .done { background: rgba(63,185,80,.15); color: var(--green); }
+  .partial { background: rgba(210,153,34,.15); color: var(--orange); }
   .muted { color: var(--muted); }
   code { background: rgba(110,118,129,.2); padding: .1rem .35rem; border-radius: 4px; font-size: .9em; }
   table { border-collapse: collapse; width: 100%; margin: 1rem 0; }
@@ -31,7 +33,7 @@
 <body>
 
 <h1>seanmh.com — Taking the Multiverse to the Next Level</h1>
-<p class="muted">June 2026 · Current state: Astro site, 3 versions on branches (<code>version/a-scroll</code>, <code>version/b-card</code>, <code>version/c-terminal</code>), shared <code>content</code> branch, Cloudflare Worker randomly assigns versions with a switcher.</p>
+<p class="muted">Idea map written June 2026; status updated <strong>July 25, 2026</strong>. Current state: three Worker-routed portfolio versions, a shared <code>content</code> branch, cinematic switching, a real interactive terminal, a heavily upgraded a-scroll experience, and a standalone Nexus branch awaiting routing/integration.</p>
 
 <p><strong>Thesis:</strong> The branch-per-version architecture is already the most interesting thing about this site. Instead of bolting on generic animation (the motionsites.ai route), make the multiverse itself the spectacle — then add one signature interactive piece and a layer that makes the site feel alive.</p>
 
@@ -40,12 +42,13 @@
 <div class="tier">
   <h3>1. The Self-Redesigning Website <span class="tag novel">novel</span><span class="tag wow">wow</span></h3>
   <p>A scheduled AI agent (Claude Code cloud routine / GitHub Action) generates a brand-new <strong>Version D</strong> on a cadence — say monthly — as a PR on a new <code>version/d-*</code> branch. You approve, it deploys, and the worker adds it to rotation. Past generations live in a browsable <strong>"Hall of Versions"</strong> gallery with the prompt + date that created each one.</p>
-  <p class="muted">Pitch line on the site: "This website redesigns itself. You're looking at generation #7." Nobody else has this. It also showcases exactly the AI-partner workflow you care about.</p>
+  <p class="muted"><strong>Status:</strong> not started. Pitch line on the site: "This website redesigns itself. You're looking at generation #7." It also showcases the AI-partner workflow behind the project.</p>
 </div>
 
 <div class="tier">
-  <h3>2. Cinematic Version Switching <span class="tag wow">wow</span></h3>
-  <p>Replace the plain redirect switcher with a <strong>portal transition</strong>: a shared "Sean identity card" element morphs between layouts (View Transitions API works cross-document on same-origin — perfect fit since the worker serves all versions from one domain). The switcher becomes a "universe dial" UI present in every version.</p>
+  <h3>2. Cinematic Version Switching <span class="tag done">DONE</span></h3>
+  <p>The plain redirect switcher has been replaced with a shared <strong>universe dial</strong>. The Sean name and dial morph across same-origin document navigations, each destination has its own transition flavor, reduced motion is supported, and the Worker keeps version selection sticky.</p>
+  <p class="muted">July 25 follow-up: accessibility improvements are committed byte-identically on <code>content</code> and all three portfolio branches; those four commits are awaiting push.</p>
 </div>
 
 <div class="tier">
@@ -56,16 +59,17 @@
 <h2>Tier 2 — One Signature Interactive Piece <span class="tag wow">visitor wow</span></h2>
 
 <div class="tier">
-  <h3>4. The Nexus — a 3D entry world</h3>
-  <p>A lightweight Three.js scene where the versions are physical doors/portals floating in space; walk or drag to one to enter it. Inspired by Bruno Simon's drivable portfolio (Awwwards Site of the Month, Jan 2026) but scoped small: one scene, three portals, &lt;1MB. Could itself live on a branch as <code>version/nexus</code> — the meta-version that contains the others.</p>
+  <h3>4. The Nexus — a 3D entry world <span class="tag partial">BUILT; INTEGRATION PENDING</span></h3>
+  <p>A lightweight Three.js scene where Scroll, Card, and Terminal are physical portals floating in space. It now lives on <code>version/nexus</code> at <code>aa86a28</code>, with responsive layouts, distinct portal shaders, fly-through navigation, reduced-motion behavior, and WebGL/no-JS fallbacks.</p>
+  <p class="muted">Remaining: configure/confirm its routed deployment, add an explicit Worker/dev-proxy route and Cluster-1 discovery entry, and run real-device/performance QA. The main scene chunk currently builds at about 131 KB gzip.</p>
 </div>
 
 <div class="tier">
-  <h3>5. Make the Terminal Version Real <span class="tag novel">novel</span></h3>
+  <h3>5. Make the Terminal Version Real <span class="tag done">DONE</span></h3>
   <ul>
-    <li>Working commands: <code>ls projects</code>, <code>cat resume.md</code>, <code>git log</code> (real repo history), tab-completion, history.</li>
-    <li><code>ask &lt;question&gt;</code> — Claude-powered answers grounded in your resume/projects, streamed into the terminal via a Worker.</li>
-    <li>Stretch: <code>ssh seanmh.com</code> serves an actual SSH portfolio (Charm's <em>wish</em> library, runs on a $4 VPS). Massive engineer cred.</li>
+    <li><strong class="done">✓</strong> Working content/navigation commands, real generated git history, tab completion, command history, and version switching.</li>
+    <li><strong class="done">✓</strong> <code>ask &lt;question&gt;</code> streams Claude Sonnet 5 answers through a secret-gated, KV-rate-limited Worker route with local fallback.</li>
+    <li><strong>Unbuilt stretch:</strong> <code>ssh seanmh.com</code> serving an actual SSH portfolio.</li>
   </ul>
 </div>
 
@@ -81,14 +85,15 @@
   <p>A tasteful collaborative artifact — e.g. a pixel wall or signature constellation backed by Workers KV/D1. Each visitor leaves one mark; the site visibly accumulates history.</p>
 </div>
 
-<h2>Recommended Sequence</h2>
+<h2>Updated Sequence</h2>
 <table>
-  <tr><th>#</th><th>Step</th><th>Verify</th></tr>
-  <tr><td>1</td><td>Cinematic switcher (View Transitions across versions)</td><td>Switch between all 3 versions with morph transition, no flash, mobile OK</td></tr>
-  <tr><td>2</td><td>Terminal version: real commands + <code>ask</code> AI command</td><td>5 commands work; <code>ask</code> answers from resume content; streams</td></tr>
-  <tr><td>3</td><td>Self-redesigning Version D pipeline</td><td>Scheduled agent opens PR with deployable new version; gallery page lists generations</td></tr>
-  <tr><td>4</td><td>A/B scoreboard + Now layer</td><td>Live stats page updates; now-playing renders in all versions</td></tr>
-  <tr><td>5</td><td>The Nexus 3D entry (stretch)</td><td>Loads &lt;2s, portals route to versions</td></tr>
+  <tr><th>#</th><th>Step</th><th>Status / verification</th></tr>
+  <tr><td>1</td><td>Cinematic switcher</td><td><strong class="done">Done.</strong> Push the July 25 a11y follow-up and perform the manual browser matrix.</td></tr>
+  <tr><td>2</td><td>Terminal commands + <code>ask</code></td><td><strong class="done">Done.</strong> Continue operational monitoring of secrets, KV, rate limits, and model spend.</td></tr>
+  <tr><td>3</td><td>a-scroll cinematic upgrade</td><td><strong class="done">Major pass shipped.</strong> Decide whether the unbuilt pinned-story/marquee/nav items still add value.</td></tr>
+  <tr><td>4</td><td>Integrate the Nexus</td><td>Page is built/pushed; add routed origin, discovery entry/bridge, and real-device QA.</td></tr>
+  <tr><td>5</td><td>Hall of Versions + self-redesign pipeline</td><td>Not started; scheduled agent should open a deployable, human-reviewed generation PR.</td></tr>
+  <tr><td>6</td><td>A/B scoreboard, Now layer, or visitor trace</td><td>Choose the highest-value third playground/live-data page after Nexus integration.</td></tr>
 </table>
 
 <h2>On motionsites.ai</h2>

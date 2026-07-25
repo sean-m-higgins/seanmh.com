@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>seanmh.com — Continuation Plan (post Phase 1)</title>
+<title>seanmh.com — Continuation Plan</title>
 <style>
   :root {
     --bg: #0d1117; --panel: #161b22; --border: #30363d;
@@ -38,113 +38,109 @@
 <body>
 
 <h1>seanmh.com — Continuation Plan</h1>
-<p class="muted">Written June 2026, end of the Phase 1 session. <strong>Updated July 7, 2026:</strong> Phase 1 is pushed/live, Phase 2 (interactive terminal + <code>ask</code>) is done, and the wiki is refreshed. Next up: the a-scroll scroll experience (<code>plans/scroll-experience-plan.html</code>) and Phase 3. Companion to <code>plans/execution-plan.html</code> (the full 5-phase vision) and <code>plans/next-level-plan.html</code> (idea origins). This file captures exact current state + the immediately actionable next steps.</p>
+<p class="muted">Written June 2026 after Phase 1. <strong>Updated July 25, 2026:</strong> the cinematic switcher and terminal are complete; the a-scroll cinematic overhaul is substantially shipped; and the Nexus 3D entry world has been built and pushed ahead of the original phase order. Companion to <code>plans/execution-plan.html</code> (the long-range architecture), <code>plans/scroll-experience-plan.html</code> (a-scroll details), and <code>plans/next-level-plan.html</code> (idea origins). This document is the current operational handoff.</p>
 
 <h2>Where things stand</h2>
 
-<h3 class="done">✓ Phase 1 — Cinematic in-cluster switching <span class="tag t-done">DONE &amp; PUSHED</span></h3>
-<p>The "universe dial" switcher + cross-document View Transitions are built, committed, and <strong>pushed to origin on every branch</strong>. Verified locally via headless Chromium screenshots + the dev proxy (routing, cookie stickiness, <code>?v=</code> override all confirmed).</p>
-
 <table>
-  <tr><th>Branch</th><th>Commit (July 2026)</th><th>Contents</th></tr>
-  <tr><td><code>version/a-scroll</code></td><td><code>7c791f5</code></td><td>Kit + <code>Hero.astro</code> headline tagged <code>vt-sean-name vt-skip-intro</code></td></tr>
-  <tr><td><code>version/b-card</code></td><td><code>6ddb6b7</code></td><td>Kit + tilt toggle, particle fade fix, press-and-hold hint polish</td></tr>
-  <tr><td><code>version/c-terminal</code></td><td><code>3fac500</code></td><td>Kit + full Phase 2 terminal (see below)</td></tr>
-  <tr><td><code>content</code></td><td><code>015ce44</code></td><td>Canonical kit files + shared project content</td></tr>
-  <tr><td><code>main</code></td><td><code>aad5088</code></td><td>Hardened weighted proxy, <code>scripts/dev-proxy.mjs</code>, <code>/api/ask</code> route, plans</td></tr>
+  <tr><th>Track</th><th>Status on July 25, 2026</th></tr>
+  <tr><td>Cinematic switcher</td><td><strong class="done">Complete and pushed</strong>; accessibility follow-up is committed locally on the four canonical branches and is awaiting push.</td></tr>
+  <tr><td>Interactive terminal + <code>ask</code></td><td><strong class="done">Complete</strong> on <code>version/c-terminal</code> and <code>main</code>.</td></tr>
+  <tr><td>a-scroll cinematic experience</td><td><strong class="done">Major pass complete and pushed</strong>: S1–S3 plus extensive content/visual extensions. The original S4 pinned story and remaining S5 items are optional follow-ons.</td></tr>
+  <tr><td>The Nexus</td><td><strong class="done">Page built and pushed</strong> on <code>version/nexus</code>; Worker routing, discovery entry, deployment confirmation, and cross-browser QA are still pending.</td></tr>
+  <tr><td>Cluster 2 / Hall / redesign pipeline</td><td>Not started. The Nexus was built independently and no longer needs to wait for those pieces.</td></tr>
 </table>
 
-<p><strong>The "kit" = two byte-identical files on every version branch:</strong></p>
+<h2 class="done">✓ Phase 1 — Cinematic in-cluster switching <span class="tag t-done">COMPLETE</span></h2>
+<p>The "universe dial" switcher + cross-document View Transitions are built and pushed on the three portfolio branches. Same-origin routing, <code>?v=</code> overrides, cookie stickiness, per-version transition flavor, and reduced-motion behavior are implemented. A deliberate real-browser compatibility pass remains worthwhile because headless automation cannot reliably render the cross-document arrival animation.</p>
+
+<table>
+  <tr><th>Branch</th><th>Current local head</th><th>Upstream state</th></tr>
+  <tr><td><code>version/a-scroll</code></td><td><code>a2df6b8</code></td><td>Origin at <code>41d44c3</code>; one local switcher-a11y commit pending push.</td></tr>
+  <tr><td><code>version/b-card</code></td><td><code>8b69a7d</code></td><td>Origin at <code>b9c4754</code>; one local switcher-a11y commit pending push.</td></tr>
+  <tr><td><code>version/c-terminal</code></td><td><code>d190554</code></td><td>Origin at <code>6e1a035</code>; one local switcher-a11y commit pending push.</td></tr>
+  <tr><td><code>content</code></td><td><code>aeb73a6</code></td><td>Origin at <code>015ce44</code>; canonical switcher-a11y commit pending push.</td></tr>
+  <tr><td><code>main</code></td><td><code>0945737</code></td><td>Matches origin; owns the router Worker, local dev proxy, API route, and plans.</td></tr>
+  <tr><td><code>version/nexus</code></td><td><code>aa86a28</code></td><td>Matches origin; standalone Nexus page, not yet present in the Worker routing table.</td></tr>
+</table>
+
+<p><strong>The canonical switcher kit = two byte-identical files on <code>content</code> plus the three portfolio branches:</strong></p>
 <ul>
-  <li><code>src/components/VersionSwitcher.astro</code> — the dial. Takes a <code>current</code> prop. Has <code>pageswap</code>/<code>pagereveal</code> handlers that stash the departing version in <code>sessionStorage</code> and add <code>from-X</code>/<code>to-Y</code> view-transition types + a <code>vt-arrived</code> class on arrival.</li>
+  <li><code>src/components/VersionSwitcher.astro</code> — the dial. It handles <code>pageswap</code>/<code>pagereveal</code>, touch expansion, <code>aria-expanded</code>, Escape-to-close, focus restoration, and a non-interactive current-version item.</li>
   <li><code>src/styles/transitions.css</code> — <code>@view-transition { navigation: auto }</code>, the <code>sean-name</code>/<code>universe-dial</code> morph groups, per-version flavor (CRT power-on for terminal, 3D tilt for card, rise for scroll), reduced-motion off-switch.</li>
 </ul>
 <p class="muted">Per-version wiring (not in the kit): each layout imports <code>transitions.css</code> and renders <code>&lt;VersionSwitcher current="…" /&gt;</code>; each version's identity headline carries <code>vt-sean-name</code>, and its intro-animated container carries <code>vt-skip-intro</code>.</p>
 
-<div class="gotcha"><strong>Cookie nuance (already handled):</strong> <code>worker.js</code> and <code>dev-proxy.mjs</code> only set the <code>pv</code> cookie when <code>Sec-Fetch-Dest: document</code> (or Accept includes <code>text/html</code>). This stops a stale in-flight asset request from the old version overwriting a just-switched cookie. Preserve this if you touch cookie logic.</p></div>
+<div class="gotcha"><strong>Cookie nuance (already handled):</strong> <code>worker.js</code> and <code>dev-proxy.mjs</code> only set the <code>pv</code> cookie when <code>Sec-Fetch-Dest: document</code> (or Accept includes <code>text/html</code>). This stops a stale in-flight asset request from the old version overwriting a just-switched cookie. Preserve this if you touch cookie logic.</div>
 
-<div class="gotcha"><strong>Kit-sync rule:</strong> the three version copies must stay byte-identical. Future edits: change on <code>content</code>, then cherry-pick to each version branch. (Phase 1's first commit went direct-to-branch because the pre-existing switchers differed and would have conflicted — that's resolved now; they're identical.)</p></div>
-
-<h3>⧗ Housekeeping status <span class="tag t-done">MOSTLY DONE (July 2026)</span></h3>
-<div class="panel">
-<ol>
-  <li><strong class="done">✓ Push + deploy Phase 1</strong> — all branches are on origin (<code>main</code>, <code>content</code>, all three <code>version/*</code>). Worker development has continued on <code>main</code> (<code>/api/ask</code>), so the worker deploy pipeline is active.</li>
-  <li><strong>⧗ Smoke-test on real browsers</strong> — still worth a deliberate pass: Chrome/Edge (morph), Safari/Firefox (clean fallback, no breakage), mobile (tap-to-open dial), reduced-motion OS setting.</li>
-  <li><strong class="done">✓ Update the wiki</strong> — <code>Version-Switcher.md</code> now documents the universe dial + transitions; new pages added for the terminal command engine and window controls.</li>
-  <li><strong>Worktrees</strong> live at <code>../wt/{a-scroll,b-card,c-terminal,content}</code> and stay — <code>wt/a-scroll</code> is the home of the next work item (scroll experience).</li>
-</ol>
-</div>
+<div class="gotcha"><strong>Kit-sync rule:</strong> edit on <code>content</code>, then copy/cherry-pick to <code>version/a-scroll</code>, <code>version/b-card</code>, and <code>version/c-terminal</code>. The July 25 accessibility commits are verified byte-identical: component SHA-256 <code>de3705e…</code>, transition CSS SHA-256 <code>eed3588…</code>.</div>
 
 <h2 class="done">✓ Phase 2 — Make the terminal real <span class="tag t-done">DONE (July 2026)</span></h2>
-<p class="muted">Shipped. 2a landed as <code>f91ae20</code> (interactive engine) + <code>df0233f</code> (git-log build artifact) + <code>e59ef78</code> (leaner boot sequence) on <code>version/c-terminal</code>. 2b landed as <code>71e0893</code> → <code>5586d10</code> → <code>aad5088</code> on <code>main</code>, with deviations from the plan below: the model was upgraded to <strong>Claude Sonnet 5</strong> (not Haiku), the endpoint is <strong>gated behind a shared secret</strong>, and grounding context is served from <strong>KV</strong> rather than baked into the worker. Original spec kept below for reference.</p>
+<p class="muted">Shipped. The command engine landed as <code>f91ae20</code> + <code>df0233f</code> + <code>e59ef78</code> on <code>version/c-terminal</code>. The API route landed as <code>71e0893</code> → <code>5586d10</code> → <code>aad5088</code> on <code>main</code>. The delivered design uses Claude Sonnet 5, a shared-secret gate, KV-backed rate limiting, and optional server-side KV grounding.</p>
 
 <div class="panel">
 <h3 class="done">✓ 2a. Interactive command engine <span class="tag t-done">DONE</span></h3>
-<p>Today <code>index.astro</code> renders a <em>scripted</em> typing animation of fake command output (via <code>@chenglou/pretext</code> for line layout). Phase 2 turns the bottom blinking-cursor line into a <strong>real prompt</strong> that accepts input, while keeping the scripted intro as the "boot sequence."</p>
 <ul>
-  <li>Add an input line (contenteditable or hidden input + rendered span) after the boot sequence completes.</li>
-  <li>Command parser + registry. Commands to ship:
-    <ul>
-      <li><code>help</code> — lists commands (and hints at the hidden one, see Phase 3).</li>
-      <li><code>ls projects</code> / <code>ls experience/</code> / <code>ls education/</code> — from content files.</li>
-      <li><code>cat about.txt</code>, <code>cat resume.md</code>, <code>open &lt;project&gt;</code> (window.open to repo/live link).</li>
-      <li><code>git log</code> — real commit history. Bake it at build time: a small Astro build step / script reads <code>git log --oneline -n 20</code> into a JSON the page imports (don't ship the whole repo).</li>
-      <li><code>switch &lt;a-scroll|b-card|c-terminal&gt;</code> — navigates to <code>/?v=…</code>, triggering the Phase 1 transition. <code>clear</code>, <code>whoami</code>, <code>contact</code> too.</li>
-    </ul>
-  </li>
-  <li>UX: command history (↑/↓), tab-completion (commands + known args), unknown-command message. Keep focus on the prompt; clicking anywhere refocuses.</li>
-  <li>Respect the existing window controls (minimize/maximize/close) and <code>astro:after-swap</code> re-init pattern already in <code>TerminalLayout.astro</code>.</li>
+  <li>Real prompt after the lean boot sequence; command registry covers portfolio content, navigation, contact, history, and utility commands.</li>
+  <li>Command history, tab completion, unknown-command handling, generated real git history, and <code>switch &lt;version&gt;</code> navigation are implemented.</li>
+  <li>The terminal window controls and theme state continue to work around the command engine.</li>
 </ul>
-<div class="verify"><strong>Verify:</strong> each command produces correct output; history + tab-completion work; <code>switch</code> triggers the morph; unknown commands handled; boot sequence still plays first; mobile keyboard usable.</div>
 </div>
 
 <div class="panel">
 <h3 class="done">✓ 2b. <code>ask &lt;question&gt;</code> — Claude-grounded answers <span class="tag t-done">DONE</span> <span class="muted" style="font-size:.8rem">(shipped with Sonnet 5 + shared-secret gate + KV grounding)</span></h3>
 <ul>
-  <li><strong>Worker route</strong> <code>/api/ask</code> in <code>worker.js</code>: handle <code>/api/*</code> <em>before</em> the version proxy. POST <code>{question}</code> → Anthropic API, stream back via SSE.</li>
-  <li><strong>Model:</strong> Claude Haiku 4.5 (<code>claude-haiku-4-5-20251001</code>) — cheap, fast first token. <span class="muted">(Verify current model id against the claude-api skill before shipping.)</span></li>
-  <li><strong>Grounding:</strong> system prompt = resume + project/experience content (import the same content files at build, inline into the worker or a KV value). Scope: "only answer questions about Sean; politely decline otherwise."</li>
-  <li><strong>Guardrails:</strong> API key in a Worker <em>secret</em> (never client). Per-IP rate limit via Workers KV (~10/hr). Max output tokens cap. Monthly spend alert.</li>
-  <li><strong>Client:</strong> <code>ask</code> opens a streaming output block; tokens type in like the rest of the terminal. Show a thinking indicator before first token.</li>
+  <li><code>/api/ask</code> is handled by the Worker before proxy routing and streams terminal-friendly text from Claude Sonnet 5.</li>
+  <li>Access requires <code>ASK_SECRET</code>; <code>ANTHROPIC_API_KEY</code> stays server-side; <code>ASK_RL</code> provides a soft per-IP limit and optional private grounding context.</li>
+  <li>The terminal falls back to local content-grounded answers if the remote route or its infrastructure is unavailable.</li>
 </ul>
-<div class="verify"><strong>Verify:</strong> first token &lt;3s; answer grounded in real content; off-topic politely refused; key never in client bundle/network; rate-limit returns a friendly in-terminal message; works through the live worker (not just local).</div>
-<div class="gotcha"><strong>New infra this introduces:</strong> a KV namespace (rate limiting) and a Worker secret (API key). Document both in the wiki. This is the first time the worker does more than proxy — keep <code>/api/*</code> handling isolated and well-commented.</div>
 </div>
 
-<h2>Next: a-scroll scroll experience <span class="tag t-next">UP NEXT</span></h2>
-<p class="muted">New track inserted July 2026, before Phase 3: a major scroll-driven visual upgrade of <code>version/a-scroll</code> (Apple/landonorris.com-style pinned scenes, scroll-linked reveals, kinetic type). Full plan: <code>plans/scroll-experience-plan.html</code>. Work happens in <code>wt/a-scroll</code>.</p>
-
-<h2>Then: Phases 3–5 <span class="tag t-later">LATER</span></h2>
-<p class="muted">Full detail in <code>plans/execution-plan.html</code>. Summary + the key architectural decisions to carry forward:</p>
-
-<h3>Phase 3 — Shiny button, bridge transition, Cluster 2 + Hall of Versions</h3>
+<h2 class="done">✓ a-scroll cinematic experience <span class="tag t-done">MAJOR PASS SHIPPED</span></h2>
+<p>The July scroll track is no longer “up next.” S1–S3 are implemented and pushed: <code>1c10104</code> (GSAP + Lenis foundation), <code>aa4fa52</code> (pinned hero), and <code>ad9382b</code> (section choreography). The branch was then extended through <code>41d44c3</code> with a constellation hero, expanded About, original-art gallery, multi-bullet experience content, Highlights, handwritten testimonial notes, Sunny decorations, a boxing microinteraction, and a boxing intro loader.</p>
 <ul>
-  <li><strong>Worker v2 cluster model:</strong> <code>VERSIONS</code> array becomes two clusters. Cluster 1 (scroll/card/terminal) keeps random assignment + <code>pv</code> cookie. <strong>Cluster 2 is never randomly assigned</strong> — only reachable via the button (it's a discovery). The dial offers only same-cluster neighbors based on current page.</li>
-  <li><strong>Shiny button:</strong> one irresistible artifact in all Cluster-1 versions (glowing corner orb; in the terminal it's the hidden command <code>help</code> hints at — wire this into the Phase 2 registry).</li>
-  <li><strong>Bridge transition:</strong> deliberately distinct from in-cluster morphs — a warp/iris-wipe via a <code>types: ['bridge']</code> view-transition type, both directions. Reuse the Phase 1 <code>pageswap</code>/<code>pagereveal</code> plumbing; add a <code>bridge</code> type branch in <code>transitions.css</code>.</li>
-  <li><strong>Hall of Versions</strong> (<code>version/d-hall</code> + new Pages project): gallery of AI-generated designs — screenshot, generation #, date, the prompt that made it. Ship with gen #1.</li>
-  <li><strong>Self-redesign pipeline:</strong> scheduled Claude Code cloud agent / GH Action → generates a <code>gen/N</code> branch → opens a PR with preview. On merge: deploy, screenshot, append to hall manifest. Human approval stays in the loop.</li>
+  <li><strong>Complete:</strong> smooth scrolling, progress bar, pinned/kinetic hero, reversible section reveals, timeline draw, magnetic contact button, content/art/testimonial expansion, loader, and responsive polish.</li>
+  <li><strong>Changed from the original S3 spec:</strong> reveals intentionally reverse and replay instead of firing only once.</li>
+  <li><strong>Still optional:</strong> the original S4 pinned stats/projects story; S5 velocity accents, skills marquee, active-section/shrinking nav, full device QA, and performance-budget sign-off.</li>
+  <li><strong>Documentation:</strong> <code>wiki/Scroll-Experience.md</code>, <code>Intro-Loader.md</code>, and <code>Hero-Constellation.md</code> describe the delivered system and gotchas.</li>
 </ul>
 
-<h3>Phase 4 — The Nexus (<code>version/e-nexus</code>)</h3>
+<h2>The Nexus <span class="tag t-done">PAGE BUILT &amp; PUSHED</span></h2>
+<p><code>version/nexus</code> was implemented ahead of the original Phase 4 sequence and pushed as <code>aa86a28</code>. A fresh production build succeeds on Node 20.</p>
 <ul>
-  <li>One lightweight Three.js scene: floating portals, one per page across both clusters; drag-orbit, click/tap to travel (portal zoom blends into the view transition).</li>
-  <li>Hard budget: &lt;1 MB JS gzipped; lazy-load behind an instant title frame; static image + link-list fallback for no-WebGL. Never the random landing page.</li>
+  <li>Three responsive Three.js portals lead to Scroll, Card, and Terminal; each has a distinct shader treatment.</li>
+  <li>Pointer parallax, hover/focus highlighting, camera fly-through + color veil, portrait stacking, reduced-motion behavior, WebGL fallback, and no-JS links are implemented.</li>
+  <li>The main Nexus chunk builds at approximately <strong>131 KB gzip</strong>, comfortably below the original 1 MB ceiling.</li>
+  <li><strong>Not done:</strong> the main Worker and dev proxy still know only the three portfolio versions; no Pages/Worker origin for Nexus is configured there; there is no shiny-button/bridge entry from Cluster 1; and real-device QA/deployment confirmation remain.</li>
 </ul>
 
-<h3>Phase 5 — Third Cluster-2 page (<code>f-???</code>) + polish</h3>
+<h2>Immediate next steps <span class="tag t-next">CURRENT QUEUE</span></h2>
+<div class="panel next">
+<ol>
+  <li><strong>Push the synchronized switcher accessibility commits</strong> on <code>content</code>, <code>version/a-scroll</code>, <code>version/b-card</code>, and <code>version/c-terminal</code>.</li>
+  <li><strong>Integrate the Nexus:</strong> confirm its deployment/origin, add an explicit non-random route to <code>worker.js</code> and <code>dev-proxy.mjs</code>, and decide whether the first entry is a shared shiny button, a direct route, or both.</li>
+  <li><strong>Run the real-browser QA pass:</strong> switcher morph and fallback, mobile dial a11y, a-scroll pinning/Lenis behavior, and Nexus portal interaction/fallback.</li>
+  <li><strong>Decide a-scroll scope:</strong> either build the original S4/S5 remaining items or declare the current content-rich experience complete and close that track.</li>
+  <li><strong>Resume the unbuilt Phase 3 work:</strong> bridge transition, Hall of Versions, and the self-redesign pipeline. The Nexus can serve as the first playground destination without waiting for the full cluster.</li>
+</ol>
+</div>
+
+<h2>Later: Hall, redesign pipeline, and the third playground page <span class="tag t-later">NOT STARTED</span></h2>
 <ul>
-  <li>Pick one: A/B <strong>scoreboard observatory</strong> (which universe wins — log assignments/switches to Analytics Engine or KV), <strong>visitor pixel wall</strong> (KV/D1), or live <strong>"now" dashboard</strong>.</li>
-  <li>Polish: per-version OG images, analytics, a11y audit, wiki refresh.</li>
+  <li><strong>Hall of Versions:</strong> gallery of generated designs, screenshots, prompts, and dates.</li>
+  <li><strong>Self-redesign pipeline:</strong> scheduled agent/GitHub Action opens reviewable generation PRs; merge/deploy/screenshot updates the Hall.</li>
+  <li><strong>Third playground page:</strong> choose the A/B scoreboard, visitor trace/pixel wall, or live “now” dashboard.</li>
+  <li><strong>Final polish:</strong> per-version OG images, assignment/switch analytics, full accessibility audit, and wiki refresh.</li>
 </ul>
 
 <h2>Cross-cutting reminders</h2>
 <ul>
-  <li><strong>Content contract:</strong> <code>src/content/{site,experience}.ts</code> + <code>src/assets/images/</code> are identical across versions. Content changes go on <code>content</code> then cherry-pick. The switcher kit now follows the same rule.</li>
-  <li><strong>Stack:</strong> Astro 5.17 + Tailwind 4.2 + <code>@astrojs/cloudflare</code> adapter, React + sitemap integrations. Accent color <code>#6366f1</code>. Dark mode default, pre-paint theme script in every layout.</li>
-  <li><strong>Local testing of transitions</strong> requires same-origin: build each version, serve <code>dist/</code> on 4321/4322/4323, run <code>node scripts/dev-proxy.mjs</code>, open <code>http://localhost:8787</code>. (Headless Chromium works for screenshots; system Google Chrome was crashing headless — use Chromium with <code>--user-data-dir</code>.)</li>
-  <li><strong>View Transitions are Chrome/Edge-only</strong> for now (cross-document). Always progressive enhancement — never block navigation on them.</li>
-  <li><strong>Commit attribution:</strong> end messages with <code>Co-Authored-By: Claude &lt;model&gt; &lt;noreply@anthropic.com&gt;</code>. Don't push without explicit user go-ahead. Branch before committing on default branch (already on the per-version branches here).</li>
+  <li><strong>Content contract:</strong> the original shared files flow from <code>content</code>, but a-scroll now intentionally diverges in <code>about.ts</code>, its Experience schema, and version-specific imagery. Port those changes manually rather than blindly cherry-picking.</li>
+  <li><strong>Switcher contract:</strong> <code>VersionSwitcher.astro</code> and <code>transitions.css</code> remain byte-identical across the canonical four branches. Nexus does not render the dial because its portals are the switcher.</li>
+  <li><strong>Stack:</strong> Astro 5.17 + Tailwind 4.2. a-scroll adds GSAP/ScrollTrigger + Lenis; Nexus adds Three.js. Use Node 20 for builds.</li>
+  <li><strong>Local transition testing:</strong> preview the three portfolio builds on ports 4321–4323, run <code>node scripts/dev-proxy.mjs</code>, and open <code>http://localhost:8787</code>. Extend the proxy when Nexus routing is added.</li>
+  <li><strong>Progressive enhancement:</strong> browser support for cross-document View Transitions varies. Navigation, reduced motion, WebGL fallback, and no-JS paths must keep working without the cinematic layer.</li>
+  <li><strong>Push policy:</strong> commits may be prepared locally, but do not push without explicit approval.</li>
 </ul>
 
 </body>
