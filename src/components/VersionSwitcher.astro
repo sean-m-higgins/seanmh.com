@@ -59,6 +59,40 @@ const active = versions.find((v) => v.name === current) ?? versions[0];
   </div>
 </nav>
 
+{/* Nexus launcher — a liquid droplet pulls up off the dial, snaps free, and
+    floats above it as a shining NEXUS button into the 3D portal world. Kept
+    outside the overflow-hidden dial so it can escape upward. */}
+<a
+  href="/?v=nexus"
+  data-astro-reload
+  class="nexus-launcher"
+  aria-label="Enter the Nexus — a 3D portal to every version"
+>
+  <span class="nexus-goo" aria-hidden="true">
+    <span class="nexus-blob nexus-blob-base"></span>
+    <span class="nexus-blob nexus-blob-drop"></span>
+  </span>
+  <span class="nexus-pill">
+    <span class="nexus-label">nexus</span>
+    <span class="nexus-shine" aria-hidden="true"></span>
+  </span>
+</a>
+
+<svg width="0" height="0" class="nexus-defs" aria-hidden="true" focusable="false">
+  <defs>
+    <filter id="nexus-goo">
+      <feGaussianBlur in="SourceGraphic" stdDeviation="6" result="blur" />
+      <feColorMatrix
+        in="blur"
+        mode="matrix"
+        values="1 0 0 0 0  0 1 0 0 0  0 0 1 0 0  0 0 0 22 -10"
+        result="goo"
+      />
+      <feBlend in="SourceGraphic" in2="goo" />
+    </filter>
+  </defs>
+</svg>
+
 <style>
   .universe-dial {
     view-transition-name: universe-dial;
@@ -110,6 +144,251 @@ const active = versions.find((v) => v.name === current) ?? versions[0];
     }
     .dial-options {
       transition: none;
+    }
+  }
+
+  /* ---- Nexus launcher: liquid pull-away off the dial ---------------- */
+
+  .nexus-defs {
+    position: absolute;
+    width: 0;
+    height: 0;
+    pointer-events: none;
+  }
+
+  .nexus-launcher {
+    position: fixed;
+    left: 1rem; /* aligns with the dial's bottom-4 left-4 anchor */
+    bottom: 1rem;
+    width: 2.5rem; /* = dial-core footprint (h-10 w-10) */
+    height: 2.5rem;
+    z-index: 50;
+    pointer-events: none; /* only the settled pill is interactive */
+    -webkit-tap-highlight-color: transparent;
+  }
+
+  /* The gooey liquid: two accent blobs merged by the SVG filter. Its job is
+     only the pull-away + neck-snap; it fades out once the pill has arrived. */
+  .nexus-goo {
+    position: absolute;
+    left: 50%;
+    bottom: 0.5rem; /* base sits on the top of the dial core */
+    width: 4.5rem;
+    height: 7rem;
+    margin-left: -2.25rem;
+    filter: url(#nexus-goo);
+    animation: nexus-goo-fade 1.5s linear forwards;
+  }
+
+  .nexus-blob {
+    position: absolute;
+    left: 50%;
+    bottom: 0;
+    border-radius: 50%;
+    background: #818cf8; /* accent-light — reads as energy off the accent dial */
+    will-change: transform;
+  }
+
+  .nexus-blob-base {
+    width: 1.9rem;
+    height: 1.5rem;
+    margin-left: -0.95rem;
+    animation: nexus-base 1.5s cubic-bezier(0.5, 0, 0.2, 1) forwards;
+  }
+
+  .nexus-blob-drop {
+    width: 1.55rem;
+    height: 1.55rem;
+    margin-left: -0.775rem;
+    transform-origin: 50% 100%; /* stretch upward from the base */
+    animation: nexus-drop 1.5s cubic-bezier(0.45, 0, 0.2, 1) forwards;
+  }
+
+  /* The crisp, readable pill that the liquid becomes. */
+  .nexus-pill {
+    position: absolute;
+    /* Nudged right of the core so the wider pill clears the viewport's left
+       edge (the dial sits only 1rem in); the liquid still rises dead-center. */
+    left: calc(50% + 0.7rem);
+    bottom: 100%; /* anchored to the launcher (core) top */
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0.28rem 0.72rem;
+    border-radius: 999px;
+    font-family: var(--font-mono, ui-monospace, monospace);
+    font-size: 0.66rem;
+    font-weight: 600;
+    letter-spacing: 0.24em;
+    text-transform: uppercase;
+    color: #fff;
+    white-space: nowrap;
+    overflow: hidden;
+    background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 55%, #a855f7 100%);
+    box-shadow:
+      0 6px 18px -3px rgb(124 131 255 / 0.6),
+      inset 0 0 0 1px rgb(255 255 255 / 0.14);
+    pointer-events: auto;
+    opacity: 0;
+    transform: translateX(-50%) translateY(-0.4rem) scale(0.6);
+    animation:
+      nexus-pill-in 1.5s cubic-bezier(0.3, 0, 0.2, 1) forwards,
+      nexus-float 4s ease-in-out 1.7s infinite;
+  }
+
+  .nexus-label {
+    position: relative;
+    z-index: 1;
+    padding-left: 0.24em; /* balance the letter-spacing's trailing gap */
+  }
+
+  .nexus-shine {
+    position: absolute;
+    inset: 0;
+    border-radius: inherit;
+    overflow: hidden;
+    pointer-events: none;
+  }
+
+  .nexus-shine::before {
+    content: "";
+    position: absolute;
+    top: -20%;
+    left: -70%;
+    width: 45%;
+    height: 140%;
+    background: linear-gradient(
+      100deg,
+      transparent,
+      rgb(255 255 255 / 0.85),
+      transparent
+    );
+    transform: skewX(-18deg);
+    animation: nexus-shine 4.5s ease-in-out 2.4s infinite;
+  }
+
+  .nexus-launcher:hover .nexus-pill,
+  .nexus-launcher:focus-visible .nexus-pill {
+    box-shadow:
+      0 8px 24px -3px rgb(124 131 255 / 0.85),
+      inset 0 0 0 1px rgb(255 255 255 / 0.28);
+    filter: brightness(1.1);
+  }
+
+  .nexus-launcher:focus-visible {
+    outline: none;
+  }
+
+  .nexus-launcher:focus-visible .nexus-pill {
+    outline: 2px solid #c4b5fd;
+    outline-offset: 3px;
+  }
+
+  @keyframes nexus-drop {
+    0% {
+      transform: translateY(0.1rem) scale(0.6);
+    }
+    18% {
+      transform: translateY(-0.3rem) scaleX(0.72) scaleY(1.55); /* liquid climbs, still fused to base */
+    }
+    38% {
+      transform: translateY(-1.1rem) scaleX(0.55) scaleY(2.1); /* tall thin neck, goo still bridges */
+    }
+    58% {
+      transform: translateY(-2.7rem) scaleX(0.9) scaleY(1.12); /* pinched off, rounding as it flies up */
+    }
+    80% {
+      transform: translateY(-4.6rem) scale(1.07); /* free, slight overshoot */
+    }
+    100% {
+      transform: translateY(-4.2rem) scale(1); /* settle */
+    }
+  }
+
+  @keyframes nexus-base {
+    0% {
+      transform: scale(1);
+      opacity: 1;
+    }
+    28% {
+      transform: scaleX(1.15) scaleY(0.82); /* held taut, feeding the rising neck */
+      opacity: 1;
+    }
+    46% {
+      transform: scaleX(1) scaleY(0.6); /* neck snaps */
+      opacity: 0.9;
+    }
+    100% {
+      transform: scale(0.3);
+      opacity: 0; /* recedes back into the dial */
+    }
+  }
+
+  @keyframes nexus-goo-fade {
+    0%,
+    66% {
+      opacity: 1;
+    }
+    100% {
+      opacity: 0;
+    }
+  }
+
+  @keyframes nexus-pill-in {
+    0%,
+    45% {
+      opacity: 0;
+      transform: translateX(-50%) translateY(0.1rem) scale(0.6);
+    }
+    72% {
+      opacity: 1;
+      transform: translateX(-50%) translateY(-0.85rem) scale(1.08);
+    }
+    100% {
+      opacity: 1;
+      transform: translateX(-50%) translateY(-0.4rem) scale(1);
+    }
+  }
+
+  @keyframes nexus-float {
+    0%,
+    100% {
+      transform: translateX(-50%) translateY(-0.4rem) scale(1);
+    }
+    50% {
+      transform: translateX(-50%) translateY(-0.72rem) scale(1);
+    }
+  }
+
+  @keyframes nexus-shine {
+    0% {
+      left: -70%;
+    }
+    16% {
+      left: 130%;
+    }
+    100% {
+      left: 130%; /* long rest between sweeps */
+    }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .nexus-goo {
+      animation: none;
+      opacity: 0;
+    }
+    .nexus-blob-base,
+    .nexus-blob-drop {
+      animation: none;
+    }
+    .nexus-pill {
+      animation: none;
+      opacity: 1;
+      transform: translateX(-50%) translateY(-0.4rem) scale(1);
+    }
+    .nexus-shine::before {
+      animation: none;
+      opacity: 0;
     }
   }
 </style>
