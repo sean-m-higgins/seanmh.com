@@ -25,30 +25,36 @@ const active = versions.find((v) => v.name === current) ?? versions[0];
     type="button"
     class="dial-core relative flex h-10 w-10 shrink-0 cursor-pointer items-center justify-center"
     aria-label="Choose a portfolio version"
+    aria-controls="version-options"
+    aria-expanded="false"
   >
     <span
       class="dial-ring absolute inset-1.5 rounded-full border border-dashed border-accent/50"
       aria-hidden="true"></span>
     <span class="font-mono text-sm text-accent" aria-hidden="true">{active.glyph}</span>
   </button>
-  <div class="dial-options flex items-center gap-1">
+  <div id="version-options" class="dial-options flex items-center gap-1">
     {
-      versions.map((v) => (
-        <a
-          href={v.name === current ? "#" : `/?v=${v.name}`}
-          data-astro-reload
-          class:list={[
-            "whitespace-nowrap rounded-full px-2.5 py-1 text-xs font-medium transition-colors",
-            v.name === current
-              ? "bg-accent text-white cursor-default"
-              : "text-neutral-500 hover:text-neutral-900 dark:text-neutral-400 dark:hover:text-neutral-100",
-          ]}
-          aria-current={v.name === current ? "page" : undefined}
-        >
-          <span class="mr-1 font-mono" aria-hidden="true">{v.glyph}</span>
-          {v.label}
-        </a>
-      ))
+      versions.map((v) =>
+        v.name === current ? (
+          <span
+            class="cursor-default whitespace-nowrap rounded-full bg-accent px-2.5 py-1 text-xs font-medium text-white"
+            aria-current="page"
+          >
+            <span class="mr-1 font-mono" aria-hidden="true">{v.glyph}</span>
+            {v.label}
+          </span>
+        ) : (
+          <a
+            href={`/?v=${v.name}`}
+            data-astro-reload
+            class="whitespace-nowrap rounded-full px-2.5 py-1 text-xs font-medium text-neutral-500 transition-colors hover:text-neutral-900 dark:text-neutral-400 dark:hover:text-neutral-100"
+          >
+            <span class="mr-1 font-mono" aria-hidden="true">{v.glyph}</span>
+            {v.label}
+          </a>
+        )
+      )
     }
   </div>
 </nav>
@@ -141,11 +147,21 @@ const active = versions.find((v) => v.name === current) ?? versions[0];
     var dial = document.getElementById("version-switcher");
     var core = dial && dial.querySelector(".dial-core");
     if (dial && core) {
+      function setOpen(open) {
+        dial.classList.toggle("open", open);
+        core.setAttribute("aria-expanded", String(open));
+      }
       core.addEventListener("click", function () {
-        dial.classList.toggle("open");
+        setOpen(!dial.classList.contains("open"));
       });
       document.addEventListener("click", function (e) {
-        if (!dial.contains(e.target)) dial.classList.remove("open");
+        if (!dial.contains(e.target)) setOpen(false);
+      });
+      document.addEventListener("keydown", function (e) {
+        if (e.key === "Escape" && dial.classList.contains("open")) {
+          setOpen(false);
+          core.focus();
+        }
       });
     }
   })();
