@@ -1,7 +1,8 @@
-# Local dev secrets for `astro dev` (loaded via the Cloudflare adapter's platformProxy).
+# Local API secrets for `npm run preview` (loaded by Wrangler Pages dev).
 # Copy to `.dev.vars` (gitignored) and fill in real values.
 #
-# Production: set these with `wrangler secret put <NAME>` instead — do NOT commit them.
+# Production: configure encrypted variables in the seanmh-terminal Cloudflare
+# Pages project. Do not commit either value.
 
 # Anthropic API key that powers the `ask` command's /api/ask endpoint.
 ANTHROPIC_API_KEY=sk-ant-...

@@ -32,6 +32,12 @@
   animation: blink 1s step-end infinite;
 }
 
+@media (prefers-reduced-motion: reduce) {
+  .blinking-cursor {
+    animation: none;
+  }
+}
+
 /* Scrollbar styling for the terminal body */
 .terminal-window ::-webkit-scrollbar {
   width: 6px;

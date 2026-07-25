@@ -2,14 +2,17 @@
 import "../styles/global.css";
 import "../styles/transitions.css";
 import VersionSwitcher from "../components/VersionSwitcher.astro";
-import { ViewTransitions } from "astro:transitions";
 
 interface Props {
   title: string;
   description?: string;
 }
 
-const { title, description = "Sean Higgins — Software Engineer" } = Astro.props;
+const {
+  title,
+  description = "Sean Higgins is a software engineer specializing in authentication, API platforms, data engineering, and machine learning.",
+} = Astro.props;
+const canonicalUrl = new URL(Astro.url.pathname, Astro.site ?? Astro.url);
 ---
 
 <!doctype html>
@@ -23,10 +26,11 @@ const { title, description = "Sean Higgins — Software Engineer" } = Astro.prop
     <meta property="og:title" content={title} />
     <meta property="og:description" content={description} />
     <meta property="og:type" content="website" />
-    <meta property="og:url" content={Astro.url.href} />
-    <meta name="twitter:card" content="summary_large_image" />
+    <meta property="og:url" content={canonicalUrl} />
+    <meta name="twitter:card" content="summary" />
     <meta name="portfolio-version" content="c-terminal" />
 
+    <link rel="canonical" href={canonicalUrl} />
     <link rel="icon" type="image/x-icon" href="/favicon.ico" />
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
@@ -36,11 +40,12 @@ const { title, description = "Sean Higgins — Software Engineer" } = Astro.prop
     />
 
     <title>{title}</title>
-    <ViewTransitions />
-
     <script is:inline>
       (function () {
-        const stored = localStorage.getItem("theme");
+        let stored = null;
+        try {
+          stored = localStorage.getItem("theme");
+        } catch {}
         if (stored === "light") {
           document.documentElement.classList.remove("dark");
         } else if (stored === "dark") {
@@ -53,7 +58,10 @@ const { title, description = "Sean Higgins — Software Engineer" } = Astro.prop
     <script is:inline>
       // Apply persisted window state before first paint to avoid FOUC.
       (function () {
-        const s = localStorage.getItem("terminalWindowState");
+        let s = null;
+        try {
+          s = localStorage.getItem("terminalWindowState");
+        } catch {}
         if (s === "minimized" || s === "maximized" || s === "closed" || s === "normal") {
           document.documentElement.dataset.windowState = s;
         } else {
@@ -68,21 +76,29 @@ const { title, description = "Sean Higgins — Software Engineer" } = Astro.prop
         display: inline-flex;
         align-items: center;
         justify-content: center;
-        height: 0.75rem;
-        width: 0.75rem;
-        border-radius: 9999px;
+        height: 1.5rem;
+        width: 1.5rem;
         border: 0;
         padding: 0;
         cursor: pointer;
+        background: transparent;
+      }
+      .tl-dot {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        height: 0.75rem;
+        width: 0.75rem;
+        border-radius: 9999px;
         font-size: 0.55rem;
         line-height: 1;
         color: rgba(0, 0, 0, 0);
         font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
         font-weight: 700;
       }
-      .tl-btn:hover,
-      .tl-btn:focus-visible,
-      .title-bar:hover .tl-btn {
+      .tl-btn:hover .tl-dot,
+      .tl-btn:focus-visible .tl-dot,
+      .title-bar:hover .tl-dot {
         color: rgba(0, 0, 0, 0.55);
       }
       .tl-btn:focus-visible {
@@ -122,8 +138,19 @@ const { title, description = "Sean Higgins — Software Engineer" } = Astro.prop
         }
       }
     </style>
+    <noscript>
+      <style>
+        .typed-command,
+        [data-pretext] {
+          visibility: visible !important;
+        }
+        #terminal-prompt {
+          display: none !important;
+        }
+      </style>
+    </noscript>
   </head>
-  <body class="flex h-screen items-center justify-center overflow-hidden p-4 font-mono antialiased sm:p-8">
+  <body class="flex h-dvh items-center justify-center overflow-hidden p-4 font-mono antialiased sm:p-8">
     <!-- Terminal window -->
     <div class="terminal-window flex h-full w-full max-w-3xl flex-col overflow-hidden rounded-lg border border-neutral-300 shadow-2xl transition-colors duration-2000 dark:border-neutral-700">
       <!-- Title bar -->
@@ -132,21 +159,21 @@ const { title, description = "Sean Higgins — Software Engineer" } = Astro.prop
           id="tl-close"
           type="button"
           aria-label="Close terminal"
-          class="tl-btn bg-[#ff5f57]"
-        >×</button>
+          class="tl-btn"
+        ><span class="tl-dot bg-[#ff5f57]">×</span></button>
         <button
           id="tl-minimize"
           type="button"
           aria-label="Minimize terminal"
-          class="tl-btn bg-[#febc2e]"
-        >−</button>
+          class="tl-btn"
+        ><span class="tl-dot bg-[#febc2e]">−</span></button>
         <button
           id="tl-maximize"
           type="button"
           aria-label="Maximize terminal"
-          class="tl-btn bg-[#28c840]"
-        >+</button>
-        <span class="ml-2 text-xs text-neutral-500 dark:text-neutral-400">sean@seanmh.com ~ %</span>
+          class="tl-btn"
+        ><span class="tl-dot bg-[#28c840]">+</span></button>
+        <span class="ml-2 min-w-0 truncate text-xs text-neutral-500 dark:text-neutral-400">sean@seanmh.com ~ %</span>
 
         <!-- Dark mode toggle -->
         <button
@@ -210,17 +237,23 @@ const { title, description = "Sean Higgins — Software Engineer" } = Astro.prop
         const sun = document.getElementById("icon-sun");
         const moon = document.getElementById("icon-moon");
         if (!btn || !sun || !moon) return;
+        const themeButton = btn;
+        const sunIcon = sun;
+        const moonIcon = moon;
 
         function updateIcons() {
           const isDark = document.documentElement.classList.contains("dark");
-          sun.classList.toggle("hidden", !isDark);
-          moon.classList.toggle("hidden", isDark);
+          sunIcon.classList.toggle("hidden", !isDark);
+          moonIcon.classList.toggle("hidden", isDark);
+          themeButton.setAttribute("aria-label", isDark ? "Use light mode" : "Use dark mode");
         }
 
-        btn.addEventListener("click", () => {
+        themeButton.addEventListener("click", () => {
           const isDark = document.documentElement.classList.contains("dark");
           document.documentElement.classList.toggle("dark");
-          localStorage.setItem("theme", isDark ? "light" : "dark");
+          try {
+            localStorage.setItem("theme", isDark ? "light" : "dark");
+          } catch {}
           updateIcons();
         });
 
@@ -237,6 +270,11 @@ const { title, description = "Sean Higgins — Software Engineer" } = Astro.prop
         const dock = document.getElementById("terminal-dock") as HTMLButtonElement | null;
         const relaunch = document.getElementById("terminal-relaunch") as HTMLButtonElement | null;
         if (!close || !minimize || !maximize || !dock || !relaunch) return;
+        const closeButton = close;
+        const minimizeButton = minimize;
+        const maximizeButton = maximize;
+        const dockButton = dock;
+        const relaunchButton = relaunch;
 
         // `prev` is what restore should return to (only meaningful when the
         // current state is minimized or maximized and we came from the other).
@@ -259,6 +297,10 @@ const { title, description = "Sean Higgins — Software Engineer" } = Astro.prop
           }
 
           html.dataset.windowState = next;
+          maximizeButton.setAttribute(
+            "aria-label",
+            next === "maximized" ? "Restore terminal" : "Maximize terminal",
+          );
           try {
             localStorage.setItem("terminalWindowState", next);
           } catch {}
@@ -272,24 +314,28 @@ const { title, description = "Sean Higgins — Software Engineer" } = Astro.prop
 
           // Focus management.
           if (next === "closed") {
-            relaunch.focus();
+            relaunchButton.focus();
           } else if (curr === "closed") {
-            close.focus();
+            closeButton.focus();
           } else if (curr === "minimized" && next !== "minimized") {
             // Returning from dock — move focus back to a title-bar button.
-            minimize.focus();
+            minimizeButton.focus();
           }
         }
 
-        close.addEventListener("click", () => setState("closed"));
-        minimize.addEventListener("click", () => setState("minimized"));
-        maximize.addEventListener("click", () => {
+        closeButton.addEventListener("click", () => setState("closed"));
+        minimizeButton.addEventListener("click", () => setState("minimized"));
+        maximizeButton.addEventListener("click", () => {
           setState(currentState() === "maximized" ? "normal" : "maximized");
         });
-        dock.addEventListener("click", () => {
+        dockButton.addEventListener("click", () => {
           setState(prev === "maximized" ? "maximized" : "normal");
         });
-        relaunch.addEventListener("click", () => setState("normal"));
+        relaunchButton.addEventListener("click", () => setState("normal"));
+        maximizeButton.setAttribute(
+          "aria-label",
+          currentState() === "maximized" ? "Restore terminal" : "Maximize terminal",
+        );
 
         // Global keyboard shortcuts active only while closed.
         document.addEventListener("keydown", (e) => {
@@ -303,10 +349,6 @@ const { title, description = "Sean Higgins — Software Engineer" } = Astro.prop
 
       setupThemeToggle();
       setupWindowControls();
-      document.addEventListener("astro:after-swap", () => {
-        setupThemeToggle();
-        setupWindowControls();
-      });
     </script>
   </body>
 </html>
