@@ -44,6 +44,39 @@ test('forced routing strips the control param and sets document headers', async 
   assert.match(cookies, /pv=b-card/);
 });
 
+test('nexus is routable via ?v= and a sticky cookie but never randomly assigned', async (t) => {
+  const upstreamUrls = [];
+  const restore = mockFetch(async (url) => {
+    upstreamUrls.push(String(url));
+    return new Response('nexus');
+  });
+  t.after(restore);
+
+  // Explicit ?v=nexus proxies to the nexus origin and pins the pv cookie.
+  const forced = await worker.fetch(request('/?v=nexus', {
+    headers: { Accept: 'text/html' },
+  }));
+  assert.equal(upstreamUrls[0], 'https://seanmh-nexus.pages.dev/');
+  assert.equal(forced.headers.get('X-Portfolio-Version'), 'nexus');
+  assert.match(forced.headers.get('Set-Cookie'), /pv=nexus/);
+
+  // A returning visitor with pv=nexus stays on the nexus origin.
+  const returning = await worker.fetch(request('/app.js', {
+    headers: { Cookie: 'pv=nexus' },
+  }));
+  assert.equal(upstreamUrls[1], 'https://seanmh-nexus.pages.dev/app.js');
+
+  // Rotation (no ?v=, no cookie) must never land on nexus, at either extreme
+  // of Math.random()'s range.
+  const originalRandom = Math.random;
+  t.after(() => { Math.random = originalRandom; });
+  for (const r of [0, 0.999999]) {
+    Math.random = () => r;
+    const rotated = await worker.fetch(request('/', { headers: { Accept: 'text/html' } }));
+    assert.notEqual(rotated.headers.get('X-Portfolio-Version'), 'nexus');
+  }
+});
+
 test('asset requests honor the cookie without refreshing it', async (t) => {
   let upstreamUrl;
   const restore = mockFetch(async (url) => {

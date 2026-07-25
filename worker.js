@@ -3,6 +3,16 @@ const VERSIONS = [
   { name: 'b-card',     origin: 'https://seanmh-card.pages.dev',     weight: 33 },
   { name: 'c-terminal', origin: 'https://seanmh-terminal.pages.dev', weight: 33 },
 ];
+
+// The Nexus (a 3D portal entry world) is a manual-only destination: reachable
+// by an explicit ?v=nexus (the switcher's NEXUS launcher) or a sticky pv=nexus
+// cookie, but deliberately kept OUT of VERSIONS so pickVersion() never assigns
+// it to a first-time visitor. It's a routable target, not a rotation option.
+const NEXUS = { name: 'nexus', origin: 'https://seanmh-nexus.pages.dev' };
+
+// Everything the Worker will proxy when named explicitly (?v= or cookie).
+// Rotation still draws only from VERSIONS.
+const ROUTABLE = [...VERSIONS, NEXUS];
 const COOKIE_NAME = 'pv';
 const COOKIE_OPTIONS = 'Path=/; Max-Age=1800; SameSite=Lax; Secure; HttpOnly';
 const DOCUMENT_CACHE_CONTROL = 'private, no-store';
@@ -268,7 +278,7 @@ function getCookieValue(cookieHeader, name) {
 }
 
 function findVersion(name) {
-  return VERSIONS.find((v) => v.name === name);
+  return ROUTABLE.find((v) => v.name === name);
 }
 
 function cookieFor(version) {
