@@ -1,43 +1,36 @@
-# Astro Starter Kit: Minimal
+# Shared portfolio content
 
-```sh
-npm create astro@latest -- --template minimal
+This branch is the canonical source for content and cross-version UI shared by
+the standalone portfolio versions. It is not deployed directly.
+
+## Shared contract
+
+Keep these files byte-identical on `content`, `version/a-scroll`,
+`version/b-card`, and `version/c-terminal`:
+
+- `src/content/site.ts`
+- `src/content/experience.ts`
+- `src/assets/images/headshot.jpeg`
+- `src/components/VersionSwitcher.astro`
+- `src/styles/transitions.css`
+
+`src/content/projects.ts` is also canonical here, but only needs to exist on a
+version branch that consumes project data.
+
+Make shared changes here first. Commit them on `content`, then cherry-pick that
+commit into each consuming version branch and adapt only the version-specific
+rendering around the shared files. Do not edit a shared copy independently on a
+version branch.
+
+## Validation
+
+Use Node 22.12 or newer (see `.nvmrc`), then run:
+
+```bash
+npm install
+npm run check
+npm run build
 ```
 
-> 🧑‍🚀 **Seasoned astronaut?** Delete this file. Have fun!
-
-## 🚀 Project Structure
-
-Inside of your Astro project, you'll see the following folders and files:
-
-```text
-/
-├── public/
-├── src/
-│   └── pages/
-│       └── index.astro
-└── package.json
-```
-
-Astro looks for `.astro` or `.md` files in the `src/pages/` directory. Each page is exposed as a route based on its file name.
-
-There's nothing special about `src/components/`, but that's where we like to put any Astro/React/Vue/Svelte/Preact components.
-
-Any static assets, like images, can be placed in the `public/` directory.
-
-## 🧞 Commands
-
-All commands are run from the root of the project, from a terminal:
-
-| Command                   | Action                                           |
-| :------------------------ | :----------------------------------------------- |
-| `npm install`             | Installs dependencies                            |
-| `npm run dev`             | Starts local dev server at `localhost:4321`      |
-| `npm run build`           | Build your production site to `./dist/`          |
-| `npm run preview`         | Preview your build locally, before deploying     |
-| `npm run astro ...`       | Run CLI commands like `astro add`, `astro check` |
-| `npm run astro -- --help` | Get help using the Astro CLI                     |
-
-## 👀 Want to learn more?
-
-Feel free to check [our documentation](https://docs.astro.build) or jump into our [Discord server](https://astro.build/chat).
+The build validates the canonical content against the reference Astro page.
+Run the main branch's shared-file check after syncing all worktrees.

@@ -6,7 +6,6 @@ interface Props {
 }
 
 const { entry } = Astro.props;
-const isEducation = entry.type === "education";
 ---
 
 <div class="relative pl-8 pb-10 last:pb-0 group">
@@ -49,7 +48,7 @@ const isEducation = entry.type === "education";
       {entry.dates}
     </span>
   </div>
-  <p class="mt-2 text-sm text-neutral-600 dark:text-neutral-400">
-    {entry.description}
-  </p>
+  <ul class="mt-3 list-disc space-y-2 pl-4 text-sm text-neutral-600 dark:text-neutral-400">
+    {entry.highlights.map((highlight) => <li>{highlight}</li>)}
+  </ul>
 </div>
