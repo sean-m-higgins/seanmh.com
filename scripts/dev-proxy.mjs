@@ -22,6 +22,7 @@ const PORT = Number.parseInt(process.env.PORT || "8787", 10);
 const COOKIE_NAME = "pv";
 // Intentionally omit Secure because this dev proxy is served over plain HTTP.
 const COOKIE_OPTIONS = "Path=/; Max-Age=1800; SameSite=Lax; HttpOnly";
+const DOCUMENT_CACHE_CONTROL = "private, no-store";
 const HOP_BY_HOP_HEADERS = new Set([
   "connection",
   "keep-alive",
@@ -129,14 +130,13 @@ function responseHeadersFrom(upstream) {
   return headers;
 }
 
-function rewriteLocationHeader(headers, publicUrl, origin) {
+function rewriteLocationHeader(headers, publicUrl, upstreamUrl) {
   const location = headers.location;
   if (!location) return;
 
   try {
-    const originLocation = new URL(location, origin);
-    const originUrl = new URL(origin);
-    if (originLocation.origin !== originUrl.origin) return;
+    const originLocation = new URL(location, upstreamUrl);
+    if (originLocation.origin !== new URL(upstreamUrl).origin) return;
 
     const rewritten = new URL(publicUrl);
     rewritten.pathname = originLocation.pathname;
@@ -185,14 +185,19 @@ const server = http.createServer(async (req, res) => {
     pickVersion();
 
   try {
-    const upstream = await fetch(chosen.origin + url.pathname + url.search, upstreamRequestInit(req));
+    const upstreamUrl = chosen.origin + url.pathname + url.search;
+    const upstream = await fetch(upstreamUrl, upstreamRequestInit(req));
     const headers = responseHeadersFrom(upstream);
-    rewriteLocationHeader(headers, url, chosen.origin);
+    rewriteLocationHeader(headers, url, upstreamUrl);
     // Mirror worker.js: only refresh the cookie on page navigations, so a stale
     // in-flight asset request from the previous version can't overwrite a
     // just-switched cookie. A manual ?v= selection also updates the cookie.
-    if (forced || isDocumentRequest(req)) {
+    const isDocument = isDocumentRequest(req);
+    if (forced || isDocument) {
       appendSetCookie(headers, cookieFor(chosen));
+    }
+    if (isDocument) {
+      headers["cache-control"] = DOCUMENT_CACHE_CONTROL;
     }
     headers["x-portfolio-version"] = chosen.name;
 
@@ -204,7 +209,12 @@ const server = http.createServer(async (req, res) => {
     }
   } catch (err) {
     const message = err instanceof Error ? err.message : String(err);
-    res.writeHead(502, { "content-type": "text/plain" });
+    res.writeHead(502, {
+      "content-type": "text/plain; charset=utf-8",
+      "cache-control": "no-store",
+      "x-content-type-options": "nosniff",
+      "x-portfolio-version": chosen.name,
+    });
     res.end(`Upstream ${chosen.origin} not reachable — is its preview running?\n${message}`);
   }
 });

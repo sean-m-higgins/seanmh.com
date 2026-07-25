@@ -29,6 +29,8 @@ const ASK_MAX_TOKENS = 600;
 const ASK_RATE_LIMIT = 10; // requests per window
 const ASK_RATE_WINDOW_S = 3600; // 1 hour
 const ASK_MAX_QUESTION_LEN = 500;
+const ASK_MAX_BODY_BYTES = 32000;
+const ASK_MAX_CONTEXT_LEN = 12000;
 
 // Optional server-side grounding context, stored as a KV value so it never
 // ships to the browser and never lives in this (public) repo. It is appended
@@ -58,14 +60,52 @@ function askError(status, message) {
     headers: {
       'Content-Type': 'application/json; charset=utf-8',
       'Cache-Control': 'no-store',
+      'X-Content-Type-Options': 'nosniff',
     },
   });
 }
 
+class AskBodyTooLargeError extends Error {}
+
+async function readAskBody(request) {
+  const contentLength = request.headers.get('Content-Length');
+  if (contentLength && /^\d+$/.test(contentLength)
+    && Number(contentLength) > ASK_MAX_BODY_BYTES) {
+    throw new AskBodyTooLargeError();
+  }
+
+  const reader = request.body?.getReader();
+  if (!reader) return JSON.parse('');
+
+  const decoder = new TextDecoder();
+  let received = 0;
+  let json = '';
+
+  while (true) {
+    const { done, value } = await reader.read();
+    if (done) break;
+
+    received += value.byteLength;
+    if (received > ASK_MAX_BODY_BYTES) {
+      try {
+        await reader.cancel();
+      } catch {
+        // The size error below is the useful response even if cancel fails.
+      }
+      throw new AskBodyTooLargeError();
+    }
+    json += decoder.decode(value, { stream: true });
+  }
+
+  json += decoder.decode();
+  return JSON.parse(json);
+}
+
 function clientIp(request) {
-  return request.headers.get('CF-Connecting-IP')
-    || request.headers.get('X-Forwarded-For')
-    || 'unknown';
+  const forwarded = request.headers.get('X-Forwarded-For')?.split(',', 1)[0];
+  return (request.headers.get('CF-Connecting-IP') || forwarded || 'unknown')
+    .trim()
+    .slice(0, 128) || 'unknown';
 }
 
 // Length-independent comparison so we don't leak the secret via response timing.
@@ -120,8 +160,11 @@ async function handleAsk(request, env) {
 
   let body;
   try {
-    body = await request.json();
-  } catch {
+    body = await readAskBody(request);
+  } catch (err) {
+    if (err instanceof AskBodyTooLargeError) {
+      return askError(413, 'Request body too large.');
+    }
     return askError(400, 'Invalid JSON body.');
   }
 
@@ -153,7 +196,7 @@ async function handleAsk(request, env) {
   // Grounding context is supplied by the client (it already has the baked-in
   // site content). We still cap and scope it via the system prompt.
   const clientContext = body && typeof body.context === 'string'
-    ? body.context.slice(0, 6000)
+    ? body.context.slice(0, ASK_MAX_CONTEXT_LEN)
     : '';
 
   // Server-side context (detailed résumé etc.) is appended only after the
@@ -188,9 +231,8 @@ async function handleAsk(request, env) {
         ],
       }),
     });
-  } catch (err) {
-    const message = err instanceof Error ? err.message : String(err);
-    return askError(502, `Upstream model error: ${message}`);
+  } catch {
+    return askError(502, 'Upstream model request failed.');
   }
 
   if (!anthropicResp.ok || !anthropicResp.body) {
@@ -204,6 +246,7 @@ async function handleAsk(request, env) {
       'Content-Type': 'text/event-stream; charset=utf-8',
       'Cache-Control': 'no-store',
       'X-Accel-Buffering': 'no',
+      'X-Content-Type-Options': 'nosniff',
     },
   });
 }
@@ -251,14 +294,13 @@ function proxiedRequestInit(request) {
   return init;
 }
 
-function rewriteLocationHeader(headers, publicUrl, origin) {
+function rewriteLocationHeader(headers, publicUrl, upstreamUrl) {
   const location = headers.get('Location');
   if (!location) return;
 
   try {
-    const originLocation = new URL(location, origin);
-    const originUrl = new URL(origin);
-    if (originLocation.origin !== originUrl.origin) return;
+    const originLocation = new URL(location, upstreamUrl);
+    if (originLocation.origin !== new URL(upstreamUrl).origin) return;
 
     const rewritten = new URL(publicUrl);
     rewritten.pathname = originLocation.pathname;
@@ -308,6 +350,7 @@ export default {
           headers: {
             'Content-Type': 'text/plain; charset=utf-8',
             'Cache-Control': 'no-store',
+            'X-Content-Type-Options': 'nosniff',
             'X-Portfolio-Version': chosen.name,
           },
         },
@@ -315,19 +358,23 @@ export default {
     }
 
     const headers = new Headers(resp.headers);
-    rewriteLocationHeader(headers, url, chosen.origin);
+    rewriteLocationHeader(headers, url, proxyUrl);
     headers.set('X-Portfolio-Version', chosen.name);
     // Refresh only on page navigations so the version sticks through a browsing
     // session. Asset/fetch responses must not set it: a stale in-flight
     // subrequest from the previous version would overwrite a just-switched cookie.
     const isDocument = isDocumentRequest(request);
     if (forced || isDocument) {
-      headers.set('Set-Cookie', cookieFor(chosen));
+      headers.append('Set-Cookie', cookieFor(chosen));
     }
     if (isDocument) {
       headers.set('Cache-Control', DOCUMENT_CACHE_CONTROL);
     }
 
-    return new Response(resp.body, { status: resp.status, headers });
+    return new Response(resp.body, {
+      status: resp.status,
+      statusText: resp.statusText,
+      headers,
+    });
   }
 };

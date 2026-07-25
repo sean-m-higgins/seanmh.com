@@ -1,0 +1,12 @@
+{
+  "name": "seanmh-router",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "test": "node --test",
+    "check:shared": "node scripts/check-shared.mjs"
+  },
+  "engines": {
+    "node": ">=22.12"
+  }
+}
