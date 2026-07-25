@@ -44,15 +44,17 @@ function setupHero() {
   const name = hero?.querySelector<HTMLElement>("[data-hero-name]");
   if (!hero || !name) return;
 
-  // The CSS intro uses `forwards` fill, which outranks GSAP's inline styles,
-  // and .animate-fade-in itself sets opacity: 0 — so drop the class once each
-  // intro lands (with .vt-arrived the 0s animations end immediately).
+  // The CSS intro uses `forwards` fill, which outranks GSAP's inline styles.
+  // Await the actual CSS animation so late-loading JS cannot miss animationend.
   hero.querySelectorAll<HTMLElement>(".animate-fade-in").forEach((el) => {
-    el.addEventListener(
-      "animationend",
-      () => el.classList.remove("animate-fade-in"),
-      { once: true }
-    );
+    const animations = el.getAnimations();
+    if (animations.length === 0) {
+      el.classList.remove("animate-fade-in");
+      return;
+    }
+    void Promise.allSettled(animations.map((animation) => animation.finished)).then(() => {
+      el.classList.remove("animate-fade-in");
+    });
   });
 
   const heroSplit = new SplitText(name, { type: "words,chars", aria: "auto" });
@@ -157,7 +159,7 @@ function setupSections() {
   const copy = document.querySelector<HTMLElement>("[data-about-copy]");
   if (copy) {
     splits.push(
-      SplitText.create(copy.querySelectorAll("p"), {
+      SplitText.create(copy, {
         type: "lines",
         mask: "lines",
         autoSplit: true,

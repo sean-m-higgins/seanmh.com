@@ -12,12 +12,15 @@
 
 <script>
   function setupConstellation() {
-    const canvas = document.querySelector("[data-constellation]");
-    if (!(canvas instanceof HTMLCanvasElement)) return;
-    if (canvas.dataset.on) return; // guard against double-init
+    const candidate = document.querySelector("[data-constellation]");
+    if (!(candidate instanceof HTMLCanvasElement)) return;
+    if (candidate.dataset.on) return; // guard against double-init
     if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
-    const ctx = canvas.getContext("2d");
-    if (!ctx) return;
+    const context = candidate.getContext("2d");
+    if (!context) return;
+
+    const canvas: HTMLCanvasElement = candidate;
+    const ctx: CanvasRenderingContext2D = context;
     canvas.dataset.on = "1";
 
     const dpr = Math.min(window.devicePixelRatio || 1, 2);

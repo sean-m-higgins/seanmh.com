@@ -89,7 +89,12 @@ import { testimonials } from "../content/about";
       </div>
 
       <div class="relative">
-      <form id="contact-form" class="space-y-4">
+      <form
+        id="contact-form"
+        action="https://formspree.io/f/mgolbddy"
+        method="POST"
+        class="space-y-4"
+      >
         <div>
           <label
             for="name"
@@ -139,10 +144,19 @@ import { testimonials } from "../content/about";
         >
           Send Message
         </button>
-        <p id="form-success" class="hidden text-sm text-green-600 dark:text-green-400">
+        <p
+          id="form-success"
+          class="hidden text-sm text-green-600 dark:text-green-400"
+          role="status"
+          aria-live="polite"
+        >
           Message sent! I'll get back to you soon.
         </p>
-        <p id="form-error" class="hidden text-sm text-red-600 dark:text-red-400">
+        <p
+          id="form-error"
+          class="hidden text-sm text-red-600 dark:text-red-400"
+          role="alert"
+        >
           Something went wrong. Please try again or email me directly.
         </p>
       </form>
@@ -172,6 +186,7 @@ import { testimonials } from "../content/about";
       const btn = form.querySelector("button[type=submit]") as HTMLButtonElement;
       btn.disabled = true;
       btn.textContent = "Sending...";
+      form.setAttribute("aria-busy", "true");
       success?.classList.add("hidden");
       error?.classList.add("hidden");
 
@@ -192,6 +207,7 @@ import { testimonials } from "../content/about";
       }
       btn.disabled = false;
       btn.textContent = "Send Message";
+      form.removeAttribute("aria-busy");
     });
   }
 

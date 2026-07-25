@@ -9,6 +9,7 @@ const links = [
 
 <nav
   class="fixed top-0 z-50 w-full border-b border-neutral-200/10 bg-white/80 backdrop-blur-lg dark:bg-[#0a0a0a]/80"
+  aria-label="Primary"
 >
   <div class="mx-auto flex max-w-4xl items-center justify-between px-6 py-3">
     <a
@@ -51,6 +52,8 @@ const links = [
       id="menu-toggle"
       class="flex items-center md:hidden"
       aria-label="Toggle menu"
+      aria-controls="mobile-menu"
+      aria-expanded="false"
     >
       <svg
         class="h-6 w-6 text-neutral-600 dark:text-neutral-400"
@@ -113,10 +116,22 @@ const links = [
     var menuToggle = document.getElementById("menu-toggle");
     var menu = document.getElementById("mobile-menu");
     if (menuToggle && menu) {
-      menuToggle.onclick = function () { menu.classList.toggle("hidden"); };
+      function setMenuOpen(open) {
+        menu.classList.toggle("hidden", !open);
+        menuToggle.setAttribute("aria-expanded", String(open));
+      }
+      menuToggle.onclick = function () {
+        setMenuOpen(menu.classList.contains("hidden"));
+      };
       var mobileLinks = menu.querySelectorAll(".mobile-link");
       mobileLinks.forEach(function (link) {
-        link.addEventListener("click", function () { menu.classList.add("hidden"); });
+        link.addEventListener("click", function () { setMenuOpen(false); });
+      });
+      document.addEventListener("keydown", function (event) {
+        if (event.key === "Escape" && !menu.classList.contains("hidden")) {
+          setMenuOpen(false);
+          menuToggle.focus();
+        }
       });
     }
   })();

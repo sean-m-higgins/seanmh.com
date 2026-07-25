@@ -1,43 +1,29 @@
-# Astro Starter Kit: Minimal
+# seanmh.com: Scroll version
 
-```sh
-npm create astro@latest -- --template minimal
+The long-form portfolio version served from `seanmh-scroll.pages.dev` and
+selected at `seanmh.com/?v=a-scroll`.
+
+This is a static Astro site. Cloudflare Pages builds this branch; the front
+routing Worker lives only on `main`. Do not deploy this branch over the router.
+
+## Development
+
+Use Node 22.12 or newer (see `.nvmrc`):
+
+```bash
+npm install
+npm run dev
+npm run check
+npm run build
+npm run preview
 ```
 
-> 🧑‍🚀 **Seasoned astronaut?** Delete this file. Have fun!
+The main interaction stack is GSAP ScrollTrigger, SplitText, and Lenis. Motion
+is disabled when the visitor requests reduced motion, and the document remains
+fully readable without JavaScript.
 
-## 🚀 Project Structure
+## Shared files
 
-Inside of your Astro project, you'll see the following folders and files:
-
-```text
-/
-├── public/
-├── src/
-│   └── pages/
-│       └── index.astro
-└── package.json
-```
-
-Astro looks for `.astro` or `.md` files in the `src/pages/` directory. Each page is exposed as a route based on its file name.
-
-There's nothing special about `src/components/`, but that's where we like to put any Astro/React/Vue/Svelte/Preact components.
-
-Any static assets, like images, can be placed in the `public/` directory.
-
-## 🧞 Commands
-
-All commands are run from the root of the project, from a terminal:
-
-| Command                   | Action                                           |
-| :------------------------ | :----------------------------------------------- |
-| `npm install`             | Installs dependencies                            |
-| `npm run dev`             | Starts local dev server at `localhost:4321`      |
-| `npm run build`           | Build your production site to `./dist/`          |
-| `npm run preview`         | Preview your build locally, before deploying     |
-| `npm run astro ...`       | Run CLI commands like `astro add`, `astro check` |
-| `npm run astro -- --help` | Get help using the Astro CLI                     |
-
-## 👀 Want to learn more?
-
-Feel free to check [our documentation](https://docs.astro.build) or jump into our [Discord server](https://astro.build/chat).
+The content, headshot, version switcher, and cross-document transition styles
+come from the `content` branch. Make shared changes there first and sync them
+into every version branch.
