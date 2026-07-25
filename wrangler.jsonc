@@ -1,0 +1,11 @@
+{
+  // The Nexus is fully static — assets only, no server worker.
+  "name": "seanmh-nexus",
+  "compatibility_date": "2025-09-27",
+  "assets": {
+    "directory": "dist"
+  },
+  "observability": {
+    "enabled": true
+  }
+}

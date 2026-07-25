@@ -1,14 +1,289 @@
 ---
-import BaseLayout from "../layouts/BaseLayout.astro";
-import Hero from "../components/Hero.astro";
-import About from "../components/About.astro";
-import Experience from "../components/Experience.astro";
-import Contact from "../components/Contact.astro";
+// The Nexus — the meta-version. A 3D entry world where each portfolio version
+// is a portal. This page is intentionally standalone (no Navigation/Footer,
+// no VersionSwitcher): the portals ARE the switcher.
+import "../styles/global.css";
+import { site } from "../content/site.ts";
+
+const title = "Sean Higgins — The Nexus";
+const description =
+  "One portfolio, three parallel universes — each living on its own git branch. Choose yours.";
+
+const portals = [
+  {
+    name: "a-scroll",
+    glyph: "∿",
+    label: "Scroll",
+    branch: "version/a-scroll",
+    blurb: "a cinematic story",
+    color: "#7c83ff",
+  },
+  {
+    name: "b-card",
+    glyph: "▣",
+    label: "Card",
+    branch: "version/b-card",
+    blurb: "a tactile gallery",
+    color: "#ff9e64",
+  },
+  {
+    name: "c-terminal",
+    glyph: "❯",
+    label: "Terminal",
+    branch: "version/c-terminal",
+    blurb: "a working shell",
+    color: "#3ddc84",
+  },
+] as const;
 ---
 
-<BaseLayout title="Sean Higgins — Software Engineer">
-  <Hero />
-  <About />
-  <Experience />
-  <Contact />
-</BaseLayout>
+<!doctype html>
+<html lang="en" class="dark">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="description" content={description} />
+    <meta name="generator" content={Astro.generator} />
+
+    <meta property="og:title" content={title} />
+    <meta property="og:description" content={description} />
+    <meta property="og:type" content="website" />
+    <meta property="og:url" content={Astro.url.href} />
+    <meta name="twitter:card" content="summary_large_image" />
+
+    <link rel="icon" type="image/x-icon" href="/favicon.ico" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap"
+      rel="stylesheet"
+    />
+
+    <title>{title}</title>
+  </head>
+  <body class="nexus fixed inset-0 overflow-hidden bg-[#05060e] font-sans text-neutral-100 antialiased">
+    <div id="nexus-scene" class="absolute inset-0" aria-hidden="true"></div>
+
+    <header class="pointer-events-none absolute inset-x-0 top-0 z-10 flex flex-col items-center gap-2 px-6 pt-10 text-center sm:pt-14">
+      <p class="nexus-fade font-mono text-[0.7rem] uppercase tracking-[0.35em] text-neutral-500">
+        seanmh.com / the nexus
+      </p>
+      <h1 class="nexus-fade text-2xl font-semibold tracking-tight text-neutral-100 sm:text-3xl" style="animation-delay: 0.15s">
+        Choose your universe.
+      </h1>
+      <p class="nexus-fade max-w-md text-sm text-neutral-400" style="animation-delay: 0.3s">
+        One portfolio by {site.name}, three parallel builds — each living on its own git branch.
+      </p>
+    </header>
+
+    <!-- Floating labels: real links, positioned under each portal by the scene. -->
+    <div id="nexus-labels">
+      {
+        portals.map((p) => (
+          <a
+            href={`/?v=${p.name}`}
+            data-version={p.name}
+            class="portal-label"
+            style={`--portal-color: ${p.color}`}
+          >
+            <span class="portal-label-name">
+              <span aria-hidden="true">{p.glyph}</span> {p.label} <span class="sr-only">version —</span>
+              <span class="portal-label-blurb">{p.blurb}</span>
+            </span>
+            <span class="portal-label-branch">{p.branch}</span>
+          </a>
+        ))
+      }
+    </div>
+
+    <footer class="pointer-events-none absolute inset-x-0 bottom-0 z-10 flex justify-center px-6 pb-6">
+      <p class="nexus-fade font-mono text-[0.7rem] tracking-[0.2em] text-neutral-600" style="animation-delay: 0.6s">
+        move to look · enter a portal
+      </p>
+    </footer>
+
+    <!-- Shown when WebGL is unavailable. -->
+    <section id="nexus-fallback" hidden class="absolute inset-0 z-20 flex items-center justify-center bg-[#05060e] px-6">
+      <div class="w-full max-w-sm">
+        <p class="mb-6 text-sm text-neutral-400">
+          This browser can't render the 3D nexus. Step through a door the classic way:
+        </p>
+        <ul class="flex flex-col gap-3">
+          {
+            portals.map((p) => (
+              <li>
+                <a
+                  href={`/?v=${p.name}`}
+                  class="flex items-baseline justify-between rounded-lg border border-neutral-800 px-4 py-3 font-mono text-sm text-neutral-200 transition-colors hover:border-neutral-600"
+                  style={`--portal-color: ${p.color}`}
+                >
+                  <span>
+                    <span style={`color: ${p.color}`} aria-hidden="true">{p.glyph}</span> {p.label} — {p.blurb}
+                  </span>
+                  <span class="text-xs text-neutral-500">{p.branch}</span>
+                </a>
+              </li>
+            ))
+          }
+        </ul>
+      </div>
+    </section>
+
+    <noscript>
+      <section class="absolute inset-0 z-30 flex items-center justify-center bg-[#05060e] px-6">
+        <ul class="flex flex-col gap-4 font-mono text-sm">
+          {
+            portals.map((p) => (
+              <li>
+                <a href={`/?v=${p.name}`} class="underline">
+                  {p.glyph} {p.label} — {p.blurb} ({p.branch})
+                </a>
+              </li>
+            ))
+          }
+        </ul>
+      </section>
+    </noscript>
+
+    <!-- Entry veil: floods the screen with the chosen universe's color. -->
+    <div
+      id="nexus-veil"
+      class="pointer-events-none absolute inset-0 z-40 opacity-0"
+      aria-hidden="true"
+    >
+    </div>
+
+    <script src="../scripts/nexus.ts"></script>
+
+    <style>
+      .portal-label {
+        position: absolute;
+        top: 0;
+        left: 0;
+        z-index: 10;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 0.15rem;
+        font-family: var(--font-mono);
+        text-align: center;
+        text-decoration: none;
+        opacity: 0;
+        /* Opacity-only keyframes: the scene positions labels via inline
+           transform every frame, which a transform animation would override. */
+        animation: nexus-label-fade 0.8s ease-out 0.9s forwards;
+        will-change: transform;
+      }
+
+      #nexus-labels[data-entering] .portal-label {
+        transition: opacity 0.3s ease;
+        opacity: 0;
+      }
+
+      .portal-label-name {
+        font-size: 0.78rem;
+        font-weight: 500;
+        letter-spacing: 0.18em;
+        text-transform: uppercase;
+        color: var(--color-neutral-300, #d4d4d4);
+        transition: color 0.25s ease;
+      }
+
+      .portal-label-blurb {
+        display: block;
+        margin-top: 0.1rem;
+        font-size: 0.68rem;
+        font-weight: 400;
+        letter-spacing: 0.06em;
+        text-transform: none;
+        color: #6b7089;
+      }
+
+      .portal-label-branch {
+        font-size: 0.65rem;
+        letter-spacing: 0.04em;
+        color: #494e63;
+        transition: color 0.25s ease;
+      }
+
+      .portal-label:hover .portal-label-name,
+      .portal-label:focus-visible .portal-label-name {
+        color: var(--portal-color);
+      }
+
+      .portal-label:hover .portal-label-branch,
+      .portal-label:focus-visible .portal-label-branch {
+        color: color-mix(in srgb, var(--portal-color) 60%, transparent);
+      }
+
+      .portal-label:focus-visible {
+        outline: 2px solid var(--portal-color);
+        outline-offset: 6px;
+        border-radius: 4px;
+      }
+
+      .nexus-fade {
+        opacity: 0;
+        animation: nexus-fade-in 0.9s ease-out forwards;
+      }
+
+      #nexus-veil {
+        transition: opacity 0.1s linear;
+      }
+
+      header,
+      footer {
+        transition: opacity 0.35s ease;
+      }
+
+      body[data-entering] header,
+      body[data-entering] footer {
+        opacity: 0;
+      }
+
+      @keyframes nexus-fade-in {
+        from {
+          opacity: 0;
+          transform: translateY(8px);
+        }
+        to {
+          opacity: 1;
+          transform: translateY(0);
+        }
+      }
+
+      @keyframes nexus-label-fade {
+        from {
+          opacity: 0;
+        }
+        to {
+          opacity: 1;
+        }
+      }
+
+      @media (max-width: 640px) {
+        .portal-label-name {
+          font-size: 0.7rem;
+        }
+        .portal-label-blurb {
+          font-size: 0.62rem;
+        }
+        .portal-label-branch {
+          font-size: 0.6rem;
+        }
+      }
+
+      @media (prefers-reduced-motion: reduce) {
+        .nexus-fade {
+          animation: none;
+          opacity: 1;
+          transform: none;
+        }
+        .portal-label {
+          animation: none;
+          opacity: 1;
+        }
+      }
+    </style>
+  </body>
+</html>
