@@ -8,7 +8,7 @@
   id="bg-reset"
   aria-label="Reset background particles"
   title="Reset background"
-  class="hidden fixed bottom-5 right-16 rounded-full p-2 text-neutral-500 transition-colors hover:text-neutral-800 dark:text-neutral-400 dark:hover:text-neutral-100"
+  class="hidden fixed bottom-5 right-16 z-20 rounded-full p-2 text-neutral-500 transition-colors hover:text-neutral-800 dark:text-neutral-400 dark:hover:text-neutral-100"
 >
   <svg class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
     <path stroke-linecap="round" stroke-linejoin="round" d="M16.023 9.348h4.992v-.001M2.985 19.644v-4.992m0 0h4.992m-4.993 0 3.181 3.183a8.25 8.25 0 0 0 13.803-3.7M4.031 9.865a8.25 8.25 0 0 1 13.803-3.7l3.181 3.182m0-4.991v4.99" />
@@ -22,7 +22,7 @@
   aria-label="Toggle tilt response"
   aria-pressed="true"
   title="Toggle tilt"
-  class="hidden fixed bottom-5 right-[6.75rem] rounded-full p-2 text-neutral-500 transition-colors hover:text-neutral-800 dark:text-neutral-400 dark:hover:text-neutral-100"
+  class="hidden fixed bottom-5 right-[6.75rem] z-20 rounded-full p-2 text-neutral-500 transition-colors hover:text-neutral-800 dark:text-neutral-400 dark:hover:text-neutral-100"
 >
   <svg class="h-5 w-5 rotate-12" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
     <path stroke-linecap="round" stroke-linejoin="round" d="M10.5 1.5H8.25A2.25 2.25 0 0 0 6 3.75v16.5a2.25 2.25 0 0 0 2.25 2.25h7.5A2.25 2.25 0 0 0 18 20.25V3.75a2.25 2.25 0 0 0-2.25-2.25H13.5m-3 0V3h3V1.5m-3 0h3" />
@@ -33,7 +33,7 @@
      particle layer initializes; fades out after the user performs a real hold. -->
 <p
   id="bg-hint"
-  class="hidden fixed bottom-16 left-1/2 -translate-x-1/2 select-none whitespace-nowrap font-mono text-xs text-neutral-400 transition-opacity duration-1000 dark:text-neutral-600"
+  class="hidden fixed bottom-16 left-1/2 z-20 -translate-x-1/2 select-none whitespace-nowrap font-mono text-xs text-neutral-400 transition-opacity duration-1000 dark:text-neutral-600"
   aria-hidden="true"
 >
   press &amp; hold anywhere, then watch
@@ -44,16 +44,31 @@
      script reveals it only when needed and removes it once access is granted. -->
 <button
   id="bg-tilt"
-  class="hidden fixed bottom-28 left-1/2 -translate-x-1/2 select-none whitespace-nowrap rounded-full border border-neutral-200 bg-white/80 px-3 py-1.5 font-mono text-xs text-neutral-500 shadow-sm backdrop-blur-sm transition-opacity duration-500 dark:border-neutral-700 dark:bg-neutral-900/80 dark:text-neutral-400"
+  class="hidden fixed bottom-28 left-1/2 z-20 max-w-[calc(100vw-3rem)] -translate-x-1/2 select-none rounded-full border border-neutral-200 bg-white/80 px-3 py-1.5 text-center font-mono text-xs text-neutral-500 shadow-sm backdrop-blur-sm transition-opacity duration-500 dark:border-neutral-700 dark:bg-neutral-900/80 dark:text-neutral-400"
 >
   tap to enable tilt
 </button>
 
 <script>
-  import * as THREE from "three";
+  import {
+    BufferAttribute,
+    BufferGeometry,
+    Color,
+    ColorManagement,
+    DynamicDrawUsage,
+    Mesh,
+    OrthographicCamera,
+    PlaneGeometry,
+    Points,
+    Scene,
+    ShaderMaterial,
+    Timer,
+    Vector2,
+    WebGLRenderer,
+  } from "three";
 
   // Shaders output raw sRGB; keep THREE.Color components in sRGB too.
-  THREE.ColorManagement.enabled = false;
+  ColorManagement.enabled = false;
 
   // --- tuning constants ---
   const DPR_CAP = 1.5;
@@ -89,15 +104,15 @@
 
   const THEMES = {
     dark: {
-      contour: new THREE.Color("#39ff14"), // neon green
+      contour: new Color("#39ff14"), // neon green
       contourAlpha: 0.2,
-      particle: new THREE.Color("#818cf8").lerp(new THREE.Color("#6366f1"), 0.3),
+      particle: new Color("#818cf8").lerp(new Color("#6366f1"), 0.3),
       particleAlpha: 0.55,
     },
     light: {
-      contour: new THREE.Color("#00cc44"), // deeper neon green for contrast on white
+      contour: new Color("#00cc44"), // deeper neon green for contrast on white
       contourAlpha: 0.34,
-      particle: new THREE.Color("#4f46e5").lerp(new THREE.Color("#334155"), 0.3),
+      particle: new Color("#4f46e5").lerp(new Color("#334155"), 0.3),
       particleAlpha: 0.4,
     },
   };
@@ -216,9 +231,9 @@
     const canvas = document.getElementById("card-bg") as HTMLCanvasElement | null;
     if (!canvas) return null;
 
-    let renderer: THREE.WebGLRenderer;
+    let renderer: WebGLRenderer;
     try {
-      renderer = new THREE.WebGLRenderer({
+      renderer = new WebGLRenderer({
         canvas,
         alpha: true,
         antialias: false,
@@ -234,8 +249,8 @@
     renderer.setSize(window.innerWidth, window.innerHeight, false);
     renderer.setClearColor(0x000000, 0);
 
-    const scene = new THREE.Scene();
-    const camera = new THREE.OrthographicCamera(-1, 1, 1, -1, 0, 1);
+    const scene = new Scene();
+    const camera = new OrthographicCamera(-1, 1, 1, -1, 0, 1);
     const timeOffset = Math.random() * 200; // vary the contour field per visit
 
     const initial = activeTheme();
@@ -244,12 +259,12 @@
     const contourUniforms = {
       uTime: { value: timeOffset },
       uResolution: {
-        value: new THREE.Vector2(window.innerWidth * pixelRatio, window.innerHeight * pixelRatio),
+        value: new Vector2(window.innerWidth * pixelRatio, window.innerHeight * pixelRatio),
       },
       uColor: { value: initial.contour.clone() },
       uAlpha: { value: initial.contourAlpha },
     };
-    const contourMat = new THREE.ShaderMaterial({
+    const contourMat = new ShaderMaterial({
       vertexShader: CONTOUR_VERT,
       fragmentShader: CONTOUR_FRAG,
       uniforms: contourUniforms,
@@ -257,17 +272,17 @@
       depthTest: false,
       depthWrite: false,
     });
-    const quadGeo = new THREE.PlaneGeometry(2, 2);
-    const quad = new THREE.Mesh(quadGeo, contourMat);
+    const quadGeo = new PlaneGeometry(2, 2);
+    const quad = new Mesh(quadGeo, contourMat);
     quad.frustumCulled = false;
     quad.renderOrder = 0;
     scene.add(quad);
 
     // --- layer 2: Chladni particles (skipped under reduced motion) ---
-    let particleGeo: THREE.BufferGeometry | null = null;
-    let particleMat: THREE.ShaderMaterial | null = null;
-    let posAttr: THREE.BufferAttribute | null = null;
-    let glowAttr: THREE.BufferAttribute | null = null;
+    let particleGeo: BufferGeometry | null = null;
+    let particleMat: ShaderMaterial | null = null;
+    let posAttr: BufferAttribute | null = null;
+    let glowAttr: BufferAttribute | null = null;
     let vel: Float32Array | null = null;
     let initialPositions: Float32Array | null = null;
     let resetBtn: HTMLButtonElement | null = null;
@@ -295,15 +310,15 @@
       }
       vel = new Float32Array(count * 2);
       initialPositions = positions.slice(); // snapshot for the reset button
-      particleGeo = new THREE.BufferGeometry();
-      posAttr = new THREE.BufferAttribute(positions, 3);
-      posAttr.setUsage(THREE.DynamicDrawUsage);
-      glowAttr = new THREE.BufferAttribute(new Float32Array(count), 1);
-      glowAttr.setUsage(THREE.DynamicDrawUsage);
+      particleGeo = new BufferGeometry();
+      posAttr = new BufferAttribute(positions, 3);
+      posAttr.setUsage(DynamicDrawUsage);
+      glowAttr = new BufferAttribute(new Float32Array(count), 1);
+      glowAttr.setUsage(DynamicDrawUsage);
       particleGeo.setAttribute("position", posAttr);
       particleGeo.setAttribute("aGlow", glowAttr);
-      particleGeo.setAttribute("aSeed", new THREE.BufferAttribute(seeds, 1));
-      particleMat = new THREE.ShaderMaterial({
+      particleGeo.setAttribute("aSeed", new BufferAttribute(seeds, 1));
+      particleMat = new ShaderMaterial({
         vertexShader: PARTICLE_VERT,
         fragmentShader: PARTICLE_FRAG,
         uniforms: particleUniforms,
@@ -311,7 +326,7 @@
         depthTest: false,
         depthWrite: false,
       });
-      const points = new THREE.Points(particleGeo, particleMat);
+      const points = new Points(particleGeo, particleMat);
       points.frustumCulled = false;
       points.renderOrder = 1;
       scene.add(points);
@@ -344,9 +359,9 @@
     let lastDark = isDark();
     let tween: {
       start: number;
-      fromContour: THREE.Color;
+      fromContour: Color;
       fromContourAlpha: number;
-      fromParticle: THREE.Color;
+      fromParticle: Color;
       fromParticleAlpha: number;
       to: (typeof THEMES)["dark"];
     } | null = null;
@@ -411,6 +426,7 @@
     const bowPat: Pattern = { n: 0, m: 0, s: 1 };
 
     function onPointerDown(e: PointerEvent) {
+      if (!e.isPrimary || (e.pointerType === "mouse" && e.button !== 0)) return;
       if ((e.target as Element | null)?.closest?.("a, button")) return;
       if (!bowing) {
         // collapse any in-flight crossfade to its dominant pattern
@@ -704,14 +720,15 @@
     window.addEventListener("resize", onResize);
 
     // --- animation loop ---
-    const clock = new THREE.Clock();
+    const timer = new Timer();
     let elapsed = 0;
     let raf = 0;
     let stopped = false;
 
-    function frame() {
+    function frame(timestamp?: number) {
       raf = requestAnimationFrame(frame);
-      const dt = Math.min(clock.getDelta(), MAX_DT);
+      timer.update(timestamp);
+      const dt = Math.min(timer.getDelta(), MAX_DT);
       elapsed += dt;
       updateTween();
       updatePatterns(dt);
@@ -725,7 +742,7 @@
       if (document.hidden) {
         cancelAnimationFrame(raf);
       } else if (!stopped) {
-        clock.getDelta(); // flush the hidden gap
+        timer.reset();
         frame();
       }
     }
@@ -775,9 +792,5 @@
     };
   }
 
-  let teardown = init();
-  document.addEventListener("astro:after-swap", () => {
-    teardown?.();
-    teardown = init();
-  });
+  init();
 </script>
