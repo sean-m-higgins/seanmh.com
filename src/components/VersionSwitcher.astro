@@ -59,22 +59,23 @@ const active = versions.find((v) => v.name === current) ?? versions[0];
   </div>
 </nav>
 
-{/* Nexus launcher — a liquid droplet pulls up off the dial, snaps free, and
-    floats above it as a shining NEXUS button into the 3D portal world. Kept
-    outside the overflow-hidden dial so it can escape upward. */}
+{/* Nexus launcher — a liquid droplet pulls up off the dial and blooms open
+    into a small portal (glowing rim + swirling energy) that leads to the 3D
+    portal world. Kept outside the overflow-hidden dial so it can escape up. */}
 <a
   href="/?v=nexus"
   data-astro-reload
   class="nexus-launcher"
+  title="Enter the Nexus"
   aria-label="Enter the Nexus — a 3D portal to every version"
 >
   <span class="nexus-goo" aria-hidden="true">
     <span class="nexus-blob nexus-blob-base"></span>
     <span class="nexus-blob nexus-blob-drop"></span>
   </span>
-  <span class="nexus-pill">
-    <span class="nexus-label">nexus</span>
-    <span class="nexus-shine" aria-hidden="true"></span>
+  <span class="nexus-portal" aria-hidden="true">
+    <span class="nexus-portal-swirl"></span>
+    <span class="nexus-portal-core"></span>
   </span>
 </a>
 
@@ -202,89 +203,83 @@ const active = versions.find((v) => v.name === current) ?? versions[0];
     transform-origin: 50% 100%; /* stretch upward from the base */
   }
 
-  /* The crisp, readable pill that the liquid becomes. */
-  .nexus-pill {
+  /* The portal the liquid blooms open into: a glowing rim over swirling
+     energy with a bright convergent center for depth. */
+  .nexus-portal {
     position: absolute;
-    /* Nudged right of the core so the wider pill clears the viewport's left
-       edge (the dial sits only 1rem in); the liquid still rises dead-center. */
-    left: calc(50% + 0.7rem);
+    left: 50%; /* round, so it centers over the core without clipping the edge */
     bottom: 100%; /* anchored to the launcher (core) top */
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    padding: 0.28rem 0.72rem;
-    border-radius: 999px;
-    font-family: var(--font-mono, ui-monospace, monospace);
-    font-size: 0.66rem;
-    font-weight: 600;
-    letter-spacing: 0.24em;
-    text-transform: uppercase;
-    color: #fff;
-    white-space: nowrap;
+    width: 2.5rem;
+    height: 2.5rem;
+    border-radius: 50%;
     overflow: hidden;
-    background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 55%, #a855f7 100%);
-    box-shadow:
-      0 6px 18px -3px rgb(124 131 255 / 0.6),
-      inset 0 0 0 1px rgb(255 255 255 / 0.14);
     pointer-events: auto;
     opacity: 0;
-    transform: translateX(-50%) translateY(-0.4rem) scale(0.9);
+    transform: translateX(-50%) translateY(-0.5rem) scale(0.85);
     transition:
       opacity 0.3s ease,
       transform 0.3s ease; /* graceful fade-out when the dial is left */
+    box-shadow:
+      0 0 0 1.5px rgb(199 186 253 / 0.85), /* crisp rim */
+      0 0 16px 2px rgb(124 131 255 / 0.55), /* outer bloom */
+      inset 0 0 12px 2px rgb(3 3 12 / 0.6); /* inner depth */
   }
 
-  .nexus-label {
-    position: relative;
-    z-index: 1;
-    padding-left: 0.24em; /* balance the letter-spacing's trailing gap */
+  /* Swirling energy — the three portal colors (scroll indigo, card orange,
+     terminal green) cycling, so the meta-portal hints at all of them. */
+  .nexus-portal-swirl {
+    position: absolute;
+    inset: -35%;
+    background: conic-gradient(
+      from 0deg,
+      #7c83ff,
+      #a855f7,
+      #ff9e64,
+      #3ddc84,
+      #6366f1,
+      #7c83ff
+    );
+    filter: blur(1px);
   }
 
-  .nexus-shine {
+  /* Tunnel depth: hot white core fading out to a dark vignette. */
+  .nexus-portal-core {
     position: absolute;
     inset: 0;
-    border-radius: inherit;
-    overflow: hidden;
-    pointer-events: none;
-  }
-
-  .nexus-shine::before {
-    content: "";
-    position: absolute;
-    top: -20%;
-    left: -70%;
-    width: 45%;
-    height: 140%;
-    background: linear-gradient(
-      100deg,
-      transparent,
-      rgb(255 255 255 / 0.85),
-      transparent
+    border-radius: 50%;
+    background: radial-gradient(
+      circle at 50% 47%,
+      rgb(255 255 255 / 0.95) 0%,
+      rgb(214 222 255 / 0.35) 13%,
+      rgb(10 10 26 / 0.12) 40%,
+      rgb(5 5 15 / 0.6) 74%
     );
-    transform: skewX(-18deg);
   }
 
-  .nexus-launcher:hover .nexus-pill,
-  .nexus-launcher:focus-visible .nexus-pill {
+  .nexus-launcher:hover .nexus-portal,
+  .nexus-launcher:focus-visible .nexus-portal {
     box-shadow:
-      0 8px 24px -3px rgb(124 131 255 / 0.85),
-      inset 0 0 0 1px rgb(255 255 255 / 0.28);
-    filter: brightness(1.1);
+      0 0 0 1.5px rgb(255 255 255 / 0.95),
+      0 0 24px 4px rgb(124 131 255 / 0.8),
+      inset 0 0 12px 2px rgb(3 3 12 / 0.5);
+  }
+  .nexus-launcher:hover .nexus-portal-swirl {
+    animation-duration: 2.4s; /* spins up on hover */
   }
 
   .nexus-launcher:focus-visible {
     outline: none;
   }
 
-  .nexus-launcher:focus-visible .nexus-pill {
+  .nexus-launcher:focus-visible .nexus-portal {
     outline: 2px solid #c4b5fd;
     outline-offset: 3px;
   }
 
   /* Active state — JS adds .nexus-active to the launcher while the dial (or the
-     pill itself) is hovered, focused, or tapped open. The liquid pull-away
-     plays, then the pill settles and loops its shine/float. Removing the class
-     lets the pill fade back out via its transition. */
+     portal itself) is hovered, focused, or tapped open. The liquid pull-away
+     plays, then the portal blooms open and its energy swirls. Removing the
+     class lets the portal fade back out via its transition. */
   .nexus-active .nexus-goo {
     animation: nexus-goo-fade 1.5s linear forwards;
   }
@@ -294,13 +289,16 @@ const active = versions.find((v) => v.name === current) ?? versions[0];
   .nexus-active .nexus-blob-drop {
     animation: nexus-drop 1.5s cubic-bezier(0.45, 0, 0.2, 1) forwards;
   }
-  .nexus-active .nexus-pill {
+  .nexus-active .nexus-portal {
     animation:
-      nexus-pill-in 1.5s cubic-bezier(0.3, 0, 0.2, 1) forwards,
-      nexus-float 4s ease-in-out 1.7s infinite;
+      nexus-portal-in 0.85s cubic-bezier(0.3, 0, 0.2, 1) 0.5s forwards,
+      nexus-portal-bob 4s ease-in-out 1.35s infinite;
   }
-  .nexus-active .nexus-shine::before {
-    animation: nexus-shine 4.5s ease-in-out 2.4s infinite;
+  .nexus-active .nexus-portal-swirl {
+    animation: nexus-portal-spin 5s linear infinite;
+  }
+  .nexus-active .nexus-portal-core {
+    animation: nexus-portal-pulse 3s ease-in-out infinite;
   }
 
   @keyframes nexus-drop {
@@ -353,60 +351,69 @@ const active = versions.find((v) => v.name === current) ?? versions[0];
     }
   }
 
-  @keyframes nexus-pill-in {
-    0%,
-    45% {
+  /* The portal blooms open as the liquid arrives — scales up from a point
+     with a slight spin, like a rift opening. */
+  @keyframes nexus-portal-in {
+    0% {
       opacity: 0;
-      transform: translateX(-50%) translateY(0.1rem) scale(0.6);
+      transform: translateX(-50%) translateY(-0.05rem) scale(0.25) rotate(-45deg);
     }
-    72% {
+    60% {
       opacity: 1;
-      transform: translateX(-50%) translateY(-0.85rem) scale(1.08);
+      transform: translateX(-50%) translateY(-0.6rem) scale(1.1) rotate(8deg);
     }
     100% {
       opacity: 1;
-      transform: translateX(-50%) translateY(-0.4rem) scale(1);
+      transform: translateX(-50%) translateY(-0.5rem) scale(1) rotate(0deg);
     }
   }
 
-  @keyframes nexus-float {
+  @keyframes nexus-portal-bob {
     0%,
     100% {
-      transform: translateX(-50%) translateY(-0.4rem) scale(1);
+      transform: translateX(-50%) translateY(-0.5rem) scale(1);
     }
     50% {
-      transform: translateX(-50%) translateY(-0.72rem) scale(1);
+      transform: translateX(-50%) translateY(-0.8rem) scale(1);
     }
   }
 
-  @keyframes nexus-shine {
-    0% {
-      left: -70%;
+  @keyframes nexus-portal-spin {
+    to {
+      transform: rotate(360deg);
     }
-    16% {
-      left: 130%;
-    }
+  }
+
+  /* The convergent center breathes — reads as energy pulling inward. */
+  @keyframes nexus-portal-pulse {
+    0%,
     100% {
-      left: 130%; /* long rest between sweeps */
+      opacity: 0.82;
+      transform: scale(1);
+    }
+    50% {
+      opacity: 1;
+      transform: scale(1.07);
     }
   }
 
   @media (prefers-reduced-motion: reduce) {
-    /* No liquid or shine; the pill simply appears above the dial while active. */
+    /* No liquid or motion; the portal simply appears above the dial (its
+       swirl/rim are static color, which is fine). */
     .nexus-active .nexus-goo,
     .nexus-active .nexus-blob-base,
     .nexus-active .nexus-blob-drop {
       animation: none;
       opacity: 0;
     }
-    .nexus-active .nexus-pill {
+    .nexus-active .nexus-portal {
       animation: none;
       opacity: 1;
-      transform: translateX(-50%) translateY(-0.4rem) scale(1);
+      transform: translateX(-50%) translateY(-0.5rem) scale(1);
     }
-    .nexus-active .nexus-shine::before {
+    .nexus-active .nexus-portal-swirl,
+    .nexus-active .nexus-portal-core {
       animation: none;
-      opacity: 0;
     }
   }
 </style>
