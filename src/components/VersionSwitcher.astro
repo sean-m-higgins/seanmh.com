@@ -177,7 +177,7 @@ const active = versions.find((v) => v.name === current) ?? versions[0];
     height: 7rem;
     margin-left: -2.25rem;
     filter: url(#nexus-goo);
-    animation: nexus-goo-fade 1.5s linear forwards;
+    opacity: 0; /* dormant until the dial is hovered/opened */
   }
 
   .nexus-blob {
@@ -193,7 +193,6 @@ const active = versions.find((v) => v.name === current) ?? versions[0];
     width: 1.9rem;
     height: 1.5rem;
     margin-left: -0.95rem;
-    animation: nexus-base 1.5s cubic-bezier(0.5, 0, 0.2, 1) forwards;
   }
 
   .nexus-blob-drop {
@@ -201,7 +200,6 @@ const active = versions.find((v) => v.name === current) ?? versions[0];
     height: 1.55rem;
     margin-left: -0.775rem;
     transform-origin: 50% 100%; /* stretch upward from the base */
-    animation: nexus-drop 1.5s cubic-bezier(0.45, 0, 0.2, 1) forwards;
   }
 
   /* The crisp, readable pill that the liquid becomes. */
@@ -230,10 +228,10 @@ const active = versions.find((v) => v.name === current) ?? versions[0];
       inset 0 0 0 1px rgb(255 255 255 / 0.14);
     pointer-events: auto;
     opacity: 0;
-    transform: translateX(-50%) translateY(-0.4rem) scale(0.6);
-    animation:
-      nexus-pill-in 1.5s cubic-bezier(0.3, 0, 0.2, 1) forwards,
-      nexus-float 4s ease-in-out 1.7s infinite;
+    transform: translateX(-50%) translateY(-0.4rem) scale(0.9);
+    transition:
+      opacity 0.3s ease,
+      transform 0.3s ease; /* graceful fade-out when the dial is left */
   }
 
   .nexus-label {
@@ -264,7 +262,6 @@ const active = versions.find((v) => v.name === current) ?? versions[0];
       transparent
     );
     transform: skewX(-18deg);
-    animation: nexus-shine 4.5s ease-in-out 2.4s infinite;
   }
 
   .nexus-launcher:hover .nexus-pill,
@@ -282,6 +279,28 @@ const active = versions.find((v) => v.name === current) ?? versions[0];
   .nexus-launcher:focus-visible .nexus-pill {
     outline: 2px solid #c4b5fd;
     outline-offset: 3px;
+  }
+
+  /* Active state — JS adds .nexus-active to the launcher while the dial (or the
+     pill itself) is hovered, focused, or tapped open. The liquid pull-away
+     plays, then the pill settles and loops its shine/float. Removing the class
+     lets the pill fade back out via its transition. */
+  .nexus-active .nexus-goo {
+    animation: nexus-goo-fade 1.5s linear forwards;
+  }
+  .nexus-active .nexus-blob-base {
+    animation: nexus-base 1.5s cubic-bezier(0.5, 0, 0.2, 1) forwards;
+  }
+  .nexus-active .nexus-blob-drop {
+    animation: nexus-drop 1.5s cubic-bezier(0.45, 0, 0.2, 1) forwards;
+  }
+  .nexus-active .nexus-pill {
+    animation:
+      nexus-pill-in 1.5s cubic-bezier(0.3, 0, 0.2, 1) forwards,
+      nexus-float 4s ease-in-out 1.7s infinite;
+  }
+  .nexus-active .nexus-shine::before {
+    animation: nexus-shine 4.5s ease-in-out 2.4s infinite;
   }
 
   @keyframes nexus-drop {
@@ -373,20 +392,19 @@ const active = versions.find((v) => v.name === current) ?? versions[0];
   }
 
   @media (prefers-reduced-motion: reduce) {
-    .nexus-goo {
+    /* No liquid or shine; the pill simply appears above the dial while active. */
+    .nexus-active .nexus-goo,
+    .nexus-active .nexus-blob-base,
+    .nexus-active .nexus-blob-drop {
       animation: none;
       opacity: 0;
     }
-    .nexus-blob-base,
-    .nexus-blob-drop {
-      animation: none;
-    }
-    .nexus-pill {
+    .nexus-active .nexus-pill {
       animation: none;
       opacity: 1;
       transform: translateX(-50%) translateY(-0.4rem) scale(1);
     }
-    .nexus-shine::before {
+    .nexus-active .nexus-shine::before {
       animation: none;
       opacity: 0;
     }
@@ -425,10 +443,31 @@ const active = versions.find((v) => v.name === current) ?? versions[0];
     // Touch devices have no hover: tapping the core toggles the dial open.
     var dial = document.getElementById("version-switcher");
     var core = dial && dial.querySelector(".dial-core");
+    var launcher = document.querySelector(".nexus-launcher");
+
+    // Reveal + play the liquid Nexus animation while the dial (or the pill
+    // itself) is hovered, focused, or tapped open. A short grace period lets
+    // the pointer travel the gap from the dial up to the pill without the
+    // animation dropping and restarting.
+    var nexusTimer;
+    function setNexusActive(on) {
+      if (!launcher) return;
+      clearTimeout(nexusTimer);
+      if (on) {
+        launcher.classList.add("nexus-active");
+      } else {
+        nexusTimer = setTimeout(function () {
+          if (dial && dial.classList.contains("open")) return;
+          launcher.classList.remove("nexus-active");
+        }, 220);
+      }
+    }
+
     if (dial && core) {
       function setOpen(open) {
         dial.classList.toggle("open", open);
         core.setAttribute("aria-expanded", String(open));
+        setNexusActive(open);
       }
       core.addEventListener("click", function () {
         setOpen(!dial.classList.contains("open"));
@@ -441,6 +480,16 @@ const active = versions.find((v) => v.name === current) ?? versions[0];
           setOpen(false);
           core.focus();
         }
+      });
+
+      // Pointer/keyboard reveal: entering or focusing either the dial or the
+      // pill activates; leaving both (past the grace period) deactivates.
+      [dial, launcher].forEach(function (el) {
+        if (!el) return;
+        el.addEventListener("mouseenter", function () { setNexusActive(true); });
+        el.addEventListener("mouseleave", function () { setNexusActive(false); });
+        el.addEventListener("focusin", function () { setNexusActive(true); });
+        el.addEventListener("focusout", function () { setNexusActive(false); });
       });
     }
   })();
