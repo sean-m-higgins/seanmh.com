@@ -21,6 +21,10 @@ const PORTALS: PortalDef[] = [
 const PORTAL_RADIUS = 1.5;
 const LOOK_TARGET = new THREE.Vector3(0, 0.3, 0);
 const ENTER_DURATION = 1.05; // seconds
+const TILT_RANGE = 14; // degrees from the visitor's starting position
+const TILT_DEAD_ZONE = 0.75; // filters small sensor noise while held still
+const TILT_CAMERA_X = 0.55;
+const TILT_CAMERA_Y = 0.28;
 
 const reducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
 
@@ -282,16 +286,132 @@ function init() {
   // Pointer parallax + raycast hover.
   const pointer = new THREE.Vector2(0, 0);
   const pointerTarget = new THREE.Vector2(0, 0);
+  const tilt = new THREE.Vector2(0, 0);
+  const tiltTarget = new THREE.Vector2(0, 0);
   const raycaster = new THREE.Raycaster();
   let hoveredIndex = -1;
   let focusedIndex = -1;
   let pointerActive = false;
+  let tiltActive = false;
+  let tiltOrigin: { beta: number; gamma: number } | null = null;
+  const hasFinePointer = window.matchMedia("(hover: hover) and (pointer: fine)").matches;
+
+  function setPointerPosition(clientX: number, clientY: number) {
+    pointerTarget.set(
+      (clientX / window.innerWidth) * 2 - 1,
+      -(clientY / window.innerHeight) * 2 + 1
+    );
+  }
+
+  function portalAt(clientX: number, clientY: number): number {
+    setPointerPosition(clientX, clientY);
+    raycaster.setFromCamera(pointerTarget, camera);
+    const hits = raycaster.intersectObjects(portals.map((portal) => portal.disc));
+    return hits.length ? (hits[0].object.userData.portalIndex as number) : -1;
+  }
+
+  function shortestAngle(value: number, origin: number): number {
+    return THREE.MathUtils.euclideanModulo(value - origin + 180, 360) - 180;
+  }
+
+  function normalizeTilt(value: number): number {
+    const magnitude = Math.max(0, Math.abs(value) - TILT_DEAD_ZONE);
+    return (
+      Math.sign(value) *
+      THREE.MathUtils.clamp(magnitude / (TILT_RANGE - TILT_DEAD_ZONE), 0, 1)
+    );
+  }
+
+  function screenAngle(): number {
+    const legacyAngle = (window as Window & { orientation?: number }).orientation ?? 0;
+    return THREE.MathUtils.euclideanModulo(screen.orientation?.angle ?? legacyAngle, 360);
+  }
+
+  function resetTiltOrigin() {
+    tiltOrigin = null;
+    tiltTarget.set(0, 0);
+  }
+
+  function onDeviceOrientation(event: DeviceOrientationEvent) {
+    if (event.beta === null || event.gamma === null) return;
+
+    if (!tiltOrigin) {
+      // Calibrate to however the visitor is naturally holding their phone so
+      // enabling tilt never causes the scene to jump.
+      tiltOrigin = { beta: event.beta, gamma: event.gamma };
+      tiltActive = true;
+      return;
+    }
+
+    const beta = shortestAngle(event.beta, tiltOrigin.beta);
+    const gamma = shortestAngle(event.gamma, tiltOrigin.gamma);
+    const angle = THREE.MathUtils.degToRad(screenAngle());
+
+    // Rotate the sensor axes into screen space so portrait and either
+    // landscape orientation feel the same.
+    const screenX = gamma * Math.cos(angle) + beta * Math.sin(angle);
+    const screenY = beta * Math.cos(angle) - gamma * Math.sin(angle);
+    tiltTarget.set(normalizeTilt(screenX), -normalizeTilt(screenY));
+  }
+
+  function setupTiltControls() {
+    const hint = document.getElementById("nexus-look-hint");
+    const permissionButton = document.getElementById("nexus-tilt-permission");
+    const coarsePointer = window.matchMedia("(pointer: coarse)").matches;
+
+    if (!coarsePointer) return;
+    if (reducedMotion || !("DeviceOrientationEvent" in window)) {
+      if (hint) hint.textContent = "tap a portal";
+      return;
+    }
+
+    type OrientationEventWithPermission = typeof DeviceOrientationEvent & {
+      requestPermission?: () => Promise<"granted" | "denied">;
+    };
+    const OrientationEvent = window.DeviceOrientationEvent as OrientationEventWithPermission;
+
+    const enableTilt = () => {
+      window.addEventListener("deviceorientation", onDeviceOrientation, { passive: true });
+      screen.orientation?.addEventListener("change", resetTiltOrigin);
+      if (hint) hint.textContent = "tilt to look";
+      if (permissionButton instanceof HTMLButtonElement) permissionButton.hidden = true;
+    };
+
+    if (typeof OrientationEvent.requestPermission !== "function") {
+      enableTilt();
+      return;
+    }
+
+    if (!(permissionButton instanceof HTMLButtonElement)) return;
+    if (hint) hint.textContent = "tilt to look";
+    permissionButton.hidden = false;
+    permissionButton.addEventListener(
+      "click",
+      async () => {
+        permissionButton.disabled = true;
+        try {
+          const permission = await OrientationEvent.requestPermission!();
+          if (permission === "granted") {
+            enableTilt();
+          } else {
+            permissionButton.hidden = true;
+            if (hint) hint.textContent = "tap a portal";
+          }
+        } catch {
+          permissionButton.hidden = true;
+          if (hint) hint.textContent = "tap a portal";
+        } finally {
+          permissionButton.disabled = false;
+        }
+      },
+      { once: true }
+    );
+  }
+
+  setupTiltControls();
 
   window.addEventListener("pointermove", (event) => {
-    pointerTarget.set(
-      (event.clientX / window.innerWidth) * 2 - 1,
-      -(event.clientY / window.innerHeight) * 2 + 1
-    );
+    setPointerPosition(event.clientX, event.clientY);
     pointerActive = true;
   });
 
@@ -312,9 +432,13 @@ function init() {
     el.addEventListener("pointerleave", () => (focusedIndex = -1));
   });
 
-  renderer.domElement.addEventListener("click", () => {
+  renderer.domElement.addEventListener("click", (event) => {
     if (entering) return;
-    if (hoveredIndex >= 0) beginEnter(hoveredIndex);
+    // A touch tap often has no pointermove beforehand, so hoveredIndex can be
+    // stale or unset. Raycast the activation coordinates directly to make the
+    // visible portal disc itself a reliable touch target.
+    const tappedIndex = portalAt(event.clientX, event.clientY);
+    if (tappedIndex >= 0) beginEnter(tappedIndex);
   });
 
   // Entry sequence state.
@@ -358,10 +482,22 @@ function init() {
     const elapsed = clock.elapsedTime;
     const motion = reducedMotion ? 0 : 1;
 
-    // Parallax drift toward the pointer.
+    // Parallax drift toward a fine pointer or, on mobile, the phone's tilt.
     if (!entering) {
-      if (pointerActive && motion) pointer.lerp(pointerTarget, 1 - Math.pow(0.001, dt));
-      camera.position.set(pointer.x * 1.1, 0.4 + pointer.y * 0.5, baseCameraZ);
+      if (tiltActive && motion) {
+        // A slower low-pass filter keeps noisy phone sensors calm and makes
+        // the response noticeable without pulling focus from the portals.
+        tilt.lerp(tiltTarget, 1 - Math.pow(0.002, dt));
+        camera.position.set(
+          tilt.x * TILT_CAMERA_X,
+          0.4 + tilt.y * TILT_CAMERA_Y,
+          baseCameraZ
+        );
+      } else {
+        if (pointerActive && hasFinePointer && motion)
+          pointer.lerp(pointerTarget, 1 - Math.pow(0.001, dt));
+        camera.position.set(pointer.x * 1.1, 0.4 + pointer.y * 0.5, baseCameraZ);
+      }
       camera.lookAt(LOOK_TARGET);
     } else if (!reducedMotion) {
       const t = Math.min((elapsed - enterStart) / ENTER_DURATION, 1);
