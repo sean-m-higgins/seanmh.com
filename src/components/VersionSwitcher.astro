@@ -281,18 +281,18 @@ const active = versions.find((v) => v.name === current) ?? versions[0];
      plays, then the portal blooms open and its energy swirls. Removing the
      class lets the portal fade back out via its transition. */
   .nexus-active .nexus-goo {
-    animation: nexus-goo-fade 1.5s linear forwards;
+    animation: nexus-goo-fade 0.72s linear forwards;
   }
   .nexus-active .nexus-blob-base {
-    animation: nexus-base 1.5s cubic-bezier(0.5, 0, 0.2, 1) forwards;
+    animation: nexus-base 0.72s cubic-bezier(0.5, 0, 0.2, 1) forwards;
   }
   .nexus-active .nexus-blob-drop {
-    animation: nexus-drop 1.5s cubic-bezier(0.45, 0, 0.2, 1) forwards;
+    animation: nexus-drop 0.72s cubic-bezier(0.45, 0, 0.2, 1) forwards;
   }
   .nexus-active .nexus-portal {
     animation:
-      nexus-portal-in 0.85s cubic-bezier(0.3, 0, 0.2, 1) 0.5s forwards,
-      nexus-portal-bob 4s ease-in-out 1.35s infinite;
+      nexus-portal-in 0.5s cubic-bezier(0.3, 0, 0.2, 1) 0.18s forwards,
+      nexus-portal-bob 4s ease-in-out 0.75s infinite;
   }
   .nexus-active .nexus-portal-swirl {
     animation: nexus-portal-spin 5s linear infinite;
