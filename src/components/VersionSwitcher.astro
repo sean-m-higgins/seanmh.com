@@ -16,6 +16,10 @@ const { current } = Astro.props;
 const active = versions.find((v) => v.name === current) ?? versions[0];
 ---
 
+{/* Attention nudge — expanding rings behind the dial, fired by the script a
+    few seconds in if the visitor hasn't found the switcher yet. */}
+<span class="dial-ping" aria-hidden="true"></span>
+
 <nav
   id="version-switcher"
   class="universe-dial fixed bottom-4 left-4 z-50 flex items-center overflow-hidden rounded-full border border-neutral-200 bg-white/80 shadow-lg backdrop-blur-sm dark:border-neutral-700 dark:bg-neutral-900/80"
@@ -23,7 +27,7 @@ const active = versions.find((v) => v.name === current) ?? versions[0];
 >
   <button
     type="button"
-    class="dial-core relative flex h-10 w-10 shrink-0 cursor-pointer items-center justify-center"
+    class="dial-core relative flex h-10 w-10 shrink-0 cursor-pointer items-center justify-center overflow-hidden rounded-full"
     aria-label="Choose a portfolio version"
     aria-controls="version-options"
     aria-expanded="false"
@@ -31,6 +35,7 @@ const active = versions.find((v) => v.name === current) ?? versions[0];
     <span
       class="dial-ring absolute inset-1.5 rounded-full border border-dashed border-accent/50"
       aria-hidden="true"></span>
+    <span class="dial-shine" aria-hidden="true"></span>
     <span class="font-mono text-sm text-accent" aria-hidden="true">{active.glyph}</span>
   </button>
   <div id="version-options" class="dial-options flex items-center gap-1">
@@ -97,11 +102,71 @@ const active = versions.find((v) => v.name === current) ?? versions[0];
 <style>
   .universe-dial {
     view-transition-name: universe-dial;
-    animation: dial-glow 3.5s ease-in-out infinite;
+    animation: dial-glow 3s ease-in-out infinite;
   }
 
   .dial-ring {
     animation: dial-spin 16s linear infinite;
+  }
+
+  /* Shine sweep across the core so the switcher reads as a glossy, live
+     control worth clicking. Clipped to the core's circle (overflow-hidden). */
+  .dial-shine {
+    position: absolute;
+    top: -30%;
+    left: -70%;
+    width: 42%;
+    height: 160%;
+    background: linear-gradient(
+      100deg,
+      transparent,
+      rgb(255 255 255 / 0.75),
+      transparent
+    );
+    transform: skewX(-18deg);
+    pointer-events: none;
+    animation: dial-shine 4s ease-in-out 1s infinite;
+  }
+  /* On the light theme the core is white, so tint the gleam with the accent
+     instead of white — otherwise it's invisible. */
+  :global(html:not(.dark)) .dial-shine {
+    background: linear-gradient(
+      100deg,
+      transparent,
+      rgb(99 102 241 / 0.45),
+      transparent
+    );
+  }
+
+  /* Radar-ping nudge: two rings expand out from behind the dial a few times. */
+  .dial-ping {
+    position: fixed;
+    left: 1rem;
+    bottom: 1rem;
+    width: 2.5rem;
+    height: 2.5rem;
+    border-radius: 50%;
+    z-index: 40;
+    pointer-events: none;
+  }
+  .dial-ping::before,
+  .dial-ping::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    border-radius: 50%;
+    border: 2.5px solid var(--color-accent, #6366f1);
+    opacity: 0;
+  }
+  .dial-ping.nudge::before {
+    animation: dial-ping 1.9s ease-out 3;
+  }
+  .dial-ping.nudge::after {
+    animation: dial-ping 1.9s ease-out 0.95s 3;
+  }
+  /* A gentle press-me pulse on the core, in time with the pings. */
+  .universe-dial.nudge .dial-core {
+    animation: dial-nudge 1.9s ease-in-out 3;
   }
 
   .dial-options {
@@ -128,19 +193,61 @@ const active = versions.find((v) => v.name === current) ?? versions[0];
     }
   }
 
+  /* Livelier glow — always faintly lit, pulsing brighter, so the control
+     never fully recedes into the corner. */
   @keyframes dial-glow {
     0%,
     100% {
-      box-shadow: 0 0 0 0 rgb(99 102 241 / 0);
+      box-shadow: 0 0 8px 0 rgb(99 102 241 / 0.28);
     }
     50% {
-      box-shadow: 0 0 14px 1px rgb(99 102 241 / 0.35);
+      box-shadow: 0 0 22px 3px rgb(99 102 241 / 0.6);
+    }
+  }
+
+  @keyframes dial-shine {
+    0% {
+      left: -70%;
+    }
+    14% {
+      left: 130%;
+    }
+    100% {
+      left: 130%; /* long rest between sweeps */
+    }
+  }
+
+  @keyframes dial-ping {
+    0% {
+      transform: scale(0.8);
+      opacity: 0.85;
+    }
+    100% {
+      transform: scale(2.3);
+      opacity: 0;
+    }
+  }
+
+  @keyframes dial-nudge {
+    0%,
+    100% {
+      transform: scale(1);
+    }
+    30% {
+      transform: scale(1.14);
+    }
+    60% {
+      transform: scale(0.98);
     }
   }
 
   @media (prefers-reduced-motion: reduce) {
     .universe-dial,
-    .dial-ring {
+    .dial-ring,
+    .dial-shine,
+    .dial-ping.nudge::before,
+    .dial-ping.nudge::after,
+    .universe-dial.nudge .dial-core {
       animation: none;
     }
     .dial-options {
@@ -497,6 +604,30 @@ const active = versions.find((v) => v.name === current) ?? versions[0];
         el.addEventListener("mouseleave", function () { setNexusActive(false); });
         el.addEventListener("focusin", function () { setNexusActive(true); });
         el.addEventListener("focusout", function () { setNexusActive(false); });
+      });
+
+      // Attention nudge: if the visitor hasn't touched the switcher within a
+      // few seconds, ping it a few times to help them find it. Any interaction
+      // cancels it, and it never fires more than once.
+      var ping = document.querySelector(".dial-ping");
+      var nudgeDone = false;
+      var nudgeTimer = setTimeout(function () {
+        if (nudgeDone) return;
+        nudgeDone = true;
+        dial.classList.add("nudge");
+        if (ping) ping.classList.add("nudge");
+      }, 7000);
+      function cancelNudge() {
+        clearTimeout(nudgeTimer);
+        nudgeDone = true;
+        dial.classList.remove("nudge");
+        if (ping) ping.classList.remove("nudge");
+      }
+      [dial, launcher].forEach(function (el) {
+        if (!el) return;
+        el.addEventListener("mouseenter", cancelNudge);
+        el.addEventListener("focusin", cancelNudge);
+        el.addEventListener("click", cancelNudge);
       });
     }
   })();
