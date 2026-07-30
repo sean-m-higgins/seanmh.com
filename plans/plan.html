@@ -1,0 +1,182 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>seanmh.com — Project Plan</title>
+<style>
+  :root {
+    color-scheme: dark;
+    --bg: #0d1117;
+    --panel: #161b22;
+    --border: #30363d;
+    --text: #e6edf3;
+    --muted: #8b949e;
+    --accent: #58a6ff;
+    --done: #3fb950;
+    --next: #d29922;
+    --later: #bc8cff;
+  }
+
+  * { box-sizing: border-box; }
+
+  body {
+    max-width: 980px;
+    margin: 0 auto;
+    padding: 3rem 1.25rem 5rem;
+    background: var(--bg);
+    color: var(--text);
+    font: 16px/1.65 ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  }
+
+  h1, h2 { line-height: 1.2; }
+  h1 { margin: 0 0 .5rem; font-size: clamp(2rem, 6vw, 3.25rem); }
+  h2 { margin: 2.5rem 0 1rem; font-size: 1.45rem; }
+  p { margin: .75rem 0; }
+  a { color: var(--accent); }
+  code {
+    padding: .12rem .35rem;
+    border-radius: .3rem;
+    background: rgba(110, 118, 129, .18);
+    font: .9em ui-monospace, SFMono-Regular, Consolas, monospace;
+  }
+  .muted { color: var(--muted); }
+  .stamp { margin-bottom: 2rem; }
+
+  .status-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(245px, 1fr));
+    gap: .85rem;
+  }
+  .status-card,
+  .callout {
+    border: 1px solid var(--border);
+    border-radius: .75rem;
+    background: var(--panel);
+    padding: 1rem 1.1rem;
+  }
+  .status-card h3 { margin: 0 0 .35rem; font-size: 1rem; }
+  .status-card p { margin: 0; color: var(--muted); }
+  .done { color: var(--done); }
+
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    margin: 1rem 0;
+  }
+  th, td {
+    padding: .75rem;
+    border: 1px solid var(--border);
+    text-align: left;
+    vertical-align: top;
+  }
+  th { background: var(--panel); }
+
+  .todo {
+    padding: 1.15rem 1.15rem 1.15rem 3.25rem;
+    border: 1px solid rgba(210, 153, 34, .5);
+    border-radius: .75rem;
+    background: rgba(210, 153, 34, .07);
+  }
+  .todo li { padding: .35rem 0 .85rem .25rem; }
+  .todo li:last-child { padding-bottom: .25rem; }
+  .todo strong { color: var(--next); }
+  .priority {
+    display: inline-block;
+    min-width: 2rem;
+    margin-right: .35rem;
+    color: var(--bg);
+    background: var(--next);
+    border-radius: 999px;
+    text-align: center;
+    font-size: .72rem;
+    font-weight: 800;
+    line-height: 1.6;
+  }
+  .priority.later { background: var(--later); }
+
+  @media (max-width: 640px) {
+    body { padding-top: 2rem; }
+    table { display: block; overflow-x: auto; }
+    .todo { padding-left: 2.7rem; }
+  }
+</style>
+</head>
+<body>
+
+<h1>seanmh.com — Project Plan</h1>
+<p class="muted stamp">Canonical project status and roadmap. Consolidated and verified July 25, 2026.</p>
+
+<div class="callout">
+  <strong>North star:</strong> make the branch-per-version architecture the experience itself. Three portfolio interpretations share one domain and cinematic switching; the Nexus is a deliberately discovered 3D portal world; future experiments make the multiverse feel alive without weakening the portfolio's clarity, accessibility, or speed.
+</div>
+
+<h2>Current state</h2>
+<div class="status-grid">
+  <div class="status-card">
+    <h3 class="done">✓ Cinematic switching</h3>
+    <p>The synchronized universe dial, accessibility behavior, per-version View Transitions, and liquid Nexus portal launcher are complete and pushed.</p>
+  </div>
+  <div class="status-card">
+    <h3 class="done">✓ Interactive terminal</h3>
+    <p>The command engine and secret-gated, rate-limited, grounded <code>ask</code> service are complete, hardened, and covered by Worker tests.</p>
+  </div>
+  <div class="status-card">
+    <h3 class="done">✓ a-scroll redesign</h3>
+    <p>The GSAP/Lenis motion system, pinned hero, constellation, section choreography, expanded content, art, testimonials, loader, and responsive polish are shipped. Feature scope is closed.</p>
+  </div>
+  <div class="status-card">
+    <h3 class="done">✓ Nexus integration</h3>
+    <p>The Three.js portal world is live, production-routed, linked from all portfolio versions, excluded from random assignment, and enhanced with mobile controls and fallbacks.</p>
+  </div>
+  <div class="status-card">
+    <h3 class="done">✓ Platform upgrade</h3>
+    <p>The active site branches use Astro 7, Tailwind 4, and Node 22. The router Worker has a deployment configuration, observability, and a hardened test suite.</p>
+  </div>
+</div>
+
+<h2>Verified baseline</h2>
+<table>
+  <thead>
+    <tr><th>Check</th><th>Result on July 25, 2026</th></tr>
+  </thead>
+  <tbody>
+    <tr><td>Git state</td><td>All six worktrees are clean and each active branch matches its origin.</td></tr>
+    <tr><td>Router Worker</td><td><code>npm test</code>: 10 tests passed, including Nexus routing and exclusion from first-visit rotation.</td></tr>
+    <tr><td>Shared contract</td><td><code>npm run check:shared</code> passes across <code>content</code>, a-scroll, b-card, and c-terminal.</td></tr>
+    <tr><td>Site branches</td><td>a-scroll, b-card, c-terminal, and Nexus all type-check and build successfully under Node 22.12.</td></tr>
+    <tr><td>Production Nexus</td><td><code>seanmh-nexus.pages.dev</code> is live and <code>/?v=nexus</code> is verified end-to-end through the production router.</td></tr>
+  </tbody>
+</table>
+<p class="muted">Known findings from that verification are intentionally retained in the TODO queue: Nexus has an unused inherited variable and uses deprecated <code>THREE.Clock</code>; b-card and Nexus emit a post-minification chunk-size warning.</p>
+
+<h2>Architecture and operating decisions</h2>
+<table>
+  <thead>
+    <tr><th>Area</th><th>Decision to preserve</th></tr>
+  </thead>
+  <tbody>
+    <tr><td>Routing</td><td><code>VERSIONS</code> contains only a-scroll, b-card, and c-terminal. Nexus belongs in the explicit <code>ROUTABLE</code> set and must never be randomly assigned.</td></tr>
+    <tr><td>Shared UI</td><td><code>content</code> is canonical for <code>VersionSwitcher.astro</code> and <code>transitions.css</code>; those files remain byte-identical across the three portfolio branches.</td></tr>
+    <tr><td>Content</td><td>a-scroll intentionally diverges in parts of its content schema and imagery. Port relevant changes manually instead of blindly cherry-picking.</td></tr>
+    <tr><td>Progressive enhancement</td><td>Navigation and content must survive unsupported View Transitions, reduced motion, disabled JavaScript, and unavailable WebGL.</td></tr>
+    <tr><td>Generated versions</td><td>Automation may propose designs, but publishing stays behind a reviewable PR and explicit human approval.</td></tr>
+    <tr><td>Toolchain</td><td>Use Node 22 or newer. Keep Astro, Tailwind, GSAP/Lenis, and Three.js responsibilities isolated to the branches that need them.</td></tr>
+  </tbody>
+</table>
+
+<h2>Next steps — single TODO queue</h2>
+<ol class="todo">
+  <li><span class="priority">P0</span><strong>Bring local Nexus routing to parity.</strong> Add Nexus as a manual-only target in <code>scripts/dev-proxy.mjs</code>, reserve its preview port, and update the local preview instructions. Keep it outside the proxy's random-selection array.</li>
+  <li><span class="priority">P0</span><strong>Complete the browser and device QA matrix.</strong> Verify cross-document switching and fallback navigation; dial and launcher keyboard/touch behavior; a-scroll pinning, anchors, Lenis, light/dark themes, and scroll restoration; Nexus focus, tap/tilt, reduced motion, no-JS, and no-WebGL paths. Cover Chrome, Edge, Safari, and Firefox desktop plus iOS Safari and Android Chrome. Record Lighthouse and runtime baselines.</li>
+  <li><span class="priority">P1</span><strong>Clear current maintenance findings.</strong> Replace deprecated <code>THREE.Clock</code>, remove the unused Nexus variable, inspect the b-card/Nexus bundles, and either code-split meaningful payloads or document why their current sizes are accepted. Re-run all checks and builds.</li>
+  <li><span class="priority">P1</span><strong>Design the bidirectional bridge transition.</strong> Give portfolio-to-Nexus and Nexus-to-portfolio navigation a distinct, progressively enhanced warp or iris treatment that remains navigable with reduced motion or unsupported View Transitions.</li>
+  <li><span class="priority later">P2</span><strong>Build the Hall of Versions and self-redesign pipeline.</strong> Store each generation's screenshot, number, date, prompt, preview, and outcome; generate candidates on a cadence; open human-reviewable PRs; and update the Hall only after approval and deployment.</li>
+  <li><span class="priority later">P3</span><strong>Choose one live-data experience.</strong> Compare the public A/B scoreboard, visitor trace/pixel wall, and live “Now” dashboard, then plan only the option with the strongest portfolio value relative to data, privacy, operational cost, and maintenance.</li>
+  <li><span class="priority later">P3</span><strong>Finish launch and operational polish.</strong> Add assignment/switch analytics and per-version social images, complete an accessibility audit, refresh stale wiki pages, and monitor <code>ask</code> secrets, KV behavior, rate limits, availability, and model spend.</li>
+</ol>
+
+<p class="muted">This file is the only project plan. Detailed implementation plans should refine the next unfinished item here and update this queue when work ships.</p>
+
+</body>
+</html>
