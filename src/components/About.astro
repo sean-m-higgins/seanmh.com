@@ -8,6 +8,8 @@ import red from "../assets/images/red.png";
 import space from "../assets/images/space.png";
 import table from "../assets/images/table.jpeg";
 import sunny from "../assets/images/sunny.png";
+import sunnyFuzzy from "../assets/images/sunny-fuzzy.png";
+import bouquet from "../assets/images/bouquet.png";
 import { currentFocus } from "../content/about";
 ---
 
@@ -38,9 +40,17 @@ import { currentFocus } from "../content/about";
 
     <!-- Currently: highlighted callout for the present-day focus -->
     <div
-      class="mx-auto mt-16 max-w-3xl rounded-r-xl border-l-4 border-accent bg-accent/5 p-6 sm:p-8"
+      class="relative mx-auto mt-16 max-w-3xl rounded-r-xl border-l-4 border-accent bg-accent/5 p-6 sm:p-8"
       data-currently
     >
+      <!-- Sunny stretches out along the top edge of the callout. -->
+      <Image
+        src={sunnyFuzzy}
+        alt="Sunny the cat, stretched out and lounging"
+        width={320}
+        data-bloom
+        class="pointer-events-none absolute bottom-full -mb-4 right-4 w-28 origin-bottom drop-shadow-lg sm:right-8 sm:w-32"
+      />
       <p class="text-xl font-semibold leading-snug text-neutral-900 sm:text-2xl dark:text-neutral-100">
         {currentFocus.lead}
       </p>
@@ -102,6 +112,17 @@ import { currentFocus } from "../content/about";
               alt="A coffee table Sean built from oak, with a glass inset top"
               width={480}
               class="mx-auto rounded-xl object-cover shadow-lg"
+            />
+            <!-- Centered on the tabletop, ahead of Sunny in the DOM so he
+                 overlaps the vase, not it him. Centered via auto margins
+                 rather than a translate, which GSAP's entrance would clobber. -->
+            <Image
+              src={bouquet}
+              alt=""
+              aria-hidden="true"
+              width={250}
+              data-bloom
+              class="pointer-events-none absolute inset-x-0 bottom-[56%] mx-auto w-[21%] origin-bottom drop-shadow-lg"
             />
             <Image
               src={sunny}

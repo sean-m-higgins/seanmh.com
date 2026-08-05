@@ -3,6 +3,7 @@ import SectionHeading from "./SectionHeading.astro";
 import QuoteNote from "./QuoteNote.astro";
 import { Image } from "astro:assets";
 import sunnyFace from "../assets/images/sunny-face.png";
+import cherryBlossom from "../assets/images/cherry-blossom1.png";
 import { differentiators, testimonials } from "../content/about";
 ---
 
@@ -14,6 +15,15 @@ import { differentiators, testimonials } from "../content/about";
     aria-hidden="true"
     width={300}
     class="pointer-events-none absolute bottom-0 left-0 hidden w-36 xl:block"
+  />
+  <!-- Decorative: a cherry-blossom branch mirrors Sunny at the opposite edge. -->
+  <Image
+    src={cherryBlossom}
+    alt=""
+    aria-hidden="true"
+    width={480}
+    data-bloom
+    class="pointer-events-none absolute -right-10 top-12 hidden w-56 -rotate-6 drop-shadow-xl xl:block"
   />
   <div class="relative mx-auto max-w-4xl px-6">
     <SectionHeading title="Highlights" />

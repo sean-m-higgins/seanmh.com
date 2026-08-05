@@ -89,7 +89,8 @@ function setupHero() {
       .fromTo(name, { scale: 1 }, { scale: 0.94, duration: 0.85 }, 0.1)
       .fromTo(name, { autoAlpha: 1 }, { autoAlpha: 0, duration: 0.18 }, 0.82)
       .to("[data-hero-orb-1]", { xPercent: 6, yPercent: 10, duration: 1 }, 0)
-      .to("[data-hero-orb-2]", { xPercent: -5, yPercent: -8, duration: 1 }, 0);
+      .to("[data-hero-orb-2]", { xPercent: -5, yPercent: -8, duration: 1 }, 0)
+      .to("[data-hero-blossom]", { xPercent: 8, yPercent: -16, rotate: 5, duration: 1 }, 0);
   });
 
   // Small screens: no pin (fixed-position pinning fights mobile browser
@@ -107,6 +108,11 @@ function setupHero() {
     });
     gsap.to("[data-hero-orb-2]", {
       yPercent: -8,
+      ease: "none",
+      scrollTrigger: { trigger: hero, start: "top top", end: "bottom top", scrub: true },
+    });
+    gsap.to("[data-hero-blossom]", {
+      yPercent: -16,
       ease: "none",
       scrollTrigger: { trigger: hero, start: "top top", end: "bottom top", scrub: true },
     });
@@ -279,6 +285,25 @@ function setupSections() {
         scrollTrigger: { trigger: tablePhoto ?? sunny, start: "top 90%", toggleActions: "play none none reverse" },
       }
     );
+
+  // Photo accents scattered through the page (flowers, lounging Sunny): each
+  // settles onto its perch as it enters view. Any resting tilt comes from a
+  // CSS rotate class, which composes with these transforms rather than
+  // fighting them.
+  document.querySelectorAll<HTMLElement>("[data-bloom]").forEach((el) => {
+    gsap.fromTo(
+      el,
+      { scale: 0.75, autoAlpha: 0, y: 14 },
+      {
+        scale: 1,
+        autoAlpha: 1,
+        y: 0,
+        duration: 0.7,
+        ease: "back.out(1.4)",
+        scrollTrigger: { trigger: el, start: "top 92%", toggleActions: "play none none reverse" },
+      }
+    );
+  });
 
   // Highlights: staggered rise, a beat apart so the number leads the eye.
   const highlights = gsap.utils.toArray<HTMLElement>("[data-highlight]");

@@ -4,6 +4,7 @@ import ExperienceItem from "./ExperienceItem.astro";
 import QuoteNote from "./QuoteNote.astro";
 import { Image } from "astro:assets";
 import sunnyRed from "../assets/images/sunny-red.png";
+import cherryBlossom from "../assets/images/cherry-blossom2.png";
 import { experience } from "../content/experience";
 import { testimonials } from "../content/about";
 
@@ -11,8 +12,18 @@ const work = experience.filter((e) => e.type === "work");
 const education = experience.filter((e) => e.type === "education");
 ---
 
-<section id="experience" class="pt-24 pb-8">
-  <div class="mx-auto max-w-4xl px-6">
+<section id="experience" class="relative pt-24 pb-8">
+  <!-- Decorative: a cluster of cherry blossoms sits in the right margin,
+       opposite the heading (wide screens only, where the margin has room). -->
+  <Image
+    src={cherryBlossom}
+    alt=""
+    aria-hidden="true"
+    width={380}
+    data-bloom
+    class="pointer-events-none absolute right-0 top-16 hidden w-44 -rotate-6 drop-shadow-xl xl:block"
+  />
+  <div class="relative mx-auto max-w-4xl px-6">
     <SectionHeading title="Experience" />
     <div class="grid gap-16 md:grid-cols-2">
       <div>

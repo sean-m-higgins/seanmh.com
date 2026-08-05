@@ -1,6 +1,8 @@
 ---
 import { site } from "../content/site";
 import Constellation from "./Constellation.astro";
+import { Image } from "astro:assets";
+import hibiscus from "../assets/images/hibiscus.png";
 ---
 
 <section
@@ -21,6 +23,18 @@ import Constellation from "./Constellation.astro";
     data-hero-orb-2
   >
   </div>
+
+  <!-- Decorative: a hibiscus bloom leans into the top-right corner, behind
+       the content. Sits after the orbs so it paints over them, and the scroll
+       scene drifts it as the hero unwinds. -->
+  <Image
+    src={hibiscus}
+    alt=""
+    aria-hidden="true"
+    width={860}
+    data-hero-blossom
+    class="pointer-events-none absolute -right-20 top-4 -z-10 w-48 -rotate-12 drop-shadow-xl sm:w-72 lg:-right-28 lg:top-12 lg:w-[23rem]"
+  />
 
   <div class="vt-skip-intro mx-auto w-full max-w-6xl px-6 py-24 text-center">
     <p
