@@ -95,6 +95,17 @@ import { testimonials } from "../content/about";
         method="POST"
         class="space-y-4"
       >
+        <!-- Formspree discards submissions when a bot fills this hidden field. -->
+        <div class="hidden" aria-hidden="true">
+          <label for="contact-company">Company</label>
+          <input
+            type="text"
+            id="contact-company"
+            name="_gotcha"
+            tabindex="-1"
+            autocomplete="off"
+          />
+        </div>
         <div>
           <label
             for="name"
