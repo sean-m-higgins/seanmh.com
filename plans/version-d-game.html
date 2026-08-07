@@ -297,7 +297,7 @@
     <li><a href="#s1">Where this fits</a></li>
     <li><a href="#s2">What the brief actually demands</a></li>
     <li><a href="#s3">Concept options</a></li>
-    <li><a href="#s4">Endless Descent in detail</a></li>
+    <li><a href="#s4">The recommended build in detail</a></li>
     <li><a href="#s5">Score, seeds, and the leaderboard</a></li>
     <li><a href="#s6">Tech stack</a></li>
     <li><a href="#s7">Project structure</a></li>
@@ -319,7 +319,7 @@
 
 <div class="callout">
   <p><strong>Status:</strong> Plan only. Nothing implemented. This is a scoped build spec for one new version branch; <code>plans/plan.html</code> remains the canonical project roadmap.</p>
-  <p><strong>Revised.</strong> The first draft built the game around the résumé — gates as a career timeline. That is out. The portfolio lives in the other three versions and does not need a fourth telling of it. This is a game: fun first, replayable, chasing a high score, escalating until it kills you. The only portfolio content here is a link in the corner.</p>
+  <p><strong>Revised.</strong> The first draft built the game around the résumé — gates as a career timeline. That is out. The portfolio lives in the other three versions and does not need a fourth telling of it. This is a game: fun first, replayable, chasing a high score, escalating until it kills you. The only portfolio content here is a link in the corner. Revised again: the concept list now leads with options tied to interests Sean actually has — snowboarding, boxing, racing, live music — and the recommendation has moved to the halfpipe.</p>
 </div>
 
 <h2 id="s1"><span class="num">1.</span>Where this fits</h2>
@@ -354,8 +354,40 @@
 
 <h2 id="s3"><span class="num">3.</span>Concept options</h2>
 
+<p>Nine concepts. Four of them are new and tied to things Sean actually does — snowboarding, boxing, cars, live music. Every one is judged against the four criteria in §2, and every one has to be buildable with code-generated geometry and no asset pipeline. Ordered by recommendation, not by when they were thought of.</p>
+
 <section class="concept recommended">
-  <h3>D1 — Endless Descent <span class="tag is-pick">recommended</span></h3>
+  <h3>D8 — Halfpipe <span class="tag is-pick">recommended</span></h3>
+
+  <p class="aside">Snowboarding. The pick.</p>
+
+  <p>A single halfpipe, and you never leave it. Pump the transitions to build speed, launch off the lip, hold a direction to spin, hold a key to grab, release in time to land clean. Chain clean landings and the multiplier climbs; bail and it&rsquo;s gone.</p>
+
+  <p>The escalation is the reason this is the recommendation: <strong>every clean landing gives you more speed, so you go higher, so the next trick has more air and a tighter landing window.</strong> The game gets harder because you are getting better at it. Nothing ramps on a timer — the difficulty curve is your own skill, fed back at you. That is a rarer and better hook than a speed variable going up.</p>
+
+  <p>Score is trick points — rotation × grab × air time — multiplied by an unbroken landing chain. Failure is a bail counter, or a run clock that only extends on clean landings, so cautious low airs slowly lose.</p>
+
+  <p>Cheap to build, too. The pipe is one extruded mesh, static, authored once. There is no procedural terrain, no chunk streaming, no object pooling, no seeded world generation. All the engineering goes into rider physics and the trick system, which is where all the fun is anyway. It is roughly half the work of the endless descent below and it has a higher skill ceiling.</p>
+</section>
+
+<section class="concept alternate">
+  <h3>D6 — Southpaw <span class="tag is-alt">runner-up</span></h3>
+
+  <p class="aside">Boxing. The cheapest path to something genuinely fun.</p>
+
+  <p>First person, gloves in view, a heavy bag in a dim gym. Four target zones light up on the bag — left and right hand, head and body — and you hit them in sequence, in time. Clean hits build a multiplier; a miss or a wrong zone breaks the chain. The input is the zone itself, so keys, mouse, and touch all map to the same thing with no per-platform design.</p>
+
+  <p>The hook: <strong>the bag swings from your own punches.</strong> A hard combo sets it moving, so the next zone is a moving target you moved. Difficulty emerges from your own aggression rather than from a variable.</p>
+
+  <p>Escalation is smooth and easy to tune — combos lengthen, tempo climbs, timing windows narrow, and feints appear later as decoy zones that break the chain if you take the bait. Failure is a stamina bar that drains constantly and refills on clean hits, so gassing out is what ends the run. Passivity kills, same principle as the avalanche.</p>
+
+  <p>This is the smallest build on the list by a wide margin: one room, one cylinder, two capsules, some lighting. No world, no streaming, no pooling. If the priority is getting to something fun with the least risk, this is it.</p>
+</section>
+
+<section class="concept">
+  <h3>D1 — Endless Descent</h3>
+
+  <p class="aside">Snowboarding. The more expensive one.</p>
 
   <p class="aside">Reworked from the first draft's Powder Run, with the career gates stripped out and an actual arcade loop in their place.</p>
 
@@ -372,10 +404,36 @@
   <p>Score = distance travelled × the multiplier you sustained. Runs land in the 30–90 second band.</p>
 
   <p>Why this one: the escalation is speed, which you feel rather than read; the risk/reward is spatial and instant; procedural low-poly terrain is what Three.js is best at with no assets at all; and it is not a clone of anything specific.</p>
+
+  <p>Still a good game. It is the showpiece of the set — a whole mountain moving past you reads better in a screenshot than a halfpipe does. But it costs chunked procedural terrain, obstacle pooling, and a seeded world generator before you can even test whether the movement is fun, and the halfpipe gets you a snowboarding game with a deeper trick system for roughly half of that. Pick this one if the spectacle matters more than the build cost.</p>
 </section>
 
-<section class="concept alternate">
-  <h3>D2 — Orbit <span class="tag is-alt">strong alternate</span></h3>
+<section class="concept">
+  <h3>D7 — Switchback</h3>
+
+  <p class="aside">Racing.</p>
+
+  <p>An endless mountain road at night. The score is not lap time — it&rsquo;s drift. Hold a slide through a corner, chain corners without straightening out or clipping a barrier, and the multiplier builds. Speed ramps continuously; corners tighten; the road narrows.</p>
+
+  <p>Failure is a clock that only extends when you drift well, so clean, cautious driving runs you out of time. Fastest is not the same line as highest-scoring, which is the same &ldquo;safe play loses&rdquo; enforcement the descent gets from near-misses.</p>
+
+  <p>The honest caveat: <strong>drift feel is famously hard to get right.</strong> It is the one mechanic here where the gap between &ldquo;working&rdquo; and &ldquo;good&rdquo; is measured in weeks of tuning, not days. It also shares most of its engine with D1 — procedural corridor, pooling, speed ramp — so if the descent gets built, this is a cheap second mode, and vice versa.</p>
+</section>
+
+<section class="concept">
+  <h3>D9 — Encore</h3>
+
+  <p class="aside">Live music. The ambitious one.</p>
+
+  <p>A stage, a crowd, lights. Notes come at you in lanes and you hit them in time. The interesting part is that <strong>there is no audio file</strong>: a WebAudio synth generates the track from the run seed, and the note chart is derived from the generated track, so it is in sync by construction and every run is a new song. Zero bytes of audio shipped, infinite content.</p>
+
+  <p>That is the most novel idea in the document and it is also the riskiest. It stacks three hard problems — procedural music that does not sound bad, input latency calibration, and rhythm-game timing feel — any one of which could eat the whole build. Listed because it is genuinely good, not recommended because it is genuinely hard.</p>
+</section>
+
+<section class="concept">
+  <h3>D2 — Orbit</h3>
+
+  <p class="aside">Space. The best-looking option.</p>
 
   <p>You are a small craft in an endless procedural starfield. You are always orbiting <em>something</em>. One input — press to release, press to capture the next body — and the whole game is timing your release so the slingshot flings you further into the field rather than into a sun.</p>
 
@@ -385,19 +443,19 @@
 </section>
 
 <section class="concept">
-  <h3>D3 — Tumble <span class="tag">safest, lowest ceiling</span></h3>
-
-  <p>One-button 3D tower stacker. Blocks swing in on a crane; tap to drop; overhang gets sliced off and the block gets narrower. Escalation: faster swing, wind, drift. Score is height.</p>
-
-  <p>Instantly understood, genuinely addictive, perfect on mobile, and the least work of anything here. The problem is that it is a well-known formula and the skill ceiling is thin — you get good at it in ten minutes and there is nowhere further to go. Listed because it is the honest low-risk answer if the other two fail to feel good.</p>
-</section>
-
-<section class="concept">
   <h3>D4 — Conduit</h3>
 
   <p>A tunnel flyer. You fly down a procedural tube, walls and gates rushing at you, speed climbing. Pure reflex, escalates naturally, trivially readable. This is the reskin target for D1's engine if there is ever appetite for a second mode — the terrain generator and the chase logic transfer almost directly. On its own it is thinner than the descent: no trick system, no risk/reward, just dodge.</p>
 
   <p class="aside">(Previously D2 "Handshake" — the you-are-an-HTTP-request framing — is folded into this one. The premise was doing work the mechanic could not back up.)</p>
+</section>
+
+<section class="concept">
+  <h3>D3 — Tumble <span class="tag">safest, lowest ceiling</span></h3>
+
+  <p>One-button 3D tower stacker. Blocks swing in on a crane; tap to drop; overhang gets sliced off and the block gets narrower. Escalation: faster swing, wind, drift. Score is height.</p>
+
+  <p>Instantly understood, genuinely addictive, perfect on mobile, and the least work of anything here. The problem is that it is a well-known formula and the skill ceiling is thin — you get good at it in ten minutes and there is nowhere further to go. Listed because it is the honest low-risk answer if the other two fail to feel good.</p>
 </section>
 
 <section class="concept">
@@ -414,50 +472,124 @@
   <p>The first draft's clickable low-poly room. It has no loop and no score, so it fails the brief outright. Recorded here so it does not get re-proposed.</p>
 </section>
 
+<h3>Other interests, considered and cut</h3>
+
+<p>Woodworking gave a timing-bar cutting game, but it is D3 Tumble with a different skin and the same thin ceiling. Travel produced nothing with a mechanic underneath it — a map you click is not a game. Sunny the cat knocking things off shelves is charming and about four minutes deep. Camping and the Eagle Scout material had no loop at all. They are recorded here so they do not get re-proposed.</p>
+
+<h3>What shares an engine</h3>
+
+<p>Worth knowing before picking, because it changes what a second mode costs later.</p>
+
+<ul>
+  <li><strong>D1 Descent, D4 Conduit, D7 Switchback</strong> share one engine — a procedural corridor you travel at increasing speed, with pooled obstacles. Build any one and the others are reskins.</li>
+  <li><strong>D8 Halfpipe</strong> shares D1&rsquo;s rider and trick system but none of its terrain machinery. Building the halfpipe first and the descent second is cheaper than the reverse.</li>
+  <li><strong>D6 Southpaw, D3 Tumble</strong> are standalone and cheap. Nothing transfers, but nothing is needed.</li>
+  <li><strong>D9 Encore, D5 Prism, D2 Orbit</strong> are standalone and expensive.</li>
+</ul>
+
 <h3>At a glance</h3>
 
 <div class="table-wrap">
 <table class="compare">
   <thead>
     <tr>
-      <th scope="col"><span class="sr-only">Concept</span></th>
+      <th scope="col">Concept</th>
+      <th scope="col">Tied to</th>
       <th scope="col">Grasp</th>
-      <th scope="col">Score ceiling</th>
+      <th scope="col">Ceiling</th>
       <th scope="col">Escalation</th>
       <th scope="col">Build cost</th>
-      <th scope="col">Clone risk</th>
     </tr>
   </thead>
   <tbody>
     <tr class="pick">
-      <th scope="row"><strong>D1 Descent</strong></th>
-      <td>instant</td><td>high</td><td>speed + closing avalanche</td><td>medium</td><td>low</td>
+      <th scope="row"><strong>D8 Halfpipe</strong></th>
+      <td>Snowboarding</td><td>instant</td><td><strong>high</strong></td><td>your own speed compounding</td><td>low-medium</td>
+    </tr>
+    <tr>
+      <th scope="row">D6 Southpaw</th>
+      <td>Boxing</td><td>instant</td><td>high</td><td>tempo, windows, bag swing</td><td><strong>low</strong></td>
+    </tr>
+    <tr>
+      <th scope="row">D1 Descent</th>
+      <td>Snowboarding</td><td>instant</td><td>high</td><td>speed + closing avalanche</td><td>medium</td>
+    </tr>
+    <tr>
+      <th scope="row">D7 Switchback</th>
+      <td>Racing</td><td>instant</td><td>high</td><td>corner tightness + speed</td><td>medium-high</td>
     </tr>
     <tr>
       <th scope="row">D2 Orbit</th>
-      <td>~2s</td><td>high</td><td>spacing + hazards</td><td>medium-high</td><td>low</td>
-    </tr>
-    <tr>
-      <th scope="row">D3 Tumble</th>
-      <td>instant</td><td>low</td><td>swing speed + wind</td><td>low</td><td class="warn"><strong>high</strong></td>
+      <td class="muted">—</td><td>~2s</td><td>high</td><td>spacing + hazards</td><td>medium-high</td>
     </tr>
     <tr>
       <th scope="row">D4 Conduit</th>
-      <td>instant</td><td>medium</td><td>speed + density</td><td>low-medium</td><td>medium</td>
+      <td class="muted">—</td><td>instant</td><td>medium</td><td>speed + density</td><td>low-medium</td>
+    </tr>
+    <tr>
+      <th scope="row">D3 Tumble</th>
+      <td>Woodworking-ish</td><td>instant</td><td class="warn"><strong>low</strong></td><td>swing speed + wind</td><td>low</td>
+    </tr>
+    <tr>
+      <th scope="row">D9 Encore</th>
+      <td>Live music</td><td>instant</td><td>high</td><td>density + tempo</td><td class="warn"><strong>high</strong></td>
     </tr>
     <tr>
       <th scope="row">D5 Prism</th>
-      <td>slow</td><td>medium</td><td>wave complexity</td><td>high</td><td>low</td>
+      <td class="muted">—</td><td>slow</td><td>medium</td><td>wave complexity</td><td>high</td>
     </tr>
   </tbody>
 </table>
 </div>
 
 <div class="verdict">
-  <p><span class="lead">Recommendation: D1.</span> It is the only option that scores well on all four brief criteria at once, and its engine gives D4 nearly for free later. <strong>D2 is the pick if you would rather have the more distinctive-looking thing</strong> and accept more tuning risk.</p>
+  <p><span class="lead">Recommendation: D8 Halfpipe.</span> It is on an interest you named, it is about half the engineering of the endless descent, it has the deepest skill ceiling of anything here, and its difficulty curve comes from the player getting better rather than from a timer. <strong>If you want the least risk instead, build D6 Southpaw</strong> — it is the smallest build on the list and the surest to be fun. Both are cheap enough that the loser is still affordable later.</p>
 </div>
 
-<h2 id="s4"><span class="num">4.</span>Endless Descent in detail</h2>
+<h2 id="s4"><span class="num">4.</span>The recommended build in detail</h2>
+
+<h3>Halfpipe</h3>
+
+<p><strong>Loop.</strong> Title → one line of instruction → drop in → ride until the bail counter or the clock runs out → score, personal best, delta → <code>R</code> to restart. No menu between a death and the next run.</p>
+
+<p><strong>Controls.</strong> <code>←</code>/<code>→</code> or <code>A</code>/<code>D</code> to steer and, in the air, to spin. <code>Space</code> held on the transition to pump, held in the air to grab. Release to prepare the landing. On touch: drag to steer and spin, hold to pump and grab. Four verbs total, and two of them are the same key in different contexts.</p>
+
+<p><strong>The compounding loop, which is the whole design:</strong></p>
+
+<div class="table-wrap">
+<table>
+  <tbody>
+    <tr><th scope="row">Pump the transition</th><td>Build speed</td></tr>
+    <tr><th scope="row">More speed</th><td>More air off the lip</td></tr>
+    <tr><th scope="row">More air</th><td>More rotation, bigger trick score</td></tr>
+    <tr><th scope="row">More air</th><td>Tighter landing window, less margin</td></tr>
+  </tbody>
+</table>
+</div>
+
+<p>So the game escalates exactly as fast as the player improves, and it self-corrects: a bail costs speed, which lowers the next air, which widens the window and lets you recover. No difficulty variable anywhere.</p>
+
+<p><strong>Scoring.</strong></p>
+
+<pre><code>trick   = rotation_degrees × grab_bonus × air_time
+run     = Σ tricks × landing_chain
+chain:    +1 per clean landing, no cap
+          resets to 1 on a bail</code></pre>
+
+<p>Rotation scores continuously rather than in named-trick buckets — a 630 is worth more than a 540 without anyone having to author a trick list. Grabs are a small multiplier held during air, so they trade landing preparation time for points.</p>
+
+<p><strong>Failure.</strong> Three bails, or a run clock that gains a couple of seconds per clean landing and nothing otherwise. Either way, cautious straight airs lose slowly. Runs should land in the 45–90 second band.</p>
+
+<p><strong>Target curve.</strong> First run: two or three airs before bailing out. By run ten, a chain of six or seven. A good player, twenty-plus with grabs held deep. The ceiling is rotation control, which has no top.</p>
+
+<h3>If you pick something else</h3>
+
+<h4>D6 — Southpaw</h4>
+
+<p>Loop: combos light up on the bag, you hit the zones in sequence, stamina drains and refills on clean hits. Score = hits × multiplier, bonus for perfect timing. Escalation: tempo, combo length, window width, feints — plus the bag&rsquo;s own swing. Tuning surface is two dials, which is why it is the low-risk pick.</p>
+
+<h4>D1 — Endless Descent</h4>
+
 
 <p><strong>Loop.</strong> Title → one line of instruction → ride → die → score, personal best, delta → <code>R</code> to restart. There is no menu between a death and the next run.</p>
 
@@ -493,6 +625,8 @@ multiplier:  1.0 base
 <h2 id="s5"><span class="num">5.</span>Score, seeds, and the leaderboard</h2>
 
 <p><strong>Seed every run.</strong> A seeded PRNG driving all terrain and obstacle generation, chosen at run start and kept in the run record. This is cheap to do on day one and effectively impossible to retrofit, and it unlocks three things: reproducible bug reports, ghost replays, and server-side score verification.</p>
+
+<p>Seeding applies to whichever concept wins: terrain for the boarding and driving games, combo and feint generation for Southpaw, the track itself for Encore. The daily-seed mode works for all of them — a shared pipe, a shared combo set, a shared song.</p>
 
 <p><strong>Local first.</strong> <code>localStorage</code> holds the personal best and the last few runs. The HUD shows a best-line marker and the game-over screen shows the delta — "1,240 short" is a better retry prompt than a bare number.</p>
 
@@ -530,22 +664,23 @@ multiplier:  1.0 base
   components/
     GameCanvas.astro       canvas element + island bootstrap
     StartScreen.astro      title, one-line how-to-play, start
-    Hud.astro              score, multiplier, best-line marker
+    Hud.astro              score, chain, best-line marker
     GameOver.astro         score, best, delta, R-to-restart
   scripts/game/
     main.ts                bootstrap, fixed-step loop, pause on hidden
     scene.ts               renderer, camera, lights, fog
-    rng.ts                 seeded PRNG + value noise
-    terrain.ts             chunked heightfield, recycled ahead of the rider
-    rider.ts               carve, jump, rotation, crash recovery
-    obstacles.ts           pooled InstancedMesh trees and rocks
-    avalanche.ts           chase wall, gap curve, catch test
-    scoring.ts             distance, near-miss detection, multiplier, decay
+    rng.ts                 seeded PRNG
+    pipe.ts                halfpipe geometry, surface normals, transitions
+    rider.ts               surface-constrained movement, pump, launch
+    air.ts                 rotation, grab, landing-angle test, bail
+    scoring.ts             trick value, landing chain, decay
     input.ts               keyboard, pointer, touch
     hud.ts                 DOM binding
     storage.ts             localStorage bests, daily seed
   pages/
     index.astro            minimal shell + canvas</code></pre>
+
+<p>This is the halfpipe&rsquo;s module set. Southpaw swaps <code>pipe</code>/<code>rider</code>/<code>air</code> for <code>bag</code>/<code>gloves</code>/<code>combo</code> and is smaller still. The descent, conduit, and switchback all need <code>terrain.ts</code>, <code>obstacles.ts</code>, and a chunk recycler on top, which is the concrete shape of their extra cost.</p>
 
 <p><code>BaseLayout.astro</code>, <code>VersionSwitcher.astro</code>, <code>src/styles/</code>, and <code>src/content/site.ts</code> come across from <code>content</code> unchanged.</p>
 
@@ -591,6 +726,7 @@ const ROUTABLE = [...VERSIONS, NEXUS, GAME];</code></pre>
 <p>Numbers to build against, not to discover afterwards.</p>
 
 <ul>
+  <li><strong>The recommended concept makes most of this easy.</strong> A halfpipe is one static mesh with a fixed object count, so there is no streaming, no pooling, and no growth in draw calls over a run. The bullets below about chunk recycling and pooling apply to D1, D4, and D7 — keep them in mind if the pick changes, but they are not work the halfpipe has to do.</li>
   <li><strong>Under 250 KB gzipped</strong> for the game chunk. Tree-shaken three core is around 150 KB; the rest is the game.</li>
   <li><strong>Under 30 KB</strong> for the initial shell. The game bundle is dynamically imported behind the start button, so the landing page paints instantly.</li>
   <li><strong>60 fps on a mid-range 2021 phone</strong>, and framerate must not sag as distance grows — under 80 draw calls and under 150k triangles held <em>constant</em>, because terrain chunks and obstacles are recycled rather than accumulated.</li>
@@ -616,9 +752,9 @@ const ROUTABLE = [...VERSIONS, NEXUS, GAME];</code></pre>
 
 <p class="phase"><span class="label">P0 · Route before gameplay.</span> Branch <code>version/d-game</code> from <code>content</code>, add three, ship a blank resizing canvas, create the Pages project, add the Worker and dev-proxy entries, confirm <code>seanmh.com/?v=d-game</code> reaches it end to end. Prove the plumbing while there is nothing to debug.</p>
 
-<p class="phase"><span class="label">P1 · A slope worth riding.</span> Seeded terrain, chunk recycling, follow camera, carve, jump, crash recovery. Grey boxes on a grey hill. <strong>This is the kill gate</strong>: if the movement is not satisfying with no art, no score, and no chase, stop and reconsider the concept rather than decorating a mechanic that does not work. Nothing in P2 onward can rescue bad movement.</p>
+<p class="phase"><span class="label">P1 · A mechanic worth repeating.</span> The core movement and its one satisfying verb, with no art, no score, and no dressing — pumping and landing for the halfpipe, hitting a swinging bag for Southpaw. <strong>This is the kill gate</strong>: if it is not satisfying grey-on-grey, stop and switch concepts rather than decorating a mechanic that does not work. Nothing in the later phases can rescue bad feel.</p>
 
-<p class="phase"><span class="label">P2 · The game.</span> Avalanche chase and gap curve, near-miss detection, multiplier and decay, air tricks, distance scoring, death and instant restart. At the end of this phase it should be a complete loop worth playing for ten minutes.</p>
+<p class="phase"><span class="label">P2 · The game.</span> The scoring loop, the failure condition, death and instant restart. At the end of this phase it should be a complete loop worth playing for ten minutes.</p>
 
 <p class="phase"><span class="label">P3 · Tuning.</span> Speed ramp, decay rate, near-miss radius, density curve, avalanche curve. This is not polish, it is where the game is actually made, and it deserves its own phase and a lot of playing.</p>
 
@@ -633,6 +769,7 @@ const ROUTABLE = [...VERSIONS, NEXUS, GAME];</code></pre>
 <h2 id="s14"><span class="num">14.</span>Risks</h2>
 
 <ul class="risks">
+  <li><strong>Picking the expensive concept first.</strong> Three of the nine cost roughly double the others to reach a testable prototype. The halfpipe and Southpaw both get to the P1 kill gate fastest, which is exactly where you want to arrive early and cheaply.</li>
   <li><strong>A plan cannot make something fun.</strong> P1 exists to find that out cheaply, before any art or scoring is invested. Take the fallback seriously if it fails.</li>
   <li><strong>Tuning is the real cost</strong>, and it is the phase most likely to be under-budgeted. The difference between this being played twice and played twenty times is P3, not P4.</li>
   <li><strong>Frame-rate decay in an endless game.</strong> Mitigated by pooling everything and allocating nothing in the loop — but it needs measuring at five minutes in, not at ten seconds in.</li>
@@ -644,7 +781,7 @@ const ROUTABLE = [...VERSIONS, NEXUS, GAME];</code></pre>
 <h2 id="s15"><span class="num">15.</span>Open questions</h2>
 
 <ol class="questions">
-  <li><strong>D1 Descent or D2 Orbit?</strong> Descent is the safer good game; Orbit is the better-looking one and the more novel. Assuming Descent unless told otherwise.</li>
+  <li><strong>Which concept?</strong> Halfpipe is the recommendation — snowboarding, deepest ceiling, self-escalating, and about half the cost of the endless descent. Southpaw is the safest and smallest. Descent is the best-looking. Switchback is the riskiest of the three cheap-ish ones because drift feel is hard. Assuming Halfpipe unless told otherwise.</li>
   <li><strong>Global leaderboard at all</strong>, or personal best and daily seed only? Assuming local-first, with the leaderboard deferred to P7 and genuinely optional.</li>
   <li><strong>Sound?</strong> A high-score game gains a lot from audio feedback on the multiplier. Assuming muted by default with one toggle, built in P4 if at all.</li>
   <li><strong>Coexist with Nexus, or absorb it?</strong> Assuming coexist — Nexus is a portal world, this is an arcade game.</li>
