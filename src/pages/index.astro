@@ -1,14 +1,20 @@
 ---
-import BaseLayout from "../layouts/BaseLayout.astro";
-import Hero from "../components/Hero.astro";
-import About from "../components/About.astro";
-import Experience from "../components/Experience.astro";
-import Contact from "../components/Contact.astro";
+// Version D — the game. A snowboard halfpipe high-score run: pump the
+// transitions, launch, spin, land clean, chain it. The portfolio lives in
+// the other versions; this page links out to them.
+import GameLayout from "../layouts/GameLayout.astro";
+import GameCanvas from "../components/GameCanvas.astro";
+import Hud from "../components/Hud.astro";
+import StartScreen from "../components/StartScreen.astro";
+import GameOver from "../components/GameOver.astro";
 ---
 
-<BaseLayout title="Sean Higgins — Software Engineer">
-  <Hero />
-  <About />
-  <Experience />
-  <Contact />
-</BaseLayout>
+<GameLayout
+  title="Halfpipe — Sean Higgins"
+  description="A snowboard halfpipe high-score game by Sean Higgins, software engineer. Pump for speed, spin, grab, land clean. The portfolio lives in the other versions of seanmh.com."
+>
+  <GameCanvas />
+  <Hud />
+  <StartScreen />
+  <GameOver />
+</GameLayout>

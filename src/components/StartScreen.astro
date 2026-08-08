@@ -1,0 +1,85 @@
+---
+// Title screen: one line of instruction, one button, and a way back to the
+// portfolio. The game is opt-in behind this button (reduced-motion friendly).
+---
+
+<div
+  id="screen-start"
+  class="fixed inset-0 z-20 flex flex-col items-center justify-center bg-[#0b0d1a] px-6"
+>
+  <div class="start-glow" aria-hidden="true"></div>
+
+  <p class="font-mono text-xs uppercase tracking-[0.3em] text-neutral-500">
+    seanmh.com · version d
+  </p>
+  <h1 class="mt-4 text-center text-6xl font-extrabold tracking-tight sm:text-7xl">
+    HALF<span class="text-accent">PIPE</span>
+  </h1>
+  <p class="mt-4 max-w-md text-center text-neutral-400">
+    Pump for speed. Launch. Spin, grab, land clean — every clean landing makes the next
+    air bigger. The clock only forgives clean landings.
+  </p>
+
+  <div class="mt-8 hidden flex-wrap items-center justify-center gap-x-6 gap-y-2 font-mono text-sm text-neutral-400 sm:flex">
+    <span><kbd class="key">←</kbd><kbd class="key">→</kbd> steer &amp; spin</span>
+    <span><kbd class="key">space</kbd> pump &amp; grab</span>
+    <span><kbd class="key">R</kbd> restart</span>
+  </div>
+  <p class="mt-8 font-mono text-sm text-neutral-400 sm:hidden">
+    drag to steer &amp; spin · hold <span class="text-neutral-200">PUMP</span> to pump &amp; grab
+  </p>
+
+  <button
+    id="start-btn"
+    type="button"
+    autofocus
+    class="mt-10 cursor-pointer rounded-full bg-accent px-10 py-3.5 text-lg font-bold tracking-wide text-white shadow-[0_0_30px_rgba(99,102,241,0.45)] transition hover:bg-accent-light hover:shadow-[0_0_45px_rgba(99,102,241,0.7)] focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-accent disabled:opacity-60"
+  >
+    DROP IN
+  </button>
+
+  <p id="start-best" class="mt-6 hidden font-mono text-sm text-neutral-500"></p>
+
+  <p class="absolute bottom-5 text-center text-sm text-neutral-500">
+    here for the résumé instead? —
+    <a href="/?v=nexus" class="text-neutral-300 underline decoration-neutral-600 underline-offset-4 hover:text-accent">back to the nexus</a>
+  </p>
+</div>
+
+<style>
+  .start-glow {
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    background:
+      radial-gradient(60rem 30rem at 50% 110%, rgba(99, 102, 241, 0.16), transparent 60%),
+      radial-gradient(40rem 20rem at 50% -10%, rgba(159, 176, 232, 0.08), transparent 60%);
+  }
+  .key {
+    display: inline-block;
+    margin-right: 0.3rem;
+    padding: 0.1rem 0.5rem;
+    border: 1px solid rgb(64 64 64);
+    border-bottom-width: 2px;
+    border-radius: 0.375rem;
+    color: rgb(229 229 229);
+    font-size: 0.8em;
+  }
+</style>
+
+<script>
+  // Show the local personal best on the title screen, if there is one.
+  try {
+    const raw = localStorage.getItem("seanmh:d-3d-game:halfpipe:v1");
+    if (raw) {
+      const best = Number(JSON.parse(raw).best) || 0;
+      const el = document.getElementById("start-best");
+      if (best > 0 && el) {
+        el.textContent = `personal best ${best.toLocaleString("en-US")}`;
+        el.classList.remove("hidden");
+      }
+    }
+  } catch {
+    /* no storage, no best line */
+  }
+</script>

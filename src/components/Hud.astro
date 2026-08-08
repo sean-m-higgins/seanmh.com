@@ -1,0 +1,164 @@
+---
+// In-game HUD: DOM over the canvas, three readables (score, chain, clock)
+// plus a personal-best progress bar, trick popups, and touch controls.
+---
+
+<div id="hud" class="pointer-events-none fixed inset-0 z-10 hidden">
+  <!-- Score + chain -->
+  <div class="absolute left-5 top-5">
+    <p class="font-mono text-[0.65rem] uppercase tracking-[0.25em] text-neutral-500">score</p>
+    <div class="flex items-baseline gap-3">
+      <span id="hud-score" class="font-mono text-4xl font-bold tabular-nums">0</span>
+      <span
+        id="hud-chain"
+        class="rounded-full border border-neutral-700 px-2.5 py-0.5 font-mono text-sm text-neutral-300"
+        >×1</span
+      >
+    </div>
+  </div>
+
+  <!-- Clock -->
+  <div class="absolute right-5 top-5 text-right">
+    <p class="font-mono text-[0.65rem] uppercase tracking-[0.25em] text-neutral-500">time</p>
+    <span id="hud-clock" class="font-mono text-4xl font-bold tabular-nums">40.0</span>
+  </div>
+
+  <!-- Personal-best progress -->
+  <div id="hud-pb" class="absolute left-1/2 top-6 hidden w-44 -translate-x-1/2 sm:w-64">
+    <div class="h-1 overflow-hidden rounded-full bg-neutral-800">
+      <div id="hud-pb-fill" class="h-full w-0 rounded-full bg-accent transition-[width] duration-200"></div>
+    </div>
+    <p class="mt-1.5 text-center font-mono text-[0.65rem] uppercase tracking-[0.25em] text-neutral-500">
+      personal best
+    </p>
+  </div>
+
+  <!-- Trick popups -->
+  <div
+    id="hud-popups"
+    class="absolute left-1/2 top-[30%] flex -translate-x-1/2 flex-col items-center gap-2"
+  ></div>
+
+  <!-- Onboarding hint -->
+  <p
+    id="hud-hint"
+    class="absolute bottom-8 left-1/2 hidden w-max max-w-[90vw] -translate-x-1/2 text-center font-mono text-sm text-neutral-400"
+  ></p>
+
+  <!-- Touch pump/grab button -->
+  <button
+    id="pump-btn"
+    type="button"
+    class="pointer-events-auto absolute bottom-8 right-6 hidden h-24 w-24 touch-none select-none items-center justify-center rounded-full border-2 border-accent/60 bg-accent/15 font-mono text-sm font-bold tracking-widest text-accent-light backdrop-blur-sm active:bg-accent/40"
+    aria-label="Hold to pump on the wall, grab in the air"
+  >
+    PUMP
+  </button>
+
+  <!-- Quiet way home during play -->
+  <a
+    href="/?v=a-scroll"
+    class="pointer-events-auto absolute bottom-4 left-4 font-mono text-xs text-neutral-600 transition-colors hover:text-neutral-300"
+    >seanmh.com</a
+  >
+</div>
+
+<style is:global>
+  /* Touch-only reveal for the pump button */
+  @media (pointer: coarse) {
+    #pump-btn {
+      display: flex;
+    }
+  }
+
+  /* Chain pill states */
+  #hud-chain.chain-hot {
+    border-color: var(--color-accent);
+    color: var(--color-accent-light);
+  }
+  #hud-chain.pop {
+    animation: chain-pop 0.3s cubic-bezier(0.2, 0, 0, 1.4);
+  }
+  @keyframes chain-pop {
+    40% {
+      transform: scale(1.35);
+    }
+  }
+
+  /* Clock urgency: size + weight, not colour alone */
+  #hud-clock.clock-low {
+    color: #f0abab;
+    animation: clock-tick 1s ease-in-out infinite;
+  }
+  @keyframes clock-tick {
+    50% {
+      transform: scale(1.12);
+    }
+  }
+
+  /* PB bar once passed */
+  #hud-pb.pb-passed #hud-pb-fill {
+    background: #3ddc84;
+    box-shadow: 0 0 12px rgba(61, 220, 132, 0.7);
+  }
+
+  /* Trick popups */
+  .popup {
+    text-align: center;
+    font-family: var(--font-mono);
+    animation: popup-rise 1.1s ease-out forwards;
+  }
+  .popup-main {
+    font-size: 2rem;
+    font-weight: 700;
+    letter-spacing: 0.02em;
+  }
+  .popup-sub {
+    margin-top: 0.15rem;
+    font-size: 0.85rem;
+    color: rgb(163 163 163);
+  }
+  .popup--clean .popup-main {
+    color: var(--color-accent-light);
+    text-shadow: 0 0 18px rgba(99, 102, 241, 0.65);
+  }
+  .popup--sketchy .popup-main {
+    color: rgb(212 212 212);
+  }
+  .popup--bail .popup-main {
+    color: #f28b8b;
+    text-shadow: 0 0 14px rgba(242, 139, 139, 0.4);
+  }
+  .popup--info .popup-main {
+    color: #3ddc84;
+    text-shadow: 0 0 18px rgba(61, 220, 132, 0.6);
+  }
+  @keyframes popup-rise {
+    0% {
+      opacity: 0;
+      transform: translateY(14px) scale(0.9);
+    }
+    12% {
+      opacity: 1;
+      transform: translateY(0) scale(1.06);
+    }
+    22% {
+      transform: scale(1);
+    }
+    75% {
+      opacity: 1;
+    }
+    100% {
+      opacity: 0;
+      transform: translateY(-16px);
+    }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .popup,
+    #hud-chain.pop,
+    #hud-clock.clock-low {
+      animation: none;
+    }
+  }
+</style>
