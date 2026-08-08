@@ -10,9 +10,14 @@ const VERSIONS = [
 // it to a first-time visitor. It's a routable target, not a rotation option.
 const NEXUS = { name: 'nexus', origin: 'https://seanmh-nexus.pages.dev' };
 
+// The game (Version D, halfpipe) has the same posture as the Nexus: reachable
+// via ?v=d-3d-game or a sticky cookie, never randomly assigned to a first-time
+// visitor — a game is a bad thing to hand a recruiter unannounced.
+const GAME = { name: 'd-3d-game', origin: 'https://seanmh-3d-game.pages.dev' };
+
 // Everything the Worker will proxy when named explicitly (?v= or cookie).
 // Rotation still draws only from VERSIONS.
-const ROUTABLE = [...VERSIONS, NEXUS];
+const ROUTABLE = [...VERSIONS, NEXUS, GAME];
 const COOKIE_NAME = 'pv';
 const COOKIE_OPTIONS = 'Path=/; Max-Age=1800; SameSite=Lax; Secure; HttpOnly';
 const DOCUMENT_CACHE_CONTROL = 'private, no-store';
@@ -133,18 +138,17 @@ function timingSafeEqual(a, b) {
 
 // Soft, best-effort rate limit. If KV isn't bound we simply skip limiting
 // rather than failing the request.
-async function isRateLimited(env, ip) {
+async function isRateLimited(env, key, limit, windowS) {
   if (!env || !env.ASK_RL) return false;
-  const key = `ask:${ip}`;
   let count = 0;
   try {
     count = parseInt((await env.ASK_RL.get(key)) || '0', 10) || 0;
   } catch {
     return false;
   }
-  if (count >= ASK_RATE_LIMIT) return true;
+  if (count >= limit) return true;
   try {
-    await env.ASK_RL.put(key, String(count + 1), { expirationTtl: ASK_RATE_WINDOW_S });
+    await env.ASK_RL.put(key, String(count + 1), { expirationTtl: windowS });
   } catch {
     // Non-fatal: allow the request if the counter write fails.
   }
@@ -192,7 +196,7 @@ async function handleAsk(request, env) {
   }
 
   // Rate limit before the secret check so brute-force guesses burn quota too.
-  if (await isRateLimited(env, clientIp(request))) {
+  if (await isRateLimited(env, `ask:${clientIp(request)}`, ASK_RATE_LIMIT, ASK_RATE_WINDOW_S)) {
     return askError(429, 'Rate limit reached \u2014 please try again later.');
   }
 
@@ -259,6 +263,111 @@ async function handleAsk(request, env) {
       'X-Content-Type-Options': 'nosniff',
     },
   });
+}
+
+// --- /api/score (halfpipe leaderboard) -------------------------------------
+// Global top-N for the d-3d-game halfpipe. Storage is one small JSON list in the
+// existing KV namespace (ASK_RL): [{ i: initials, s: score, t: epoch-ms }].
+// Anti-forgery is proportionate, not perfect: strict input validation, a
+// per-IP rate limit, and a physical plausibility ceiling derived from the
+// game's own scoring math — the goal is making cheating more effort than
+// playing. No KV binding ⇒ GET degrades to an empty list and POST to 503, so
+// the client hides the board instead of breaking.
+const SCORE_KEY = 'hp:top';
+const SCORE_TOP_N = 10;
+const SCORE_RATE_LIMIT = 30; // submissions per IP per window
+const SCORE_RATE_WINDOW_S = 3600;
+const SCORE_MAX = 5_000_000;
+
+function scoreResponse(status, payload) {
+  return new Response(JSON.stringify(payload), {
+    status,
+    headers: {
+      'Content-Type': 'application/json; charset=utf-8',
+      'Cache-Control': 'no-store',
+      'X-Content-Type-Options': 'nosniff',
+    },
+  });
+}
+
+async function readTopList(env) {
+  if (!env || !env.ASK_RL) return null;
+  try {
+    const raw = await env.ASK_RL.get(SCORE_KEY);
+    if (!raw) return [];
+    const list = JSON.parse(raw);
+    if (!Array.isArray(list)) return [];
+    return list.filter((e) => e && typeof e.i === 'string' && Number.isFinite(e.s));
+  } catch {
+    return null;
+  }
+}
+
+// Ceiling from the game's scoring model: one trick tops out around 9k points
+// (max spin rate × max hang time × max grab bonus), tricks land at most every
+// ~3s, and the chain multiplier grows by 1 per clean landing — so a run with
+// n landings can't beat 9000 × n(n+1)/2, and n itself is bounded by duration.
+function plausibleScore(score, run) {
+  if (!run || typeof run !== 'object') return false;
+  const dur = Number(run.dur);
+  const landings = Number(run.landings);
+  if (!Number.isFinite(dur) || dur < 5 || dur > 600) return false;
+  if (!Number.isInteger(landings) || landings < 1 || landings > dur / 3) return false;
+  return score <= 9000 * ((landings * (landings + 1)) / 2);
+}
+
+async function handleScore(request, env) {
+  if (request.method === 'GET') {
+    const top = await readTopList(env);
+    return scoreResponse(200, { top: top || [] });
+  }
+  if (request.method !== 'POST') {
+    return askError(405, 'Use GET /api/score, or POST with {"initials","score","run"}.');
+  }
+  if (!env || !env.ASK_RL) return askError(503, 'leaderboard not configured');
+
+  let body;
+  try {
+    body = await readAskBody(request);
+  } catch (err) {
+    if (err instanceof AskBodyTooLargeError) return askError(413, 'Request body too large.');
+    return askError(400, 'Invalid JSON body.');
+  }
+
+  const initials = (typeof body?.initials === 'string' ? body.initials : '')
+    .trim()
+    .toUpperCase();
+  if (!/^[A-Z0-9]{1,3}$/.test(initials)) {
+    return askError(400, 'Initials must be 1-3 letters or digits.');
+  }
+  const score = body?.score;
+  if (!Number.isInteger(score) || score < 1 || score > SCORE_MAX) {
+    return askError(400, 'Invalid score.');
+  }
+
+  if (await isRateLimited(env, `score:${clientIp(request)}`, SCORE_RATE_LIMIT, SCORE_RATE_WINDOW_S)) {
+    return askError(429, 'Rate limit reached — please try again later.');
+  }
+
+  if (!plausibleScore(score, body?.run)) {
+    return askError(422, 'Score rejected.');
+  }
+
+  const top = (await readTopList(env)) || [];
+  const entry = { i: initials, s: score, t: Date.now() };
+  let rank = top.findIndex((e) => score > e.s);
+  if (rank === -1 && top.length < SCORE_TOP_N) rank = top.length;
+  if (rank === -1 || rank >= SCORE_TOP_N) {
+    return scoreResponse(200, { top, rank: null });
+  }
+  top.splice(rank, 0, entry);
+  top.length = Math.min(top.length, SCORE_TOP_N);
+  try {
+    await env.ASK_RL.put(SCORE_KEY, JSON.stringify(top));
+  } catch {
+    return askError(503, 'leaderboard temporarily unavailable');
+  }
+  return scoreResponse(200, { top, rank: rank + 1 });
 }
 
 function pickVersion() {
@@ -329,6 +438,7 @@ export default {
     // The Worker owns /api/* directly, before any version proxying.
     if (url.pathname.startsWith('/api/')) {
       if (url.pathname === '/api/ask') return handleAsk(request, env);
+      if (url.pathname === '/api/score') return handleScore(request, env);
       return askError(404, 'Unknown API route.');
     }
 

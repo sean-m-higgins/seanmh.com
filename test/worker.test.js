@@ -77,6 +77,31 @@ test('nexus is routable via ?v= and a sticky cookie but never randomly assigned'
   }
 });
 
+test('d-3d-game is routable via ?v= but never randomly assigned', async (t) => {
+  const upstreamUrls = [];
+  const restore = mockFetch(async (url) => {
+    upstreamUrls.push(String(url));
+    return new Response('game');
+  });
+  t.after(restore);
+
+  const forced = await worker.fetch(request('/?v=d-3d-game', {
+    headers: { Accept: 'text/html' },
+  }));
+  assert.equal(upstreamUrls[0], 'https://seanmh-3d-game.pages.dev/');
+  assert.equal(forced.headers.get('X-Portfolio-Version'), 'd-3d-game');
+  assert.match(forced.headers.get('Set-Cookie'), /pv=d-3d-game/);
+
+  // Rotation must never land on the game, at either extreme of Math.random().
+  const originalRandom = Math.random;
+  t.after(() => { Math.random = originalRandom; });
+  for (const r of [0, 0.999999]) {
+    Math.random = () => r;
+    const rotated = await worker.fetch(request('/', { headers: { Accept: 'text/html' } }));
+    assert.notEqual(rotated.headers.get('X-Portfolio-Version'), 'd-3d-game');
+  }
+});
+
 test('asset requests honor the cookie without refreshing it', async (t) => {
   let upstreamUrl;
   const restore = mockFetch(async (url) => {
@@ -210,6 +235,85 @@ test('ask gates the model call, reads server context, and streams SSE', async (t
   assert.match(payload.messages[0].content, /retained-context-tail/);
   assert.match(payload.messages[0].content, /private resume/);
   assert.equal(puts.length, 2);
+});
+
+function scoreRequest(body, headers = {}) {
+  return request('/api/score', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', ...headers },
+    body: JSON.stringify(body),
+  });
+}
+
+function mockScoreKv(initial = null) {
+  const store = new Map();
+  if (initial) store.set('hp:top', JSON.stringify(initial));
+  return {
+    store,
+    async get(key) { return store.get(key) ?? null; },
+    async put(key, value) { store.set(key, value); },
+  };
+}
+
+test('score GET degrades to an empty list and POST 503s without KV', async () => {
+  const emptyGet = await worker.fetch(request('/api/score'));
+  assert.equal(emptyGet.status, 200);
+  assert.deepEqual(await emptyGet.json(), { top: [] });
+
+  const post = await worker.fetch(scoreRequest({ initials: 'SMH', score: 100, run: { dur: 60, landings: 5 } }));
+  assert.equal(post.status, 503);
+});
+
+test('score POST validates initials, score, and plausibility', async () => {
+  const env = { ASK_RL: mockScoreKv() };
+  const cases = [
+    [{ initials: 'TOOLONG', score: 100, run: { dur: 60, landings: 5 } }, 400],
+    [{ initials: 'a!', score: 100, run: { dur: 60, landings: 5 } }, 400],
+    [{ initials: 'SMH', score: -5, run: { dur: 60, landings: 5 } }, 400],
+    [{ initials: 'SMH', score: 1.5, run: { dur: 60, landings: 5 } }, 400],
+    [{ initials: 'SMH', score: 100 }, 422], // no run stats
+    [{ initials: 'SMH', score: 100, run: { dur: 2, landings: 1 } }, 422], // too short
+    [{ initials: 'SMH', score: 100, run: { dur: 60, landings: 40 } }, 422], // landings > dur/3
+    [{ initials: 'SMH', score: 1_000_000, run: { dur: 60, landings: 3 } }, 422], // above ceiling
+  ];
+  for (const [body, expected] of cases) {
+    const resp = await worker.fetch(scoreRequest(body), env);
+    assert.equal(resp.status, expected, JSON.stringify(body));
+  }
+});
+
+test('score POST inserts into the top list, ranks, and caps at ten', async () => {
+  const seeded = Array.from({ length: 10 }, (_, k) => ({ i: 'AAA', s: (10 - k) * 1000, t: 1 }));
+  const env = { ASK_RL: mockScoreKv(seeded) };
+
+  // Beats 4th place (score 7000): lands at rank 4, list stays at ten.
+  const good = await worker.fetch(scoreRequest({
+    initials: 'smh', score: 7500, run: { dur: 90, landings: 12 },
+  }, { 'CF-Connecting-IP': '203.0.113.20' }), env);
+  assert.equal(good.status, 200);
+  const goodBody = await good.json();
+  assert.equal(goodBody.rank, 4);
+  assert.equal(goodBody.top.length, 10);
+  assert.equal(goodBody.top[3].i, 'SMH'); // uppercased
+  assert.equal(goodBody.top[3].s, 7500);
+
+  // Below the (new) cut line: accepted but unranked, list unchanged.
+  const miss = await worker.fetch(scoreRequest({
+    initials: 'LOW', score: 900, run: { dur: 60, landings: 8 },
+  }, { 'CF-Connecting-IP': '203.0.113.21' }), env);
+  const missBody = await miss.json();
+  assert.equal(missBody.rank, null);
+  assert.equal(missBody.top.some((e) => e.i === 'LOW'), false);
+});
+
+test('score POST is rate limited per IP', async () => {
+  const kv = mockScoreKv();
+  kv.store.set('score:203.0.113.30', '30');
+  const env = { ASK_RL: kv };
+  const resp = await worker.fetch(scoreRequest({
+    initials: 'SMH', score: 100, run: { dur: 60, landings: 5 },
+  }, { 'CF-Connecting-IP': '203.0.113.30' }), env);
+  assert.equal(resp.status, 429);
 });
 
 test('ask returns 429 without calling the model after the limit', async (t) => {

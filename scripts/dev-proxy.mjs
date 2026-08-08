@@ -8,6 +8,8 @@
 //        a-scroll:   npm run preview -- --port 4321
 //        b-card:     npm run preview -- --port 4322
 //        c-terminal: npm run preview -- --port 4323
+//        d-3d-game:  npm run preview -- --port 4324
+//        nexus:      npm run preview -- --port 4325
 //   2. node scripts/dev-proxy.mjs
 //   3. Open http://localhost:8787 in Chrome/Edge and use the dial.
 import http from "node:http";
@@ -17,6 +19,14 @@ const VERSIONS = [
   { name: "a-scroll", origin: "http://localhost:4321", weight: 34 },
   { name: "b-card", origin: "http://localhost:4322", weight: 33 },
   { name: "c-terminal", origin: "http://localhost:4323", weight: 33 },
+];
+
+// Mirror worker.js: manual-only destinations, routable by ?v=/cookie but
+// never randomly assigned.
+const ROUTABLE = [
+  ...VERSIONS,
+  { name: "d-3d-game", origin: "http://localhost:4324" },
+  { name: "nexus", origin: "http://localhost:4325" },
 ];
 const PORT = Number.parseInt(process.env.PORT || "8787", 10);
 const COOKIE_NAME = "pv";
@@ -61,7 +71,7 @@ function getCookieValue(cookieHeader, name) {
 }
 
 function findVersion(name) {
-  return VERSIONS.find((v) => v.name === name);
+  return ROUTABLE.find((v) => v.name === name);
 }
 
 function cookieFor(version) {
@@ -230,5 +240,5 @@ server.on("error", (err) => {
 
 server.listen(PORT, () => {
   console.log(`Dev proxy on http://localhost:${PORT}`);
-  for (const v of VERSIONS) console.log(`  ${v.name} ← ${v.origin}`);
+  for (const v of ROUTABLE) console.log(`  ${v.name} ← ${v.origin}`);
 });
