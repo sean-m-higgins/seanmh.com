@@ -3,13 +3,14 @@
 // This file is identical on every version branch (the layout passes `current`).
 // Edit on the `content` branch and cherry-pick, like the content contract.
 interface Props {
-  current: "a-scroll" | "b-card" | "c-terminal";
+  current: "a-scroll" | "b-card" | "c-terminal" | "d-3d-game";
 }
 
 const versions = [
   { name: "a-scroll", label: "Scroll", glyph: "∿" },
   { name: "b-card", label: "Card", glyph: "▣" },
   { name: "c-terminal", label: "Terminal", glyph: "❯" },
+  { name: "d-3d-game", label: "Game", glyph: "△" },
 ] as const;
 
 const { current } = Astro.props;
@@ -76,7 +77,7 @@ const active = versions.find((v) => v.name === current) ?? versions[0];
   .universe-dial:hover .dial-options,
   .universe-dial:focus-within .dial-options,
   .universe-dial.open .dial-options {
-    max-width: 18rem;
+    max-width: 24rem; /* four pills since the game joined the dial */
     opacity: 1;
     padding-right: 0.5rem;
   }
