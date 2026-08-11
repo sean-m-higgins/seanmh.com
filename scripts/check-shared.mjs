@@ -4,10 +4,15 @@ import { existsSync, readFileSync } from "node:fs";
 import { join } from "node:path";
 
 const CONTENT_BRANCH = "content";
+// version/nexus is deliberately absent: it keeps the shared files in its tree
+// but never imports them, and its switcher copy has diverged. version/d-3d-game
+// does not import the switcher either, but its copy is kept byte-identical so
+// the dial stays one file everywhere it is used.
 const VERSION_BRANCHES = [
   "version/a-scroll",
   "version/b-card",
   "version/c-terminal",
+  "version/d-3d-game",
 ];
 
 const sharedFiles = [
