@@ -1,14 +1,17 @@
 ---
-import BaseLayout from "../layouts/BaseLayout.astro";
-import Hero from "../components/Hero.astro";
-import About from "../components/About.astro";
-import Experience from "../components/Experience.astro";
-import Contact from "../components/Contact.astro";
+import GameLayout from "../layouts/GameLayout.astro";
+import GameCanvas from "../components/GameCanvas.astro";
+import Hud from "../components/Hud.astro";
+import StartScreen from "../components/StartScreen.astro";
+import GameOver from "../components/GameOver.astro";
 ---
 
-<BaseLayout title="Sean Higgins — Software Engineer">
-  <Hero />
-  <About />
-  <Experience />
-  <Contact />
-</BaseLayout>
+<GameLayout
+  title="Counter — Sean Higgins"
+  description="A fast 2D boxing game by Sean Higgins. Read the punch, slip or duck, and counter with perfect timing."
+>
+  <GameCanvas />
+  <Hud />
+  <StartScreen />
+  <GameOver />
+</GameLayout>

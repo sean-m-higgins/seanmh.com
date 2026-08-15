@@ -9,6 +9,7 @@
     "dev": "astro dev",
     "build": "astro build",
     "check": "astro check",
+    "test": "node --experimental-strip-types --test test/*.test.mjs",
     "preview": "astro preview",
     "astro": "astro"
   },

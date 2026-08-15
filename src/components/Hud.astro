@@ -1,0 +1,62 @@
+<div id="hud" class="pointer-events-none fixed inset-0 z-10 hidden">
+  <div class="absolute left-4 top-4 sm:left-6 sm:top-5">
+    <p class="hud-label">score</p>
+    <div class="flex items-baseline gap-3">
+      <span id="hud-score" class="font-mono text-3xl font-bold tabular-nums sm:text-4xl">0</span>
+      <span id="hud-chain" class="border border-[#776c5e] bg-[#17130f]/75 px-2 py-0.5 font-mono text-xs text-[#c9bca6] sm:text-sm">×1.0</span>
+    </div>
+  </div>
+
+  <div class="absolute right-4 top-4 flex items-start gap-3 text-right sm:right-6 sm:top-5">
+    <div>
+      <p class="hud-label">pressure</p>
+      <div class="mt-2 h-3 w-28 border border-[#776c5e] bg-[#17130f]/80 sm:w-44">
+        <div id="hud-pressure-fill" class="h-full w-[65%] bg-accent"></div>
+      </div>
+    </div>
+    <button id="mute-btn" type="button" class="pointer-events-auto mt-1 cursor-pointer border border-[#776c5e] bg-[#17130f]/75 px-2 py-1 font-mono text-xs text-[#c9bca6] hover:border-accent hover:text-accent" aria-label="Mute sound">SOUND</button>
+  </div>
+
+  <div id="hud-pb" class="absolute left-1/2 top-5 hidden w-32 -translate-x-1/2 sm:w-56">
+    <div class="h-1 overflow-hidden bg-[#51493e]">
+      <div id="hud-pb-fill" class="h-full w-0 bg-[#f2e8d5]"></div>
+    </div>
+    <p class="mt-1 text-center font-mono text-[0.58rem] uppercase tracking-[0.2em] text-[#a99d89]">personal best</p>
+  </div>
+
+  <div id="hud-popups" class="absolute left-1/2 top-[24%] flex -translate-x-1/2 flex-col items-center gap-2" aria-live="polite"></div>
+  <p id="hud-hint" class="absolute left-1/2 top-[69%] hidden w-max max-w-[90vw] -translate-x-1/2 bg-[#17130f]/75 px-3 py-1.5 text-center font-mono text-xs text-[#d8ccb8] sm:text-sm"></p>
+
+  <div id="touch-controls" class="pointer-events-auto absolute inset-x-3 bottom-[max(0.75rem,env(safe-area-inset-bottom))] hidden grid-cols-4 gap-2" aria-label="Boxing controls">
+    <button type="button" data-action="left" class="fight-control" aria-label="Slip left"><span aria-hidden="true">←</span><small>slip</small></button>
+    <button type="button" data-action="duck" class="fight-control" aria-label="Duck"><span aria-hidden="true">↓</span><small>duck</small></button>
+    <button type="button" data-action="right" class="fight-control" aria-label="Slip right"><span aria-hidden="true">→</span><small>slip</small></button>
+    <button type="button" data-action="counter" class="fight-control fight-control--counter" aria-label="Counter punch"><span aria-hidden="true">●</span><small>counter</small></button>
+  </div>
+
+  <a href="/?v=a-scroll" class="pointer-events-auto absolute bottom-3 left-3 hidden font-mono text-xs text-[#8f8372] transition-colors hover:text-[#f2e8d5] sm:block">seanmh.com</a>
+</div>
+
+<style is:global>
+  .hud-label { font-family: var(--font-mono); font-size: 0.62rem; text-transform: uppercase; letter-spacing: 0.23em; color: #a99d89; }
+  #hud-chain.chain-hot { border-color: var(--color-accent); color: var(--color-accent-light); }
+  #hud-chain.pop { animation: chain-pop 0.25s cubic-bezier(0.2, 0, 0, 1.4); }
+  #hud-pressure-fill { transition: width 90ms linear; }
+  #hud-pressure-fill.pressure-low { animation: pressure-pulse 0.65s ease-in-out infinite; background: #f2e8d5; }
+  #hud-pb.pb-passed #hud-pb-fill { background: #ffd166; box-shadow: 0 0 10px #ffd166; }
+  .popup { text-align: center; font-family: var(--font-mono); animation: popup-rise 0.85s ease-out forwards; }
+  .popup-main { font-size: clamp(1.5rem, 5vw, 2.5rem); font-weight: 900; letter-spacing: 0.04em; }
+  .popup-sub { margin-top: 0.1rem; color: #c9bca6; font-size: 0.75rem; }
+  .popup--perfect .popup-main { color: #ffd166; text-shadow: 3px 3px 0 #17130f; }
+  .popup--counter .popup-main { color: var(--color-accent-light); text-shadow: 3px 3px 0 #17130f; }
+  .popup--hit .popup-main, .popup--miss .popup-main { color: #f2e8d5; text-shadow: 3px 3px 0 var(--color-accent); }
+  .fight-control { display: flex; min-height: 4.3rem; touch-action: none; user-select: none; flex-direction: column; align-items: center; justify-content: center; border: 2px solid #897c6a; background: rgb(23 19 15 / 0.88); color: #f2e8d5; font-family: var(--font-mono); font-size: 1.5rem; font-weight: 700; backdrop-filter: blur(6px); }
+  .fight-control small { font-size: 0.56rem; font-weight: 500; letter-spacing: 0.12em; text-transform: uppercase; color: #b9ad99; }
+  .fight-control:active, .fight-control.pressed { transform: translateY(2px); border-color: #f2e8d5; background: rgb(211 62 45 / 0.82); }
+  .fight-control--counter { border-color: var(--color-accent); background: rgb(211 62 45 / 0.25); }
+  @media (pointer: coarse), (max-width: 640px) { #touch-controls { display: grid; } }
+  @keyframes chain-pop { 45% { transform: scale(1.28) rotate(-2deg); } }
+  @keyframes pressure-pulse { 50% { opacity: 0.45; } }
+  @keyframes popup-rise { 0% { opacity: 0; transform: translateY(10px) scale(0.9) rotate(-2deg); } 15% { opacity: 1; } 100% { opacity: 0; transform: translateY(-34px) scale(1.04) rotate(1deg); } }
+  @media (prefers-reduced-motion: reduce) { #hud-chain.pop, #hud-pressure-fill.pressure-low { animation: none; } .popup { animation-duration: 0.25s; } }
+</style>

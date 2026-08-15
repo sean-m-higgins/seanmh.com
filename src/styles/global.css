@@ -5,8 +5,8 @@
 @theme {
   --font-sans: "Inter", ui-sans-serif, system-ui, sans-serif;
   --font-mono: "JetBrains Mono", ui-monospace, monospace;
-  --color-accent: #6366f1;
-  --color-accent-light: #818cf8;
+  --color-accent: #d33e2d;
+  --color-accent-light: #f06a55;
 }
 
 @layer base {
@@ -15,11 +15,9 @@
     scroll-padding-top: 5rem;
   }
 
-  body {
-    @apply bg-white text-neutral-900 dark:bg-[#0a0a0a] dark:text-neutral-100 transition-colors duration-300;
-  }
+  body { @apply bg-[#17130f] text-[#f2e8d5]; }
 
   ::selection {
-    @apply bg-accent/20 text-accent;
+    @apply bg-accent text-[#f2e8d5];
   }
 }

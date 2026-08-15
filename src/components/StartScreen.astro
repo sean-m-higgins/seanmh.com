@@ -1,0 +1,86 @@
+<div
+  id="screen-start"
+  class="fixed inset-0 z-30 flex flex-col items-center justify-center overflow-hidden bg-[#17130f] px-6"
+>
+  <div class="poster-rays" aria-hidden="true"></div>
+  <p class="relative font-mono text-xs uppercase tracking-[0.32em] text-[#a99d89]">
+    seanmh.com · version e
+  </p>
+  <h1 class="poster-title relative mt-3 text-center text-[clamp(4.5rem,16vw,10rem)] font-black leading-[0.78] tracking-[-0.075em]">
+    COUNT<span class="text-accent">ER</span>
+  </h1>
+  <p class="relative mt-6 max-w-lg text-center text-base text-[#c9bca6] sm:text-lg">
+    Read the punch. Slip or duck. Fire back in the opening. Stay sharp—the crowd only backs a fighter who counters.
+  </p>
+
+  <div class="relative mt-8 hidden flex-wrap items-center justify-center gap-x-6 gap-y-3 font-mono text-sm text-[#b9ad99] sm:flex">
+    <span><kbd class="key">←</kbd><kbd class="key">↓</kbd><kbd class="key">→</kbd> defend</span>
+    <span><kbd class="key">space</kbd> counter</span>
+    <span><kbd class="key">R</kbd> restart</span>
+    <span><kbd class="key">M</kbd> sound</span>
+  </div>
+  <p class="relative mt-7 font-mono text-sm text-[#b9ad99] sm:hidden">
+    use the four ringside controls
+  </p>
+
+  <button
+    id="start-btn"
+    type="button"
+    autofocus
+    class="relative mt-9 cursor-pointer border-2 border-[#f2e8d5] bg-accent px-10 py-3.5 text-lg font-black uppercase tracking-[0.16em] text-[#17130f] shadow-[8px_8px_0_#f2e8d5] transition hover:-translate-y-0.5 hover:shadow-[10px_10px_0_#f2e8d5] focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-[#f2e8d5] disabled:opacity-60"
+  >
+    Touch gloves
+  </button>
+
+  <p id="start-best" class="relative mt-6 hidden font-mono text-sm text-[#a99d89]"></p>
+
+  <div class="absolute bottom-5 flex flex-wrap items-center justify-center gap-x-4 gap-y-1 text-center text-sm text-[#928674]">
+    <a href="/?v=d-3d-game" class="underline decoration-[#655c50] underline-offset-4 hover:text-accent">play the 3D halfpipe</a>
+    <span aria-hidden="true">·</span>
+    <a href="/?v=nexus" class="underline decoration-[#655c50] underline-offset-4 hover:text-accent">back to the résumé</a>
+  </div>
+</div>
+
+<style>
+  .poster-rays {
+    position: absolute;
+    inset: -25%;
+    opacity: 0.13;
+    background: repeating-conic-gradient(from 4deg at 50% 50%, #f2e8d5 0 7deg, transparent 7deg 15deg);
+    animation: poster-turn 80s linear infinite;
+  }
+  .poster-title {
+    text-shadow: 5px 5px 0 rgb(0 0 0 / 0.45);
+  }
+  .key {
+    display: inline-block;
+    margin-right: 0.25rem;
+    padding: 0.12rem 0.48rem;
+    border: 1px solid #756b5d;
+    border-bottom-width: 3px;
+    color: #f2e8d5;
+    font-size: 0.78em;
+  }
+  @keyframes poster-turn {
+    to { transform: rotate(360deg); }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .poster-rays { animation: none; }
+  }
+</style>
+
+<script>
+  try {
+    const raw = localStorage.getItem("seanmh:e-2d-game:counter:v1");
+    if (raw) {
+      const best = Number(JSON.parse(raw).best) || 0;
+      const el = document.getElementById("start-best");
+      if (best > 0 && el) {
+        el.textContent = `personal best ${best.toLocaleString("en-US")}`;
+        el.classList.remove("hidden");
+      }
+    }
+  } catch {
+    /* Storage is optional. */
+  }
+</script>

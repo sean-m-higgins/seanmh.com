@@ -1,0 +1,39 @@
+<canvas
+  id="game-canvas"
+  class="fixed inset-0 h-full w-full touch-none select-none"
+  aria-label="Counter boxing game"
+></canvas>
+
+<div id="screen-fallback" class="fixed inset-0 z-40 hidden items-center justify-center bg-[#17130f] p-6">
+  <div class="max-w-md border-2 border-[#766b5c] bg-[#211c17] p-8 text-center shadow-[8px_8px_0_#090806]">
+    <p class="font-mono text-sm uppercase tracking-widest text-[#a99d89]">canvas unavailable</p>
+    <h2 class="mt-3 text-2xl font-black uppercase">The bell cannot ring</h2>
+    <p class="mt-3 text-[#c9bca6]">This browser could not start the bout. The rest of the site is still available.</p>
+    <a href="/?v=nexus" class="mt-6 inline-block border border-[#766b5c] px-4 py-2 text-sm hover:border-accent hover:text-accent">Back to the nexus</a>
+  </div>
+</div>
+
+<script>
+  const btn = document.getElementById("start-btn") as HTMLButtonElement | null;
+  let mod: Promise<typeof import("../scripts/game/main")> | null = null;
+  const load = () => (mod ??= import("../scripts/game/main"));
+
+  if (btn) {
+    btn.addEventListener("pointerenter", () => void load(), { once: true });
+    btn.addEventListener("focus", () => void load(), { once: true });
+    btn.addEventListener("click", async () => {
+      btn.disabled = true;
+      btn.setAttribute("aria-busy", "true");
+      try {
+        (await load()).start();
+      } catch (error) {
+        if (import.meta.env.DEV) console.error(error);
+        document.getElementById("screen-start")?.classList.add("hidden");
+        const fallback = document.getElementById("screen-fallback");
+        fallback?.classList.remove("hidden");
+        fallback?.classList.add("flex");
+      }
+    });
+  }
+  setTimeout(() => void load(), 3000);
+</script>

@@ -1,36 +1,31 @@
-# Shared portfolio content
+# Version E — Counter
 
-This branch is the canonical source for content and cross-version UI shared by
-the standalone portfolio versions. It is not deployed directly.
+The 2D game version of seanmh.com: read the opponent's punch, slip or duck,
+then counter inside the opening. Clean counters build the multiplier and the
+opponent's heat; passive play drains the pressure meter until the final bell.
 
-## Shared contract
+## Controls
 
-Keep these files byte-identical on `content`, `version/a-scroll`,
-`version/b-card`, and `version/c-terminal`:
+- `Left` / `A`: slip left
+- `Down` / `S`: duck
+- `Right` / `D`: slip right
+- `Space` / `J`: counter
+- `R`: restart
+- `M`: toggle sound
 
-- `src/content/site.ts`
-- `src/content/experience.ts`
-- `src/assets/images/headshot.jpeg`
-- `src/components/VersionSwitcher.astro`
-- `src/styles/transitions.css`
+Touch devices use the four persistent ringside controls.
 
-`src/content/projects.ts` is also canonical here, but only needs to exist on a
-version branch that consumes project data.
+## Development
 
-Make shared changes here first. Commit them on `content`, then cherry-pick that
-commit into each consuming version branch and adapt only the version-specific
-rendering around the shared files. Do not edit a shared copy independently on a
-version branch.
-
-## Validation
-
-Use Node 22.12 or newer (see `.nvmrc`), then run:
+Use Node 22.12 or newer, then run:
 
 ```bash
 npm install
+npm test
 npm run check
 npm run build
 ```
 
-The build validates the canonical content against the reference Astro page.
-Run the main branch's shared-file check after syncing all worktrees.
+The global top-ten client calls `/api/score/boxing` on seanmh.com. It hides
+itself when the router Worker or KV storage is unavailable, so direct Pages
+previews remain fully playable with local personal and daily bests.
