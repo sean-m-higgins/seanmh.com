@@ -8,7 +8,10 @@ import sitemap from '@astrojs/sitemap';
 export default defineConfig({
   site: 'https://seanmh.com',
   vite: {
-    plugins: [tailwindcss()]
+    plugins: [tailwindcss()],
+    // Without a target, esbuild assumes evergreen browsers and strips -webkit-
+    // prefixes that older iOS Safari still needs (user-select, backdrop-filter).
+    build: { cssTarget: 'safari15' }
   },
   integrations: [sitemap()]
 });

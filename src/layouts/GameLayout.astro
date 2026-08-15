@@ -44,5 +44,19 @@ const canonicalUrl = new URL(Astro.url.pathname, Astro.site ?? Astro.url);
   </head>
   <body class="h-dvh overflow-hidden overscroll-none bg-[#0b0d1a] font-sans text-neutral-100 antialiased">
     <slot />
+    <style is:global>
+      /* iOS: holding the pump button must not start a text selection or raise
+         the callout menu. Safari only honours the -webkit- prefixed forms. */
+      body {
+        -webkit-user-select: none;
+        user-select: none;
+        -webkit-touch-callout: none;
+      }
+      /* …except the initials field, which still needs a caret and selection. */
+      input {
+        -webkit-user-select: text;
+        user-select: text;
+      }
+    </style>
   </body>
 </html>
