@@ -1,26 +1,27 @@
 <div
   id="screen-start"
-  class="fixed inset-0 z-30 flex flex-col items-center justify-center overflow-hidden bg-[#17130f] px-6"
+  class="fixed inset-0 z-30 flex flex-col items-center overflow-y-auto bg-[#17130f] px-6 pt-[max(2rem,env(safe-area-inset-top))] pb-[max(4.5rem,env(safe-area-inset-bottom))]"
 >
   <div class="poster-lights" aria-hidden="true"></div>
   <div class="poster-halftone" aria-hidden="true"></div>
-  <p class="relative font-mono text-xs uppercase tracking-[0.32em] text-[#a99d89]">
+  <div class="relative my-auto flex w-full flex-col items-center">
+  <p class="font-mono text-xs uppercase tracking-[0.32em] text-[#a99d89]">
     seanmh.com · version e
   </p>
-  <h1 class="poster-title relative mt-3 text-center text-[clamp(4.5rem,16vw,10rem)] font-black leading-[0.78] tracking-[-0.075em]">
+  <h1 class="poster-title mt-3 text-center text-[clamp(4.5rem,16vw,10rem)] font-black leading-[0.78] tracking-[-0.075em]">
     COUNT<span class="text-accent">ER</span>
   </h1>
-  <p class="relative mt-6 max-w-lg text-center text-base text-[#c9bca6] sm:text-lg">
+  <p class="mt-6 max-w-lg text-center text-base text-[#c9bca6] sm:text-lg">
     Read the punch. Slip or duck. Fire back in the opening. Stay sharp—the crowd only backs a fighter who counters.
   </p>
 
-  <div class="relative mt-8 hidden flex-wrap items-center justify-center gap-x-6 gap-y-3 font-mono text-sm text-[#b9ad99] sm:flex">
+  <div class="mt-8 hidden flex-wrap items-center justify-center gap-x-6 gap-y-3 font-mono text-sm text-[#b9ad99] sm:flex">
     <span><kbd class="key">←</kbd><kbd class="key">↓</kbd><kbd class="key">→</kbd> defend</span>
     <span><kbd class="key">space</kbd> counter</span>
     <span><kbd class="key">R</kbd> restart</span>
     <span><kbd class="key">M</kbd> sound</span>
   </div>
-  <p class="relative mt-7 font-mono text-sm text-[#b9ad99] sm:hidden">
+  <p class="mt-7 font-mono text-sm text-[#b9ad99] sm:hidden">
     use the four ringside controls
   </p>
 
@@ -28,14 +29,15 @@
     id="start-btn"
     type="button"
     autofocus
-    class="relative mt-9 cursor-pointer border-2 border-[#f2e8d5] bg-accent px-10 py-3.5 text-lg font-black uppercase tracking-[0.16em] text-[#17130f] shadow-[8px_8px_0_#f2e8d5] transition hover:-translate-y-0.5 hover:shadow-[10px_10px_0_#f2e8d5] focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-[#f2e8d5] disabled:opacity-60"
+    class="mt-9 cursor-pointer border-2 border-[#f2e8d5] bg-accent px-10 py-3.5 text-lg font-black uppercase tracking-[0.16em] text-[#17130f] shadow-[8px_8px_0_#f2e8d5] transition hover:-translate-y-0.5 hover:shadow-[10px_10px_0_#f2e8d5] focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-[#f2e8d5] disabled:opacity-60"
   >
     Touch gloves
   </button>
 
-  <p id="start-best" class="relative mt-6 hidden font-mono text-sm text-[#a99d89]"></p>
+  <p id="start-best" class="mt-6 hidden font-mono text-sm text-[#a99d89]"></p>
+  </div>
 
-  <div class="absolute bottom-5 flex flex-wrap items-center justify-center gap-x-4 gap-y-1 text-center text-sm text-[#928674]">
+  <div class="fixed bottom-[max(1.25rem,env(safe-area-inset-bottom))] left-1/2 flex w-full max-w-[92vw] -translate-x-1/2 flex-wrap items-center justify-center gap-x-4 gap-y-1 text-center text-sm text-[#928674]">
     <a href="/?v=d-3d-game" class="underline decoration-[#655c50] underline-offset-4 hover:text-accent">play the 3D halfpipe</a>
     <span aria-hidden="true">·</span>
     <a href="/?v=nexus" class="underline decoration-[#655c50] underline-offset-4 hover:text-accent">back to the résumé</a>
@@ -47,7 +49,7 @@
      Nothing rotates or travels here — the only motion is a slow opacity
      breath, which has no direction for the eye to track. */
   .poster-lights {
-    position: absolute;
+    position: fixed;
     inset: 0;
     background:
       radial-gradient(115% 78% at 50% -12%, rgb(242 232 213 / 0.17), transparent 62%),
@@ -56,7 +58,7 @@
   }
   /* Screen-print halftone, masked away from the centre so the title stays crisp. */
   .poster-halftone {
-    position: absolute;
+    position: fixed;
     inset: 0;
     opacity: 0.16;
     background-image: radial-gradient(#f2e8d5 0.9px, transparent 1.1px);

@@ -10,6 +10,85 @@ export interface FightScene {
 
 const WORLD_W = 1000;
 const WORLD_H = 650;
+// The horizontal band that has to stay on screen for an exchange to read: both
+// fighters at full extension, with room for a player slipped hard to the left.
+const ACTION_W = 580;
+// The vertical band that carries the fight, from the cue badge down to the
+// fighters' feet. The dead floor below it may slide under the touch controls.
+const CONTENT_TOP = 90;
+const CONTENT_BOTTOM = 560;
+const CONTENT_H = CONTENT_BOTTOM - CONTENT_TOP;
+// Mirrors Hud.astro: the control row is a 4.3rem button above a 0.75rem (or
+// safe-area) gutter, and the score block runs ~72px down from the top edge.
+const CONTROL_H = 68.8;
+const CONTROL_GAP = 12;
+const HUD_TOP_BLOCK = 72;
+
+interface Layout { scale: number; offsetX: number; offsetY: number }
+
+/** Reads the live env(safe-area-inset-*) values, which CSS alone can't hand to canvas. */
+function safeInsets(): { top: number; bottom: number } {
+  const probe = document.createElement("div");
+  probe.style.cssText =
+    "position:fixed;top:0;left:0;width:0;height:0;visibility:hidden;pointer-events:none;" +
+    "padding-top:env(safe-area-inset-top);padding-bottom:env(safe-area-inset-bottom);";
+  document.body.appendChild(probe);
+  const style = getComputedStyle(probe);
+  const insets = {
+    top: Number.parseFloat(style.paddingTop) || 0,
+    bottom: Number.parseFloat(style.paddingBottom) || 0,
+  };
+  probe.remove();
+  return insets;
+}
+
+/**
+ * Desktop framing is unchanged. Wherever the touch controls are on screen the
+ * world is fitted into the band between the HUD and the control row instead of
+ * being centred in the viewport, so the buttons can never cover the fighters
+ * and tall phones stop wasting half the screen on empty canvas.
+ */
+function computeLayout(w: number, h: number): Layout {
+  const touch = window.matchMedia("(pointer: coarse), (max-width: 640px)").matches;
+  if (!touch) {
+    const visibleWidth = w / h < 0.75 ? 720 : WORLD_W;
+    const scale = Math.min(w / visibleWidth, h / WORLD_H);
+    return { scale, offsetX: (w - WORLD_W * scale) / 2, offsetY: (h - WORLD_H * scale) / 2 };
+  }
+  const insets = safeInsets();
+  const top = insets.top + HUD_TOP_BLOCK;
+  const bottom = Math.max(CONTROL_GAP, insets.bottom) + CONTROL_H;
+  const band = Math.max(140, h - top - bottom);
+  const scale = Math.min(w / ACTION_W, band / CONTENT_H);
+  return {
+    scale,
+    offsetX: (w - WORLD_W * scale) / 2,
+    offsetY: top + (band - CONTENT_H * scale) / 2 - CONTENT_TOP * scale,
+  };
+}
+
+/**
+ * The halftone is a static texture, so it is stamped once per resize instead of
+ * costing ~790 arc fills on every frame.
+ */
+function buildHalftone(pixelScale: number): HTMLCanvasElement | null {
+  const sheet = document.createElement("canvas");
+  sheet.width = Math.max(1, Math.ceil(WORLD_W * pixelScale));
+  sheet.height = Math.max(1, Math.ceil(WORLD_H * pixelScale));
+  const ink = sheet.getContext("2d");
+  if (!ink) return null;
+  ink.scale(pixelScale, pixelScale);
+  ink.globalAlpha = 0.08;
+  ink.fillStyle = "#f2e8d5";
+  for (let y = 80; y < 560; y += 24) {
+    for (let x = 35 + ((y / 24) % 2) * 8; x < 980; x += 24) {
+      ink.beginPath();
+      ink.arc(x, y, 2.2, 0, Math.PI * 2);
+      ink.fill();
+    }
+  }
+  return sheet;
+}
 
 export function createScene(canvas: HTMLCanvasElement, reducedMotion: boolean): FightScene | null {
   const foundContext = canvas.getContext("2d");
@@ -26,6 +105,10 @@ export function createScene(canvas: HTMLCanvasElement, reducedMotion: boolean): 
   let elapsed = 0;
   const particles: Particle[] = [];
 
+  let layout: Layout = { scale: 1, offsetX: 0, offsetY: 0 };
+  let halftone: HTMLCanvasElement | null = null;
+  let halftoneScale = 0;
+
   const resize = () => {
     width = Math.max(1, window.innerWidth);
     height = Math.max(1, window.innerHeight);
@@ -35,6 +118,15 @@ export function createScene(canvas: HTMLCanvasElement, reducedMotion: boolean): 
     canvas.style.width = `${width}px`;
     canvas.style.height = `${height}px`;
     context.setTransform(ratio, 0, 0, ratio, 0, 0);
+    layout = computeLayout(width, height);
+    // Capped so a high-DPI desktop does not allocate a huge offscreen sheet for
+    // what is an 8%-opacity texture, and rounded so the repeated resize events
+    // a mobile browser fires do not keep reallocating it.
+    const sheetScale = Math.round(Math.min(layout.scale * ratio, 2) * 4) / 4;
+    if (sheetScale !== halftoneScale) {
+      halftone = buildHalftone(sheetScale);
+      halftoneScale = sheetScale;
+    }
   };
   resize();
   window.addEventListener("resize", resize);
@@ -133,28 +225,14 @@ export function createScene(canvas: HTMLCanvasElement, reducedMotion: boolean): 
   }
 
   function drawWorld(state: GameState): void {
-    // Portrait screens crop the empty outside edges of the ring so the two
-    // fighters remain large enough to read above the touch controls.
-    const visibleWidth = width / height < 0.75 ? 720 : WORLD_W;
-    const scale = Math.min(width / visibleWidth, height / WORLD_H);
-    const offsetX = (width - WORLD_W * scale) / 2;
-    const offsetY = (height - WORLD_H * scale) / 2;
+    const { scale, offsetX, offsetY } = layout;
     const sx = reducedMotion ? 0 : (Math.random() - 0.5) * shake * 18;
     const sy = reducedMotion ? 0 : (Math.random() - 0.5) * shake * 10;
     context.save();
     context.translate(offsetX + sx, offsetY + sy);
     context.scale(scale, scale);
 
-    context.globalAlpha = 0.08;
-    context.fillStyle = "#f2e8d5";
-    for (let y = 80; y < 560; y += 24) {
-      for (let x = 35 + ((y / 24) % 2) * 8; x < 980; x += 24) {
-        context.beginPath();
-        context.arc(x, y, 2.2, 0, Math.PI * 2);
-        context.fill();
-      }
-    }
-    context.globalAlpha = 1;
+    if (halftone) context.drawImage(halftone, 0, 0, WORLD_W, WORLD_H);
 
     context.fillStyle = "#0b0907";
     context.fillRect(0, 505, WORLD_W, 145);
