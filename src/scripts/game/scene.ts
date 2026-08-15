@@ -105,7 +105,11 @@ export function createScene(canvas: HTMLCanvasElement, reducedMotion: boolean): 
     context.fillStyle = color;
     context.fill();
     context.stroke();
-    line(shoulderX - facing * 7, shoulderY - 31, shoulderX - facing * 25, shoulderY - 16, 15, color);
+    // Neck: a short column from inside the skull down into the shoulders,
+    // tucked just far enough back to read as a stance. It has to overlap both
+    // ends — the head bottom sits at shoulderY - 16 and the torso crown at
+    // roughly shoulderY - 6, so anything shorter leaves the head detached.
+    line(shoulderX - facing * 4, shoulderY - 30, shoulderX - facing * 8, shoulderY - 8, 16, color);
 
     const frontElbowX = shoulderX + forward * 0.52;
     const frontElbowY = shoulderY + 4 - (pose.punch ?? 0) * 11;
