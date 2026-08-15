@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
 
-import { defenseIsOpen, newBout, stepCombat } from '../src/scripts/game/combat.ts';
+import { defenseIsOpen, easedHeat, newBout, stepCombat } from '../src/scripts/game/combat.ts';
 import { mulberry32 } from '../src/scripts/game/rng.ts';
 import { T } from '../src/scripts/game/tuning.ts';
 
@@ -96,6 +96,8 @@ test('success raises heat, speeds telegraphs, and can schedule multi-punch flurr
   const random = () => values.shift() ?? 0;
   const state = newBout(random);
   state.heat = 0.8;
+  // Past the opening warmup, so heat drives the windows on its own.
+  state.time = T.WARMUP_SECONDS;
   advanceUntil(state, () => defenseIsOpen(state));
   stepCombat(state, DT, ['right'], random);
   stepCombat(state, DT, ['counter'], random);
@@ -127,6 +129,33 @@ test('the chain multiplier caps at four times base score', () => {
   const events = stepCombat(state, DT, ['counter'], fixedRandom);
   assert.equal(events[0].type, 'counter');
   assert.equal(events[0].points, 400);
+});
+
+test('the opening warmup keeps early exchanges readable at identical heat', () => {
+  // Eat the opening punch first, then pin heat and the clock so the next
+  // telegraph is generated at exactly the heat and bout time we want.
+  const telegraphAt = (time) => {
+    const state = newBout(fixedRandom);
+    advanceUntil(state, () => state.phase === 'recover', 3);
+    state.heat = 1;
+    state.time = time;
+    advanceUntil(state, () => state.phase === 'telegraph', 3);
+    return { telegraph: state.phaseDuration, eased: easedHeat(state) };
+  };
+
+  const opening = telegraphAt(0);
+  const settled = telegraphAt(T.WARMUP_SECONDS);
+
+  // Same nominal heat, but the opening bell sees only a fraction of it.
+  assert.ok(opening.eased < settled.eased);
+  assert.ok(Math.abs(settled.eased - 1) < 0.01, 'warmup must fully burn off');
+  // A slower telegraph is the whole point: more time to read the punch.
+  assert.ok(
+    opening.telegraph > settled.telegraph,
+    `opening telegraph ${opening.telegraph} should outlast settled ${settled.telegraph}`,
+  );
+  // The defense window must stay above human reaction time at the bell.
+  assert.ok(opening.telegraph > 0.6);
 });
 
 test('the pressure clock ends the bout even for a flawless counter-puncher', () => {

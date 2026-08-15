@@ -2,7 +2,8 @@
   id="screen-start"
   class="fixed inset-0 z-30 flex flex-col items-center justify-center overflow-hidden bg-[#17130f] px-6"
 >
-  <div class="poster-rays" aria-hidden="true"></div>
+  <div class="poster-lights" aria-hidden="true"></div>
+  <div class="poster-halftone" aria-hidden="true"></div>
   <p class="relative font-mono text-xs uppercase tracking-[0.32em] text-[#a99d89]">
     seanmh.com · version e
   </p>
@@ -42,12 +43,26 @@
 </div>
 
 <style>
-  .poster-rays {
+  /* Ring lights: a warm pool from the rafters and a red bloom off the canvas.
+     Nothing rotates or travels here — the only motion is a slow opacity
+     breath, which has no direction for the eye to track. */
+  .poster-lights {
     position: absolute;
-    inset: -25%;
-    opacity: 0.13;
-    background: repeating-conic-gradient(from 4deg at 50% 50%, #f2e8d5 0 7deg, transparent 7deg 15deg);
-    animation: poster-turn 80s linear infinite;
+    inset: 0;
+    background:
+      radial-gradient(115% 78% at 50% -12%, rgb(242 232 213 / 0.17), transparent 62%),
+      radial-gradient(95% 62% at 50% 112%, rgb(211 62 45 / 0.22), transparent 68%);
+    animation: poster-breathe 11s ease-in-out infinite;
+  }
+  /* Screen-print halftone, masked away from the centre so the title stays crisp. */
+  .poster-halftone {
+    position: absolute;
+    inset: 0;
+    opacity: 0.16;
+    background-image: radial-gradient(#f2e8d5 0.9px, transparent 1.1px);
+    background-size: 7px 7px;
+    -webkit-mask-image: radial-gradient(72% 58% at 50% 44%, transparent 22%, #000 100%);
+    mask-image: radial-gradient(72% 58% at 50% 44%, transparent 22%, #000 100%);
   }
   .poster-title {
     text-shadow: 5px 5px 0 rgb(0 0 0 / 0.45);
@@ -61,11 +76,12 @@
     color: #f2e8d5;
     font-size: 0.78em;
   }
-  @keyframes poster-turn {
-    to { transform: rotate(360deg); }
+  @keyframes poster-breathe {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.78; }
   }
   @media (prefers-reduced-motion: reduce) {
-    .poster-rays { animation: none; }
+    .poster-lights { animation: none; }
   }
 </style>
 

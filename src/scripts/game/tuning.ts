@@ -28,6 +28,21 @@ export const T = {
   HEAT_PERFECT: 0.06,
   HEAT_HIT_LOSS: 0.24,
   HEAT_MISS_LOSS: 0.1,
+  // Opening-bell easing. The first WARMUP_SECONDS of every bout run at a
+  // fraction of the fighter's real heat, so telegraphs stay slow and the
+  // defense window stays wide while you learn the reads. It ramps to full
+  // difficulty on a clock, identically for every player, so global scores
+  // stay directly comparable.
+  WARMUP_SECONDS: 30,
+  WARMUP_CURVE: 2,
+  WARMUP_HEAT_SCALE: 0.4,
+  WARMUP_GAIN_SCALE: 0.4,
+  // At the bell the defense window covers nearly the whole telegraph, so a fast
+  // correct read is never punished as "early" — by far the biggest source of
+  // early washouts. It tapers back to the designed window over the warmup.
+  WARMUP_WINDOW_FRACTION: 0.95,
+  // The counter opening gets the same treatment, widened then eased back.
+  WARMUP_COUNTER_BONUS: 1.6,
   SCORE_BASE: 100,
   CHAIN_STEP: 0.2,
   CHAIN_CAP: 4,
