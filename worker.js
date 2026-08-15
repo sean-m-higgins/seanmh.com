@@ -15,9 +15,13 @@ const NEXUS = { name: 'nexus', origin: 'https://seanmh-nexus.pages.dev' };
 // visitor — a game is a bad thing to hand a recruiter unannounced.
 const GAME = { name: 'd-3d-game', origin: 'https://seanmh-3d-game.pages.dev' };
 
+// Version E is the 2D boxing companion game. Like Version D, it is opt-in and
+// never part of the first-visit rotation.
+const GAME_2D = { name: 'e-2d-game', origin: 'https://seanmh-2d-game.pages.dev' };
+
 // Everything the Worker will proxy when named explicitly (?v= or cookie).
 // Rotation still draws only from VERSIONS.
-const ROUTABLE = [...VERSIONS, NEXUS, GAME];
+const ROUTABLE = [...VERSIONS, NEXUS, GAME, GAME_2D];
 const COOKIE_NAME = 'pv';
 const COOKIE_OPTIONS = 'Path=/; Max-Age=1800; SameSite=Lax; Secure; HttpOnly';
 const DOCUMENT_CACHE_CONTROL = 'private, no-store';
@@ -290,10 +294,10 @@ function scoreResponse(status, payload) {
   });
 }
 
-async function readTopList(env) {
+async function readTopList(env, key = SCORE_KEY) {
   if (!env || !env.ASK_RL) return null;
   try {
-    const raw = await env.ASK_RL.get(SCORE_KEY);
+    const raw = await env.ASK_RL.get(key);
     if (!raw) return [];
     const list = JSON.parse(raw);
     if (!Array.isArray(list)) return [];
@@ -370,6 +374,71 @@ async function handleScore(request, env) {
   return scoreResponse(200, { top, rank: rank + 1 });
 }
 
+// --- /api/score/boxing (Version E leaderboard) ----------------------------
+// Kept separate from the halfpipe board so both games retain their own score
+// contract and anti-forgery ceiling while sharing the existing KV binding.
+const BOXING_SCORE_KEY = 'bx:top';
+
+function plausibleBoxingScore(score, run) {
+  if (!run || typeof run !== 'object') return false;
+  const dur = Number(run.dur);
+  const counters = Number(run.counters);
+  const maxChain = Number(run.maxChain);
+  const hits = Number(run.hits);
+  if (!Number.isFinite(dur) || dur < 5 || dur > 300) return false;
+  if (!Number.isInteger(counters) || counters < 1 || counters > Math.ceil(dur * 4)) return false;
+  if (!Number.isInteger(maxChain) || maxChain < 1 || maxChain > counters) return false;
+  if (!Number.isInteger(hits) || hits < 0 || hits > Math.ceil(dur * 2)) return false;
+  // One perfect counter is worth at most 100 × 1.5 × the capped 4× chain.
+  return score <= 600 * counters;
+}
+
+async function handleBoxingScore(request, env) {
+  if (request.method === 'GET') {
+    const top = await readTopList(env, BOXING_SCORE_KEY);
+    return scoreResponse(200, { top: top || [] });
+  }
+  if (request.method !== 'POST') {
+    return askError(405, 'Use GET /api/score/boxing, or POST with {"initials","score","run"}.');
+  }
+  if (!env || !env.ASK_RL) return askError(503, 'leaderboard not configured');
+
+  let body;
+  try {
+    body = await readAskBody(request);
+  } catch (err) {
+    if (err instanceof AskBodyTooLargeError) return askError(413, 'Request body too large.');
+    return askError(400, 'Invalid JSON body.');
+  }
+
+  const initials = (typeof body?.initials === 'string' ? body.initials : '').trim().toUpperCase();
+  if (!/^[A-Z0-9]{1,3}$/.test(initials)) {
+    return askError(400, 'Initials must be 1-3 letters or digits.');
+  }
+  const score = body?.score;
+  if (!Number.isInteger(score) || score < 1 || score > SCORE_MAX) {
+    return askError(400, 'Invalid score.');
+  }
+  if (await isRateLimited(env, `score:boxing:${clientIp(request)}`, SCORE_RATE_LIMIT, SCORE_RATE_WINDOW_S)) {
+    return askError(429, 'Rate limit reached — please try again later.');
+  }
+  if (!plausibleBoxingScore(score, body?.run)) return askError(422, 'Score rejected.');
+
+  const top = (await readTopList(env, BOXING_SCORE_KEY)) || [];
+  const entry = { i: initials, s: score, t: Date.now() };
+  let rank = top.findIndex((item) => score > item.s);
+  if (rank === -1 && top.length < SCORE_TOP_N) rank = top.length;
+  if (rank === -1 || rank >= SCORE_TOP_N) return scoreResponse(200, { top, rank: null });
+  top.splice(rank, 0, entry);
+  top.length = Math.min(top.length, SCORE_TOP_N);
+  try {
+    await env.ASK_RL.put(BOXING_SCORE_KEY, JSON.stringify(top));
+  } catch {
+    return askError(503, 'leaderboard temporarily unavailable');
+  }
+  return scoreResponse(200, { top, rank: rank + 1 });
+}
+
 function pickVersion() {
   const total = VERSIONS.reduce((sum, v) => sum + v.weight, 0);
   let rand = Math.random() * total;
@@ -439,6 +508,7 @@ export default {
     if (url.pathname.startsWith('/api/')) {
       if (url.pathname === '/api/ask') return handleAsk(request, env);
       if (url.pathname === '/api/score') return handleScore(request, env);
+      if (url.pathname === '/api/score/boxing') return handleBoxingScore(request, env);
       return askError(404, 'Unknown API route.');
     }
 

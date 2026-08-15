@@ -10,6 +10,7 @@
 //        c-terminal: npm run preview -- --port 4323
 //        d-3d-game:  npm run preview -- --port 4324
 //        nexus:      npm run preview -- --port 4325
+//        e-2d-game:  npm run preview -- --port 4326
 //   2. node scripts/dev-proxy.mjs
 //   3. Open http://localhost:8787 in Chrome/Edge and use the dial.
 import http from "node:http";
@@ -27,6 +28,7 @@ const ROUTABLE = [
   ...VERSIONS,
   { name: "d-3d-game", origin: "http://localhost:4324" },
   { name: "nexus", origin: "http://localhost:4325" },
+  { name: "e-2d-game", origin: "http://localhost:4326" },
 ];
 const PORT = Number.parseInt(process.env.PORT || "8787", 10);
 const COOKIE_NAME = "pv";

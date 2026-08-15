@@ -102,6 +102,30 @@ test('d-3d-game is routable via ?v= but never randomly assigned', async (t) => {
   }
 });
 
+test('e-2d-game is routable via ?v= but never randomly assigned', async (t) => {
+  const upstreamUrls = [];
+  const restore = mockFetch(async (url) => {
+    upstreamUrls.push(String(url));
+    return new Response('boxing');
+  });
+  t.after(restore);
+
+  const forced = await worker.fetch(request('/?v=e-2d-game', {
+    headers: { Accept: 'text/html' },
+  }));
+  assert.equal(upstreamUrls[0], 'https://seanmh-2d-game.pages.dev/');
+  assert.equal(forced.headers.get('X-Portfolio-Version'), 'e-2d-game');
+  assert.match(forced.headers.get('Set-Cookie'), /pv=e-2d-game/);
+
+  const originalRandom = Math.random;
+  t.after(() => { Math.random = originalRandom; });
+  for (const random of [0, 0.999999]) {
+    Math.random = () => random;
+    const rotated = await worker.fetch(request('/', { headers: { Accept: 'text/html' } }));
+    assert.notEqual(rotated.headers.get('X-Portfolio-Version'), 'e-2d-game');
+  }
+});
+
 test('asset requests honor the cookie without refreshing it', async (t) => {
   let upstreamUrl;
   const restore = mockFetch(async (url) => {
@@ -245,6 +269,14 @@ function scoreRequest(body, headers = {}) {
   });
 }
 
+function boxingScoreRequest(body, headers = {}) {
+  return request('/api/score/boxing', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', ...headers },
+    body: JSON.stringify(body),
+  });
+}
+
 function mockScoreKv(initial = null) {
   const store = new Map();
   if (initial) store.set('hp:top', JSON.stringify(initial));
@@ -314,6 +346,55 @@ test('score POST is rate limited per IP', async () => {
     initials: 'SMH', score: 100, run: { dur: 60, landings: 5 },
   }, { 'CF-Connecting-IP': '203.0.113.30' }), env);
   assert.equal(resp.status, 429);
+});
+
+test('boxing score board is isolated, validates run stats, and ranks entries', async () => {
+  const kv = mockScoreKv();
+  kv.store.set('hp:top', JSON.stringify([{ i: 'HP', s: 9999, t: 1 }]));
+  const env = { ASK_RL: kv };
+
+  const empty = await worker.fetch(request('/api/score/boxing'), env);
+  assert.deepEqual(await empty.json(), { top: [] });
+
+  const invalidRuns = [
+    { dur: 4, counters: 2, maxChain: 2, hits: 0 },
+    { dur: 30, counters: 121, maxChain: 8, hits: 1 },
+    { dur: 30, counters: 5, maxChain: 6, hits: 1 },
+    { dur: 30, counters: 5, maxChain: 4, hits: -1 },
+  ];
+  for (const run of invalidRuns) {
+    const response = await worker.fetch(boxingScoreRequest({ initials: 'SMH', score: 500, run }), env);
+    assert.equal(response.status, 422, JSON.stringify(run));
+  }
+
+  const tooHigh = await worker.fetch(boxingScoreRequest({
+    initials: 'SMH', score: 3001, run: { dur: 30, counters: 5, maxChain: 5, hits: 1 },
+  }), env);
+  assert.equal(tooHigh.status, 422);
+
+  const ranked = await worker.fetch(boxingScoreRequest({
+    initials: 'smh', score: 3000, run: { dur: 30, counters: 8, maxChain: 6, hits: 1 },
+  }, { 'CF-Connecting-IP': '203.0.113.40' }), env);
+  assert.equal(ranked.status, 200);
+  assert.equal((await ranked.json()).rank, 1);
+  assert.equal(JSON.parse(kv.store.get('bx:top'))[0].i, 'SMH');
+  assert.equal(JSON.parse(kv.store.get('hp:top'))[0].i, 'HP');
+});
+
+test('boxing score endpoint degrades without KV and rate limits independently', async () => {
+  const empty = await worker.fetch(request('/api/score/boxing'));
+  assert.deepEqual(await empty.json(), { top: [] });
+  const unavailable = await worker.fetch(boxingScoreRequest({
+    initials: 'SMH', score: 100, run: { dur: 10, counters: 1, maxChain: 1, hits: 0 },
+  }));
+  assert.equal(unavailable.status, 503);
+
+  const kv = mockScoreKv();
+  kv.store.set('score:boxing:203.0.113.41', '30');
+  const limited = await worker.fetch(boxingScoreRequest({
+    initials: 'SMH', score: 100, run: { dur: 10, counters: 1, maxChain: 1, hits: 0 },
+  }, { 'CF-Connecting-IP': '203.0.113.41' }), { ASK_RL: kv });
+  assert.equal(limited.status, 429);
 });
 
 test('ask returns 429 without calling the model after the limit', async (t) => {
