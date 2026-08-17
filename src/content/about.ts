@@ -1,9 +1,9 @@
 export const currentFocus = {
-  lead: "Currently, core contributor and subject-matter expert on the Authorization Server — the enterprise OAuth 2.0 implementation handling workforce and consumer authorization flows.",
+  lead: "Currently, core contributor on the API Gateway Platform, and owner and subject-matter expert for its Authorization Server — the enterprise OAuth 2.0 implementation handling workforce and consumer authorization flows.",
   // Figures carry inline <b class="stat"> emphasis, so this one renders through
   // set:html in About.astro. Authored here, never user input.
   scale:
-    "It sits inside the API Gateway Platform — the front door every internal and external API call at the bank flows through, carrying <b class='stat'>10B+ requests</b> and <b class='stat'>150TB+</b> of data a day across <b class='stat'>100k+ clients</b>, peaking at <b class='stat'>200k req/sec</b> and reliably up <b class='stat'>99.99%</b> of the time. The Authorization Server issues and revokes every OAuth token behind it: <b class='stat'>2B+</b> a day, at a <b class='stat'>25k/sec</b> production peak.",
+    "The platform is the front door every internal and external API call at the bank flows through, carrying <b class='stat'>10B+ requests</b> and <b class='stat'>150TB+</b> of data a day across <b class='stat'>100k+ clients</b>, peaking at <b class='stat'>200k req/sec</b> and reliably up <b class='stat'>99.99%</b> of the time. The Authorization Server issues and revokes every OAuth token behind it: <b class='stat'>2B+</b> a day, at a <b class='stat'>25k/sec</b> production peak.",
   body: "Active ownership keeps this security-critical system covered and spreads the institutional knowledge that keeps it resilient, reinforced by peer recognition on several high-stakes partner releases.",
 } as const;
 
