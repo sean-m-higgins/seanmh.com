@@ -2,6 +2,7 @@ import Lenis from "lenis";
 import { gsap } from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
 import { SplitText } from "gsap/SplitText";
+import { onTap } from "./tap";
 
 // Matches scroll-padding-top: 5rem in global.css (fixed nav height)
 const NAV_OFFSET = -80;
@@ -28,6 +29,9 @@ const RING_LOOSE = 1.16;
 // and how far it leans at closest approach.
 const REPEL_RADIUS = 150;
 const REPEL_STRENGTH = 26;
+// How long a tapped shove holds before the letters settle back. Just past the
+// 0.6s outward tween, so the push lands fully before it reverses.
+const REPEL_TAP_HOLD = 650;
 // The pinned hero timeline starts scrubbing the letters apart the moment the
 // page moves, which invalidates the cached letter positions. Repulsion only
 // runs while the hero is still at rest.
@@ -429,9 +433,9 @@ function setupSections() {
 // only while the hero sits at the top of the page — past that the pinned
 // timeline is scrubbing the same letters and owns their layout.
 function setupNameRepel() {
-  if (!window.matchMedia("(hover: hover) and (pointer: fine)").matches) return;
   const hero = document.querySelector<HTMLElement>("[data-hero]");
   if (!hero || nameChars.length === 0) return;
+  const hasHoverPointer = window.matchMedia("(hover: hover) and (pointer: fine)").matches;
 
   const letters = nameChars.map((el) => ({
     el,
@@ -475,7 +479,7 @@ function setupNameRepel() {
     if (window.scrollY >= REPEL_MAX_SCROLL) release();
   }
 
-  function onMove(e: PointerEvent) {
+  function push(x: number, y: number) {
     if (window.scrollY >= REPEL_MAX_SCROLL) {
       release();
       return;
@@ -483,8 +487,8 @@ function setupNameRepel() {
     if (!cached) cache();
     engaged = true;
     for (const letter of letters) {
-      const dx = letter.cx - e.clientX;
-      const dy = letter.cy - e.clientY;
+      const dx = letter.cx - x;
+      const dy = letter.cy - y;
       const d = Math.sqrt(dx * dx + dy * dy) || 1;
       if (d > REPEL_RADIUS) {
         letter.xTo(0);
@@ -497,12 +501,32 @@ function setupNameRepel() {
     }
   }
 
-  hero.addEventListener("pointermove", onMove, { passive: true });
-  hero.addEventListener("pointerleave", release);
+  function onMove(e: PointerEvent) {
+    push(e.clientX, e.clientY);
+  }
+
+  let teardownTap: (() => void) | null = null;
+  let settleTimer = 0;
+
+  if (hasHoverPointer) {
+    hero.addEventListener("pointermove", onMove, { passive: true });
+    hero.addEventListener("pointerleave", release);
+  } else {
+    // No hover to lean away from on touch, so a tap plays the whole gesture:
+    // the letters shove away from it and settle back on their own once the
+    // outward tween has had time to land.
+    teardownTap = onTap(hero, (x, y) => {
+      push(x, y);
+      window.clearTimeout(settleTimer);
+      settleTimer = window.setTimeout(release, REPEL_TAP_HOLD);
+    });
+  }
   window.addEventListener("scroll", onScroll, { passive: true });
   window.addEventListener("resize", invalidate, { passive: true });
 
   teardownRepel = () => {
+    window.clearTimeout(settleTimer);
+    teardownTap?.();
     hero.removeEventListener("pointermove", onMove);
     hero.removeEventListener("pointerleave", release);
     window.removeEventListener("scroll", onScroll);

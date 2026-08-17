@@ -13,6 +13,8 @@
   class="pointer-events-none absolute inset-0 -z-10 h-full w-full"></canvas>
 
 <script>
+  import { onTap } from "../scripts/tap";
+
   function setupConstellation() {
     const candidate = document.querySelector("[data-constellation]");
     if (!(candidate instanceof HTMLCanvasElement)) return;
@@ -323,16 +325,19 @@
     function onLeave() {
       mouse.active = false;
     }
-    // The canvas is pointer-events:none, so the click is caught on window and
-    // converted to canvas space. Clicks landing outside the hero are ignored.
-    function onDown(e: PointerEvent) {
-      if (!e.isPrimary || e.button !== 0) return;
+    // The canvas is pointer-events:none, so the strike is caught on window and
+    // converted to canvas space. Anything landing outside the hero is ignored.
+    function strike(clientX: number, clientY: number) {
       const r = canvas.getBoundingClientRect();
-      const x = e.clientX - r.left;
-      const y = e.clientY - r.top;
+      const x = clientX - r.left;
+      const y = clientY - r.top;
       if (x < 0 || x > w || y < 0 || y > h) return;
       waves.push({ x, y, r: 0, life: 1, flash: 1 });
       if (waves.length > MAX_WAVES) waves.shift();
+    }
+    function onDown(e: PointerEvent) {
+      if (!e.isPrimary || e.button !== 0) return;
+      strike(e.clientX, e.clientY);
     }
 
     resize();
@@ -343,11 +348,12 @@
     if (hasHoverPointer) {
       window.addEventListener("pointermove", onMove, { passive: true });
       window.addEventListener("pointerleave", onLeave);
-      // Same reasoning as pointermove: on touch, pointerdown fires at the
-      // start of every scroll swipe, which would ripple the field each time
-      // someone tries to scroll the page.
       window.addEventListener("pointerdown", onDown, { passive: true });
     }
+    // Touch gets the shockwave too — on a tap rather than a raw pointerdown,
+    // which would fire at the start of every scroll swipe. There is no touch
+    // equivalent of the cursor link above, so that stays hover-only.
+    const teardownTap = hasHoverPointer ? null : onTap(window, strike);
 
     // Only animate while the hero is in view.
     const io = new IntersectionObserver(
@@ -367,6 +373,7 @@
         window.removeEventListener("pointermove", onMove);
         window.removeEventListener("pointerleave", onLeave);
         window.removeEventListener("pointerdown", onDown);
+        teardownTap?.();
         waves = [];
         delete canvas.dataset.on;
       },
