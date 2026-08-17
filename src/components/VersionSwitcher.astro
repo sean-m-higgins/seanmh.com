@@ -3,14 +3,17 @@
 // This file is identical on every version branch (the layout passes `current`).
 // Edit on the `content` branch and cherry-pick, like the content contract.
 interface Props {
-  current: "a-scroll" | "b-card" | "c-terminal" | "d-3d-game";
+  current: "a-scroll" | "b-card" | "c-terminal";
 }
 
+// The dial lists the three portfolio versions only. The games (d-3d-game,
+// e-2d-game) are deliberately left out — like the Worker's rotation, they are
+// opt-in: reachable from the Nexus or an explicit ?v=, never offered to a
+// visitor reading the résumé.
 const versions = [
   { name: "a-scroll", label: "Scroll", glyph: "∿" },
   { name: "b-card", label: "Card", glyph: "▣" },
   { name: "c-terminal", label: "Terminal", glyph: "❯" },
-  { name: "d-3d-game", label: "Game", glyph: "△" },
 ] as const;
 
 const { current } = Astro.props;
@@ -183,7 +186,7 @@ const active = versions.find((v) => v.name === current) ?? versions[0];
   .universe-dial:hover .dial-options,
   .universe-dial:focus-within .dial-options,
   .universe-dial.open .dial-options {
-    max-width: 24rem; /* four pills since the game joined the dial */
+    max-width: 18rem;
     opacity: 1;
     padding-right: 0.5rem;
   }
