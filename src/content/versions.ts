@@ -43,9 +43,9 @@ export const VERSIONS: readonly VersionDef[] = [
   {
     name: "d-3d-game",
     glyph: "⌣",
-    label: "Game",
+    label: "Halfpipe",
     branch: "version/d-3d-game",
-    blurb: "a playable world",
+    blurb: "a snowboard run",
     color: "#2ac3de",
     interior: "halfpipe",
   },
