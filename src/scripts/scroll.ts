@@ -6,10 +6,41 @@ import { SplitText } from "gsap/SplitText";
 // Matches scroll-padding-top: 5rem in global.css (fixed nav height)
 const NAV_OFFSET = -80;
 
+// gsap.getProperty returns transforms with units ("0px"), so the raw value
+// cannot be used in arithmetic — parse it back to a number first.
+function transformOffset(el: Element, prop: "x" | "y") {
+  return parseFloat(String(gsap.getProperty(el, prop))) || 0;
+}
+
+// Gap between a magnetic element's edge and its capture ring.
+const RING_PAD = 10;
+// How far beyond an element's edge the pointer starts pulling it. Measured to
+// the element's rect rather than its centre, so a wide button and a small icon
+// both engage at the same visual distance.
+const MAGNET_RANGE = 115;
+// Lean distance as a fraction of the pointer's offset from centre, at contact.
+const MAGNET_PULL = 0.32;
+// The ring hangs loose at the edge of range and tightens onto the element as
+// the pointer arrives — the "capture" the effect is named for.
+const RING_LOOSE = 1.16;
+
+// Name repulsion: how close the pointer must get before a letter leans away,
+// and how far it leans at closest approach.
+const REPEL_RADIUS = 150;
+const REPEL_STRENGTH = 26;
+// The pinned hero timeline starts scrubbing the letters apart the moment the
+// page moves, which invalidates the cached letter positions. Repulsion only
+// runs while the hero is still at rest.
+const REPEL_MAX_SCROLL = 12;
+
 let lenis: Lenis | null = null;
 let rafTick: ((time: number) => void) | null = null;
 let heroMedia: gsap.MatchMedia | null = null;
 let splits: SplitText[] = [];
+let magneticRing: HTMLElement | null = null;
+let teardownMagnetic: (() => void) | null = null;
+let nameChars: HTMLElement[] = [];
+let teardownRepel: (() => void) | null = null;
 
 // Lenis replaces native scrolling, so same-page anchor clicks must be routed
 // through it or they jump without the nav offset.
@@ -61,6 +92,19 @@ function setupHero() {
   splits.push(heroSplit);
   const chars = heroSplit.chars;
   const mid = (chars.length - 1) / 2;
+
+  // The scroll timeline below owns `x` on each char (the spread-apart). Give
+  // pointer repulsion its own inner span to translate so the two effects
+  // compose through nested transforms instead of overwriting one property.
+  // SplitText.revert() restores the original markup, dropping these again.
+  nameChars = chars.map((char) => {
+    const inner = document.createElement("span");
+    inner.style.display = "inline-block";
+    inner.style.willChange = "transform";
+    while (char.firstChild) inner.appendChild(char.firstChild);
+    char.appendChild(inner);
+    return inner;
+  });
 
   heroMedia = gsap.matchMedia();
 
@@ -381,22 +425,243 @@ function setupSections() {
     );
 }
 
-// Magnetic hover for tagged buttons — pointer devices only.
+// The hero name's letters lean away from the pointer and settle back. Runs
+// only while the hero sits at the top of the page — past that the pinned
+// timeline is scrubbing the same letters and owns their layout.
+function setupNameRepel() {
+  if (!window.matchMedia("(hover: hover) and (pointer: fine)").matches) return;
+  const hero = document.querySelector<HTMLElement>("[data-hero]");
+  if (!hero || nameChars.length === 0) return;
+
+  const letters = nameChars.map((el) => ({
+    el,
+    xTo: gsap.quickTo(el, "x", { duration: 0.6, ease: "power3.out" }),
+    yTo: gsap.quickTo(el, "y", { duration: 0.6, ease: "power3.out" }),
+    cx: 0,
+    cy: 0,
+  }));
+
+  // Letter centres are cached so pointermove never reads layout. The cache is
+  // dropped whenever anything that could move them happens, and rebuilt
+  // lazily on the next pointer event.
+  let cached = false;
+  function cache() {
+    for (const letter of letters) {
+      const offsetX = transformOffset(letter.el, "x");
+      const offsetY = transformOffset(letter.el, "y");
+      const r = letter.el.getBoundingClientRect();
+      letter.cx = r.left - offsetX + r.width / 2;
+      letter.cy = r.top - offsetY + r.height / 2;
+    }
+    cached = true;
+  }
+
+  let engaged = false;
+  function release() {
+    if (!engaged) return;
+    engaged = false;
+    for (const letter of letters) {
+      letter.xTo(0);
+      letter.yTo(0);
+    }
+  }
+
+  function invalidate() {
+    cached = false;
+  }
+
+  function onScroll() {
+    invalidate();
+    if (window.scrollY >= REPEL_MAX_SCROLL) release();
+  }
+
+  function onMove(e: PointerEvent) {
+    if (window.scrollY >= REPEL_MAX_SCROLL) {
+      release();
+      return;
+    }
+    if (!cached) cache();
+    engaged = true;
+    for (const letter of letters) {
+      const dx = letter.cx - e.clientX;
+      const dy = letter.cy - e.clientY;
+      const d = Math.sqrt(dx * dx + dy * dy) || 1;
+      if (d > REPEL_RADIUS) {
+        letter.xTo(0);
+        letter.yTo(0);
+        continue;
+      }
+      const falloff = 1 - d / REPEL_RADIUS;
+      letter.xTo((dx / d) * falloff * REPEL_STRENGTH);
+      letter.yTo((dy / d) * falloff * REPEL_STRENGTH);
+    }
+  }
+
+  hero.addEventListener("pointermove", onMove, { passive: true });
+  hero.addEventListener("pointerleave", release);
+  window.addEventListener("scroll", onScroll, { passive: true });
+  window.addEventListener("resize", invalidate, { passive: true });
+
+  teardownRepel = () => {
+    hero.removeEventListener("pointermove", onMove);
+    hero.removeEventListener("pointerleave", release);
+    window.removeEventListener("scroll", onScroll);
+    window.removeEventListener("resize", invalidate);
+  };
+}
+
+// Magnetic elements — pointer devices only. Attraction is a proximity field,
+// not a hover state: the nearest tagged element within MAGNET_RANGE leans
+// toward the pointer and its capture ring fades in and tightens as the pointer
+// closes, so the pull is already underway before the cursor arrives.
+//
+// The pointer handler only stores coordinates; all measurement and animation
+// happens once per frame on the ticker GSAP is already running for Lenis.
 function setupMagnetic() {
   if (!window.matchMedia("(hover: hover) and (pointer: fine)").matches) return;
-  document.querySelectorAll<HTMLElement>("[data-magnetic]").forEach((el) => {
-    const xTo = gsap.quickTo(el, "x", { duration: 0.4, ease: "power3.out" });
-    const yTo = gsap.quickTo(el, "y", { duration: 0.4, ease: "power3.out" });
-    el.addEventListener("pointermove", (e) => {
-      const r = el.getBoundingClientRect();
-      xTo((e.clientX - (r.left + r.width / 2)) * 0.3);
-      yTo((e.clientY - (r.top + r.height / 2)) * 0.3);
+  const els = Array.from(document.querySelectorAll<HTMLElement>("[data-magnetic]"));
+  if (els.length === 0) return;
+
+  // One shared ring: only one element can be the nearest at a time.
+  const ring = document.createElement("div");
+  ring.className = "magnetic-ring";
+  ring.setAttribute("aria-hidden", "true");
+  document.body.appendChild(ring);
+  magneticRing = ring;
+
+  const items = els.map((el) => ({
+    el,
+    xTo: gsap.quickTo(el, "x", { duration: 0.4, ease: "power3.out" }),
+    yTo: gsap.quickTo(el, "y", { duration: 0.4, ease: "power3.out" }),
+    // Corner radius never changes, so it is read once rather than per measure.
+    radius: parseFloat(getComputedStyle(el).borderTopLeftRadius) || 0,
+    // Resting geometry in document coordinates, so it survives scrolling.
+    docX: 0,
+    docY: 0,
+    w: 0,
+    h: 0,
+    visible: true,
+  }));
+
+  let px = -99999;
+  let py = -99999;
+  let dirty = true;
+  let active: (typeof items)[number] | null = null;
+
+  // The only layout reads in the whole effect. Reading is driven by the frame
+  // loop rather than the pointer event, so a burst of pointermoves still costs
+  // at most one measure per frame; when nothing moves it costs nothing.
+  // Transform offsets are subtracted so an element that is currently leaning
+  // still reports where it rests.
+  function measure() {
+    dirty = false;
+    for (const item of items) {
+      const r = item.el.getBoundingClientRect();
+      item.docX = r.left + window.scrollX - transformOffset(item.el, "x");
+      item.docY = r.top + window.scrollY - transformOffset(item.el, "y");
+      item.w = r.width;
+      item.h = r.height;
+      // Skips elements the hero timeline has faded out from under the pointer.
+      item.visible = item.el.checkVisibility
+        ? item.el.checkVisibility({ opacityProperty: true, visibilityProperty: true })
+        : true;
+    }
+  }
+
+  function frame() {
+    if (dirty) measure();
+    const scrollLeft = window.scrollX;
+    const scrollTop = window.scrollY;
+
+    let nearest: (typeof items)[number] | null = null;
+    let nearestDist = Infinity;
+    for (const item of items) {
+      if (!item.visible || item.w === 0) continue;
+      const left = item.docX - scrollLeft;
+      const top = item.docY - scrollTop;
+      // Distance from the pointer to the rect itself — zero once inside it.
+      const gapX = Math.max(left - px, 0, px - (left + item.w));
+      const gapY = Math.max(top - py, 0, py - (top + item.h));
+      const dist = Math.sqrt(gapX * gapX + gapY * gapY);
+      if (dist < MAGNET_RANGE && dist < nearestDist) {
+        nearest = item;
+        nearestDist = dist;
+      }
+    }
+
+    if (nearest !== active) {
+      const previous = active;
+      active = nearest;
+      previous?.xTo(0);
+      previous?.yTo(0);
+      if (active) {
+        // Size is layout, not transform, so it is written only on handover.
+        gsap.set(ring, {
+          width: active.w + RING_PAD * 2,
+          height: active.h + RING_PAD * 2,
+          borderRadius: active.radius + RING_PAD,
+        });
+      } else {
+        gsap.to(ring, { opacity: 0, duration: 0.25, ease: "power2.out" });
+      }
+    }
+
+    if (!active) return;
+
+    const left = active.docX - scrollLeft;
+    const top = active.docY - scrollTop;
+    const pull = 1 - nearestDist / MAGNET_RANGE;
+
+    // The element eases toward the pointer on its own tween.
+    active.xTo((px - (left + active.w / 2)) * MAGNET_PULL * pull);
+    active.yTo((py - (top + active.h / 2)) * MAGNET_PULL * pull);
+
+    // The ring is then placed on the element's *rendered* lean rather than its
+    // target, so it sits in lockstep instead of racing the element with a
+    // second tween. Everything the ring animates is written in one set() call:
+    // mixing set() with quickTo on the same transform silently drops whichever
+    // property the other one owns.
+    gsap.set(ring, {
+      x: active.docX - RING_PAD + transformOffset(active.el, "x"),
+      y: active.docY - RING_PAD + transformOffset(active.el, "y"),
+      // Hangs loose at the edge of range, tight on arrival.
+      scale: RING_LOOSE - (RING_LOOSE - 1) * pull,
+      // Reaches full opacity just before contact, so it is settled by the
+      // time the pointer lands.
+      opacity: Math.min(1, pull * 1.7),
     });
-    el.addEventListener("pointerleave", () => {
-      xTo(0);
-      yTo(0);
-    });
-  });
+  }
+
+  function onPointerMove(e: PointerEvent) {
+    px = e.clientX;
+    py = e.clientY;
+    // Geometry must be re-read on movement too, not just scroll/resize: the
+    // first measure happens while the hero's intro is still animating, when
+    // the CTA is at opacity 0 and reads as invisible. Without this the effect
+    // stays permanently disabled on any element that faded in after load.
+    dirty = true;
+  }
+  function onPointerOut() {
+    px = -99999;
+    py = -99999;
+  }
+  function invalidate() {
+    dirty = true;
+  }
+
+  window.addEventListener("pointermove", onPointerMove, { passive: true });
+  window.addEventListener("pointerleave", onPointerOut, { passive: true });
+  window.addEventListener("scroll", invalidate, { passive: true });
+  window.addEventListener("resize", invalidate, { passive: true });
+  gsap.ticker.add(frame);
+
+  teardownMagnetic = () => {
+    window.removeEventListener("pointermove", onPointerMove);
+    window.removeEventListener("pointerleave", onPointerOut);
+    window.removeEventListener("scroll", invalidate);
+    window.removeEventListener("resize", invalidate);
+    gsap.ticker.remove(frame);
+  };
 }
 
 export function initScroll() {
@@ -424,15 +689,25 @@ export function initScroll() {
   setupHero();
   setupSections();
   setupMagnetic();
+  setupNameRepel(); // after setupHero — depends on its split
 }
 
 export function destroyScroll() {
   if (!lenis) return;
   document.removeEventListener("click", onAnchorClick);
+  teardownRepel?.();
+  teardownRepel = null;
+  teardownMagnetic?.();
+  teardownMagnetic = null;
+  magneticRing?.remove();
+  magneticRing = null;
   heroMedia?.revert();
   heroMedia = null;
+  // revert() restores the pre-split markup, which discards the inner spans
+  // setupHero added, so the cached references must go with it.
   splits.forEach((s) => s.revert());
   splits = [];
+  nameChars = [];
   ScrollTrigger.getAll().forEach((trigger) => trigger.kill());
   if (rafTick) gsap.ticker.remove(rafTick);
   rafTick = null;

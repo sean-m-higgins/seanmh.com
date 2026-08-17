@@ -1,8 +1,10 @@
 ---
 // Light constellation / particle-network background for the hero: nodes drift
 // and link to nearby neighbours, gently link to the cursor on hover, and the
-// whole thing fades out as the page scrolls. Sits behind the hero content,
-// never catches pointer events, and is skipped entirely for reduced motion.
+// whole thing fades out as the page scrolls. A click sends a shockwave across
+// the field — nodes it sweeps past are kicked outward and flare, then damping
+// settles them back into their drift. Sits behind the hero content, never
+// catches pointer events, and is skipped entirely for reduced motion.
 ---
 
 <canvas
@@ -25,10 +27,43 @@
 
     const LINK = 130;
     const MOUSE = 170;
+
+    // Click shockwave. The front expands at WAVE_SPEED px/frame and only
+    // pushes nodes within WAVE_BAND of it, so the impulse reads as a ring
+    // crossing the field rather than everything moving at once.
+    const WAVE_SPEED = 6.4;
+    const WAVE_BAND = 52;
+    const WAVE_FORCE = 3.9;
+    const WAVE_DECAY = 0.008;
+    const MAX_WAVES = 4;
+    const IMPULSE_DAMP = 0.94;
+    const HEAT_DECAY = 0.94;
+    // The epicentre bloom is a separate, much faster decay than the wave
+    // itself — it reads as the strike, not the travelling front.
+    const FLASH_DECAY = 0.055;
+    const FLASH_RADIUS = 130;
+
     let w = 0;
     let h = 0;
     let dpr = 1;
-    let particles: { x: number; y: number; vx: number; vy: number }[] = [];
+    // vx/vy is the permanent drift; ix/iy is the transient kick a shockwave
+    // adds and damping removes. heat drives the brief brightening.
+    let particles: {
+      x: number;
+      y: number;
+      vx: number;
+      vy: number;
+      ix: number;
+      iy: number;
+      heat: number;
+    }[] = [];
+    let waves: {
+      x: number;
+      y: number;
+      r: number;
+      life: number;
+      flash: number;
+    }[] = [];
     let raf = 0;
     let running = false;
     const mouse = { x: -9999, y: -9999, active: false };
@@ -79,6 +114,9 @@
           y: Math.random() * h,
           vx: (Math.random() - 0.5) * 0.28,
           vy: (Math.random() - 0.5) * 0.28,
+          ix: 0,
+          iy: 0,
+          heat: 0,
         });
       }
       if (particles.length > count) particles.length = count;
@@ -88,13 +126,54 @@
       ctx.clearRect(0, 0, w, h);
       const dark = document.documentElement.classList.contains("dark");
       const rgb = dark ? "129,140,248" : "99,102,241";
+      // Flare colour has to move in opposite directions per theme to stay
+      // visible: brighten toward white on the dark ground, deepen toward
+      // indigo on the light one.
+      const hot = dark ? "224,231,255" : "67,56,202";
+
+      // Advance the shockwaves once per frame, retiring spent ones.
+      for (let i = waves.length - 1; i >= 0; i--) {
+        const wave = waves[i];
+        wave.r += WAVE_SPEED;
+        wave.life -= WAVE_DECAY;
+        if (wave.flash > 0) wave.flash -= FLASH_DECAY;
+        if (wave.life <= 0) waves.splice(i, 1);
+      }
 
       for (let i = 0; i < particles.length; i++) {
         const p = particles[i];
-        p.x += p.vx;
-        p.y += p.vy;
-        if (p.x < 0 || p.x > w) p.vx *= -1;
-        if (p.y < 0 || p.y > h) p.vy *= -1;
+        p.x += p.vx + p.ix;
+        p.y += p.vy + p.iy;
+        p.ix *= IMPULSE_DAMP;
+        p.iy *= IMPULSE_DAMP;
+        // Clamp on bounce: without it a hard enough kick carries a node off
+        // the canvas, where flipping vx alone never brings it back.
+        if (p.x < 0 || p.x > w) {
+          p.vx *= -1;
+          p.ix *= -0.5;
+          p.x = Math.max(0, Math.min(w, p.x));
+        }
+        if (p.y < 0 || p.y > h) {
+          p.vy *= -1;
+          p.iy *= -0.5;
+          p.y = Math.max(0, Math.min(h, p.y));
+        }
+
+        for (let k = 0; k < waves.length; k++) {
+          const wave = waves[k];
+          const wdx = p.x - wave.x;
+          const wdy = p.y - wave.y;
+          const wd = Math.sqrt(wdx * wdx + wdy * wdy) || 1;
+          const band = Math.abs(wd - wave.r);
+          if (band < WAVE_BAND) {
+            const amp = (1 - band / WAVE_BAND) * wave.life;
+            p.ix += (wdx / wd) * amp * WAVE_FORCE;
+            p.iy += (wdy / wd) * amp * WAVE_FORCE;
+            if (amp > p.heat) p.heat = amp;
+          }
+        }
+        p.heat *= HEAT_DECAY;
+
         if (mouse.active) {
           const dx = mouse.x - p.x;
           const dy = mouse.y - p.y;
@@ -115,9 +194,15 @@
           const dy = a.y - b.y;
           const d2 = dx * dx + dy * dy;
           if (d2 < LINK * LINK) {
+            const prox = 1 - Math.sqrt(d2) / LINK;
+            const flare = a.heat > b.heat ? a.heat : b.heat;
             ctx.strokeStyle =
-              "rgba(" + rgb + "," + (1 - Math.sqrt(d2) / LINK) * 0.45 + ")";
-            ctx.lineWidth = 1;
+              "rgba(" +
+              (flare > 0.2 ? hot : rgb) +
+              "," +
+              prox * (0.45 + flare * 1.5) +
+              ")";
+            ctx.lineWidth = 1 + flare * 1.5;
             ctx.beginPath();
             ctx.moveTo(a.x, a.y);
             ctx.lineTo(b.x, b.y);
@@ -138,10 +223,45 @@
             ctx.stroke();
           }
         }
-        ctx.fillStyle = "rgba(" + rgb + ",0.55)";
+        ctx.fillStyle =
+          "rgba(" + (a.heat > 0.25 ? hot : rgb) + "," + (0.55 + a.heat * 0.45) + ")";
         ctx.beginPath();
-        ctx.arc(a.x, a.y, 1.5, 0, Math.PI * 2);
+        ctx.arc(a.x, a.y, 1.5 + a.heat * 3.4, 0, Math.PI * 2);
         ctx.fill();
+      }
+
+      // The front itself — without it the impulse reads as random scatter
+      // instead of a wave travelling outward. Glow is applied only to these
+      // few strokes, never to the per-particle passes above.
+      for (let i = 0; i < waves.length; i++) {
+        const wave = waves[i];
+
+        // Epicentre bloom: the strike, gone long before the front is.
+        if (wave.flash > 0) {
+          const bloom = ctx.createRadialGradient(
+            wave.x,
+            wave.y,
+            0,
+            wave.x,
+            wave.y,
+            FLASH_RADIUS
+          );
+          bloom.addColorStop(0, "rgba(" + hot + "," + wave.flash * 0.32 + ")");
+          bloom.addColorStop(1, "rgba(" + hot + ",0)");
+          ctx.fillStyle = bloom;
+          ctx.beginPath();
+          ctx.arc(wave.x, wave.y, FLASH_RADIUS, 0, Math.PI * 2);
+          ctx.fill();
+        }
+
+        ctx.shadowBlur = 14 * wave.life;
+        ctx.shadowColor = "rgba(" + rgb + "," + wave.life * 0.55 + ")";
+        ctx.strokeStyle = "rgba(" + hot + "," + wave.life * 0.34 + ")";
+        ctx.lineWidth = 1 + wave.life * 1.8;
+        ctx.beginPath();
+        ctx.arc(wave.x, wave.y, wave.r, 0, Math.PI * 2);
+        ctx.stroke();
+        ctx.shadowBlur = 0;
       }
     }
 
@@ -174,6 +294,17 @@
     function onLeave() {
       mouse.active = false;
     }
+    // The canvas is pointer-events:none, so the click is caught on window and
+    // converted to canvas space. Clicks landing outside the hero are ignored.
+    function onDown(e: PointerEvent) {
+      if (!e.isPrimary || e.button !== 0) return;
+      const r = canvas.getBoundingClientRect();
+      const x = e.clientX - r.left;
+      const y = e.clientY - r.top;
+      if (x < 0 || x > w || y < 0 || y > h) return;
+      waves.push({ x, y, r: 0, life: 1, flash: 1 });
+      if (waves.length > MAX_WAVES) waves.shift();
+    }
 
     resize();
     window.addEventListener("resize", resize);
@@ -183,6 +314,10 @@
     if (hasHoverPointer) {
       window.addEventListener("pointermove", onMove, { passive: true });
       window.addEventListener("pointerleave", onLeave);
+      // Same reasoning as pointermove: on touch, pointerdown fires at the
+      // start of every scroll swipe, which would ripple the field each time
+      // someone tries to scroll the page.
+      window.addEventListener("pointerdown", onDown, { passive: true });
     }
 
     // Only animate while the hero is in view.
@@ -202,6 +337,8 @@
         window.removeEventListener("resize", resize);
         window.removeEventListener("pointermove", onMove);
         window.removeEventListener("pointerleave", onLeave);
+        window.removeEventListener("pointerdown", onDown);
+        waves = [];
         delete canvas.dataset.on;
       },
       { once: true }
