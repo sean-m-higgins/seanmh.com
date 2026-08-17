@@ -4,37 +4,13 @@
 // no VersionSwitcher): the portals ARE the switcher.
 import "../styles/global.css";
 import { site } from "../content/site.ts";
+import { VERSIONS } from "../content/versions.ts";
 
 const title = "Sean Higgins — The Nexus";
 const description =
-  "One portfolio, three parallel universes — each living on its own git branch. Choose yours.";
+  "One portfolio, parallel universes — each living on its own git branch. Choose yours.";
 
-const portals = [
-  {
-    name: "a-scroll",
-    glyph: "∿",
-    label: "Scroll",
-    branch: "version/a-scroll",
-    blurb: "a cinematic story",
-    color: "#7c83ff",
-  },
-  {
-    name: "b-card",
-    glyph: "▣",
-    label: "Card",
-    branch: "version/b-card",
-    blurb: "a tactile gallery",
-    color: "#ff9e64",
-  },
-  {
-    name: "c-terminal",
-    glyph: "❯",
-    label: "Terminal",
-    branch: "version/c-terminal",
-    blurb: "a working shell",
-    color: "#3ddc84",
-  },
-] as const;
+const portals = VERSIONS;
 ---
 
 <!doctype html>
@@ -74,7 +50,7 @@ const portals = [
         Choose your universe.
       </h1>
       <p class="nexus-fade max-w-md text-sm text-neutral-400" style="animation-delay: 0.3s">
-        One portfolio by {site.name}, three parallel builds — each living on its own git branch.
+        One portfolio by {site.name}, parallel builds — each living on its own git branch.
       </p>
     </header>
 
