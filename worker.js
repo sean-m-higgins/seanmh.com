@@ -1,26 +1,39 @@
+// The three portfolio versions. a-scroll is canonical: it is what every
+// visitor arriving without a preference gets. The other two stay reachable by
+// an explicit ?v= (the version switcher) or a sticky pv= cookie.
+//
+// This was previously a weighted random rotation (34/33/33). Serving three
+// different pages from the same URL left the canonical content
+// non-deterministic, which works against indexing and turns Core Web Vitals
+// field data into an unattributable mix of three separate codebases. The fix
+// is deliberately a stable default for *everyone*: choosing a version by user
+// agent so crawlers saw something different from humans would be cloaking.
 const VERSIONS = [
-  { name: 'a-scroll',   origin: 'https://seanmh-scroll.pages.dev',   weight: 34 },
-  { name: 'b-card',     origin: 'https://seanmh-card.pages.dev',     weight: 33 },
-  { name: 'c-terminal', origin: 'https://seanmh-terminal.pages.dev', weight: 33 },
+  { name: 'a-scroll',   origin: 'https://seanmh-scroll.pages.dev' },
+  { name: 'b-card',     origin: 'https://seanmh-card.pages.dev' },
+  { name: 'c-terminal', origin: 'https://seanmh-terminal.pages.dev' },
 ];
+
+// Served when there is no ?v= and no cookie. Keep a-scroll first in VERSIONS.
+const DEFAULT_VERSION = VERSIONS[0];
 
 // The Nexus (a 3D portal entry world) is a manual-only destination: reachable
 // by an explicit ?v=nexus (the switcher's NEXUS launcher) or a sticky pv=nexus
-// cookie, but deliberately kept OUT of VERSIONS so pickVersion() never assigns
-// it to a first-time visitor. It's a routable target, not a rotation option.
+// cookie, but deliberately kept OUT of VERSIONS so it can never become the
+// default. It's a routable target, not a landing page.
 const NEXUS = { name: 'nexus', origin: 'https://seanmh-nexus.pages.dev' };
 
 // The game (Version D, halfpipe) has the same posture as the Nexus: reachable
-// via ?v=d-3d-game or a sticky cookie, never randomly assigned to a first-time
-// visitor — a game is a bad thing to hand a recruiter unannounced.
+// via ?v=d-3d-game or a sticky cookie, never served to a visitor who did not
+// ask for it — a game is a bad thing to hand a recruiter unannounced.
 const GAME = { name: 'd-3d-game', origin: 'https://seanmh-3d-game.pages.dev' };
 
 // Version E is the 2D boxing companion game. Like Version D, it is opt-in and
-// never part of the first-visit rotation.
+// never served by default.
 const GAME_2D = { name: 'e-2d-game', origin: 'https://seanmh-2d-game.pages.dev' };
 
 // Everything the Worker will proxy when named explicitly (?v= or cookie).
-// Rotation still draws only from VERSIONS.
+// Only DEFAULT_VERSION is ever served without being asked for.
 const ROUTABLE = [...VERSIONS, NEXUS, GAME, GAME_2D];
 const COOKIE_NAME = 'pv';
 const COOKIE_OPTIONS = 'Path=/; Max-Age=1800; SameSite=Lax; Secure; HttpOnly';
@@ -439,16 +452,6 @@ async function handleBoxingScore(request, env) {
   return scoreResponse(200, { top, rank: rank + 1 });
 }
 
-function pickVersion() {
-  const total = VERSIONS.reduce((sum, v) => sum + v.weight, 0);
-  let rand = Math.random() * total;
-  for (const v of VERSIONS) {
-    rand -= v.weight;
-    if (rand <= 0) return v;
-  }
-  return VERSIONS[VERSIONS.length - 1];
-}
-
 function getCookieValue(cookieHeader, name) {
   const escapedName = name.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
   const match = cookieHeader.match(new RegExp(`(?:^|;\\s*)${escapedName}=([^;]*)`));
@@ -524,7 +527,7 @@ export default {
     // Check session cookie
     const cookie = request.headers.get('Cookie') || '';
     const cookieVersion = findVersion(getCookieValue(cookie, COOKIE_NAME));
-    const chosen = forced || cookieVersion || pickVersion();
+    const chosen = forced || cookieVersion || DEFAULT_VERSION;
 
     // Transparent proxy
     const proxyUrl = chosen.origin + url.pathname + url.search;

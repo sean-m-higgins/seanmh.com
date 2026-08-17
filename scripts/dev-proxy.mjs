@@ -17,13 +17,17 @@ import http from "node:http";
 import { Readable } from "node:stream";
 
 const VERSIONS = [
-  { name: "a-scroll", origin: "http://localhost:4321", weight: 34 },
-  { name: "b-card", origin: "http://localhost:4322", weight: 33 },
-  { name: "c-terminal", origin: "http://localhost:4323", weight: 33 },
+  { name: "a-scroll", origin: "http://localhost:4321" },
+  { name: "b-card", origin: "http://localhost:4322" },
+  { name: "c-terminal", origin: "http://localhost:4323" },
 ];
 
+// Mirror worker.js: a-scroll is the default everyone gets without a ?v= or a
+// pv cookie. Keep it first in VERSIONS.
+const DEFAULT_VERSION = VERSIONS[0];
+
 // Mirror worker.js: manual-only destinations, routable by ?v=/cookie but
-// never randomly assigned.
+// never served by default.
 const ROUTABLE = [
   ...VERSIONS,
   { name: "d-3d-game", origin: "http://localhost:4324" },
@@ -54,16 +58,6 @@ if (!Number.isInteger(PORT) || PORT < 1 || PORT > 65535) {
 if (typeof fetch !== "function") {
   console.error("scripts/dev-proxy.mjs requires Node 18+ because it uses the built-in fetch API.");
   process.exit(1);
-}
-
-function pickVersion() {
-  const total = VERSIONS.reduce((sum, v) => sum + v.weight, 0);
-  let rand = Math.random() * total;
-  for (const v of VERSIONS) {
-    rand -= v.weight;
-    if (rand <= 0) return v;
-  }
-  return VERSIONS[VERSIONS.length - 1];
 }
 
 function getCookieValue(cookieHeader, name) {
@@ -186,15 +180,12 @@ function pipeUpstreamBody(upstream, res) {
 const server = http.createServer(async (req, res) => {
   const url = new URL(req.url, `http://${req.headers.host || `localhost:${PORT}`}`);
 
-  // Mirror worker.js: ?v= override, then pv cookie, then random assignment.
+  // Mirror worker.js: ?v= override, then pv cookie, then the default.
   const force = url.searchParams.get("v");
   url.searchParams.delete("v");
   const forced = findVersion(force);
   const cookieVersion = findVersion(getCookieValue(req.headers.cookie || "", COOKIE_NAME));
-  const chosen =
-    forced ||
-    cookieVersion ||
-    pickVersion();
+  const chosen = forced || cookieVersion || DEFAULT_VERSION;
 
   try {
     const upstreamUrl = chosen.origin + url.pathname + url.search;

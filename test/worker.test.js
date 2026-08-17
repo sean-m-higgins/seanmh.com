@@ -44,6 +44,60 @@ test('forced routing strips the control param and sets document headers', async 
   assert.match(cookies, /pv=b-card/);
 });
 
+test('a visitor with no preference always gets a-scroll', async (t) => {
+  const upstreamUrls = [];
+  const restore = mockFetch(async (url) => {
+    upstreamUrls.push(String(url));
+    return new Response('scroll');
+  });
+  t.after(restore);
+
+  // Repeated across what used to be the full spread of the rotation: the
+  // default must not vary between visitors, which is the whole point of the
+  // change (a stable canonical page for crawlers and for CWV attribution).
+  const originalRandom = Math.random;
+  t.after(() => { Math.random = originalRandom; });
+  for (const random of [0, 0.5, 0.999999]) {
+    Math.random = () => random;
+    const response = await worker.fetch(request('/', {
+      headers: { Accept: 'text/html' },
+    }));
+    assert.equal(response.headers.get('X-Portfolio-Version'), 'a-scroll');
+    assert.match(response.headers.get('Set-Cookie'), /pv=a-scroll/);
+  }
+  assert.deepEqual(upstreamUrls, [
+    'https://seanmh-scroll.pages.dev/',
+    'https://seanmh-scroll.pages.dev/',
+    'https://seanmh-scroll.pages.dev/',
+  ]);
+});
+
+test('an explicit choice still overrides the default', async (t) => {
+  const upstreamUrls = [];
+  const restore = mockFetch(async (url) => {
+    upstreamUrls.push(String(url));
+    return new Response('other');
+  });
+  t.after(restore);
+
+  // ?v= wins over the default...
+  const forced = await worker.fetch(request('/?v=c-terminal', {
+    headers: { Accept: 'text/html' },
+  }));
+  assert.equal(forced.headers.get('X-Portfolio-Version'), 'c-terminal');
+
+  // ...and so does a sticky cookie from an earlier switch.
+  const returning = await worker.fetch(request('/', {
+    headers: { Accept: 'text/html', Cookie: 'pv=b-card' },
+  }));
+  assert.equal(returning.headers.get('X-Portfolio-Version'), 'b-card');
+
+  assert.deepEqual(upstreamUrls, [
+    'https://seanmh-terminal.pages.dev/',
+    'https://seanmh-card.pages.dev/',
+  ]);
+});
+
 test('nexus is routable via ?v= and a sticky cookie but never randomly assigned', async (t) => {
   const upstreamUrls = [];
   const restore = mockFetch(async (url) => {
