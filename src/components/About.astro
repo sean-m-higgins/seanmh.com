@@ -54,6 +54,7 @@ import { currentFocus } from "../content/about";
       <p class="text-xl font-semibold leading-snug text-neutral-900 sm:text-2xl dark:text-neutral-100">
         {currentFocus.lead}
       </p>
+      <p class="mt-4 text-neutral-600 dark:text-neutral-400" set:html={currentFocus.scale} />
       <p class="mt-4 text-neutral-600 dark:text-neutral-400">
         {currentFocus.body}
       </p>
