@@ -54,7 +54,9 @@ const { entry } = Astro.props;
   <ul
     class="mt-3 list-disc space-y-2 pl-4 text-sm text-neutral-600 marker:text-accent/50 dark:text-neutral-400"
   >
-    {entry.highlights.map((point) => <li>{point}</li>)}
+    {/* Highlights may carry inline <b class="stat"> emphasis on figures. The
+        content is authored in src/content, never user input. */}
+    {entry.highlights.map((point) => <li set:html={point} />)}
   </ul>
   </div>
 </div>

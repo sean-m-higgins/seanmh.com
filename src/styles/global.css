@@ -25,6 +25,15 @@
   }
 }
 
+/* Scale figures inside experience highlights. Lining tabular numerals so the
+   digits stand up straight against the surrounding prose, and the body text
+   colour at full strength so the number reads first without the bullet
+   turning into a row of accent-coloured confetti. */
+.stat {
+  @apply font-semibold text-neutral-900 dark:text-neutral-100;
+  font-variant-numeric: tabular-nums lining-nums;
+}
+
 /* Loader "finishing jab": the left boxer lands a big jab and the right boxer
    recoils, held as a freeze-frame while the panel wipes away. */
 #loader.loader-finish .boxer-l,
