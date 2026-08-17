@@ -2,9 +2,9 @@
 // Light constellation / particle-network background for the hero: nodes drift
 // and link to nearby neighbours, gently link to the cursor on hover, and the
 // whole thing fades out as the page scrolls. A click sends a shockwave across
-// the field — nodes it sweeps past are kicked outward and flare, then damping
-// settles them back into their drift. Sits behind the hero content, never
-// catches pointer events, and is skipped entirely for reduced motion.
+// the field — nodes it sweeps past are kicked outward and flare, then a spring
+// hauls them back to where they were drifting. Sits behind the hero content,
+// never catches pointer events, and is skipped entirely for reduced motion.
 ---
 
 <canvas
@@ -38,6 +38,10 @@
     const MAX_WAVES = 4;
     const IMPULSE_DAMP = 0.94;
     const HEAT_DECAY = 0.94;
+    // Spring that pulls a node back to its home after a kick. Paired with
+    // IMPULSE_DAMP this is underdamped, so the field overshoots once and
+    // settles rather than creeping back — the recoil is the point.
+    const SPRING = 0.012;
     // The epicentre bloom is a separate, much faster decay than the wave
     // itself — it reads as the strike, not the travelling front.
     const FLASH_DECAY = 0.055;
@@ -46,11 +50,15 @@
     let w = 0;
     let h = 0;
     let dpr = 1;
-    // vx/vy is the permanent drift; ix/iy is the transient kick a shockwave
-    // adds and damping removes. heat drives the brief brightening.
+    // hx/hy is the node's home, drifting across the canvas at vx/vy. The node
+    // itself hangs off that home on a spring: ix/iy is the transient kick a
+    // shockwave adds, which the spring and damping work back off. heat drives
+    // the brief brightening.
     let particles: {
       x: number;
       y: number;
+      hx: number;
+      hy: number;
       vx: number;
       vy: number;
       ix: number;
@@ -100,18 +108,27 @@
       // particles that fell outside the shorter canvas back to its edge.
       if (previousW > 0 && Math.abs(previousW - w) >= 0.5) {
         const scaleX = w / previousW;
-        for (const p of particles) p.x *= scaleX;
+        for (const p of particles) {
+          p.x *= scaleX;
+          p.hx *= scaleX;
+        }
       }
       for (const p of particles) {
         p.x = Math.max(0, Math.min(w, p.x));
         p.y = Math.max(0, Math.min(h, p.y));
+        p.hx = Math.max(0, Math.min(w, p.hx));
+        p.hy = Math.max(0, Math.min(h, p.hy));
       }
 
       const count = Math.min(72, Math.max(24, Math.round((w * h) / 16000)));
       while (particles.length < count) {
+        const x = Math.random() * w;
+        const y = Math.random() * h;
         particles.push({
-          x: Math.random() * w,
-          y: Math.random() * h,
+          x,
+          y,
+          hx: x,
+          hy: y,
           vx: (Math.random() - 0.5) * 0.28,
           vy: (Math.random() - 0.5) * 0.28,
           ix: 0,
@@ -142,21 +159,19 @@
 
       for (let i = 0; i < particles.length; i++) {
         const p = particles[i];
-        p.x += p.vx + p.ix;
-        p.y += p.vy + p.iy;
-        p.ix *= IMPULSE_DAMP;
-        p.iy *= IMPULSE_DAMP;
-        // Clamp on bounce: without it a hard enough kick carries a node off
-        // the canvas, where flipping vx alone never brings it back.
-        if (p.x < 0 || p.x > w) {
+
+        // The home keeps drifting and bouncing off the edges exactly as the
+        // node used to; only the home is clamped, so a node knocked past the
+        // edge is pulled back in rather than pinned to it.
+        p.hx += p.vx;
+        p.hy += p.vy;
+        if (p.hx < 0 || p.hx > w) {
           p.vx *= -1;
-          p.ix *= -0.5;
-          p.x = Math.max(0, Math.min(w, p.x));
+          p.hx = Math.max(0, Math.min(w, p.hx));
         }
-        if (p.y < 0 || p.y > h) {
+        if (p.hy < 0 || p.hy > h) {
           p.vy *= -1;
-          p.iy *= -0.5;
-          p.y = Math.max(0, Math.min(h, p.y));
+          p.hy = Math.max(0, Math.min(h, p.hy));
         }
 
         for (let k = 0; k < waves.length; k++) {
@@ -174,14 +189,28 @@
         }
         p.heat *= HEAT_DECAY;
 
+        // Spring back to the home, then integrate. This is what makes the
+        // blast recover: the impulse carries a node outward, the restoring
+        // force overtakes it, and the field closes the hole it opened.
+        p.ix += (p.hx - p.x) * SPRING;
+        p.iy += (p.hy - p.y) * SPRING;
+        p.ix *= IMPULSE_DAMP;
+        p.iy *= IMPULSE_DAMP;
+        p.x += p.ix;
+        p.y += p.iy;
+
         if (mouse.active) {
           const dx = mouse.x - p.x;
           const dy = mouse.y - p.y;
           const d2 = dx * dx + dy * dy;
           if (d2 < MOUSE * MOUSE) {
             const d = Math.sqrt(d2) || 1;
+            // Drag the home along with the node, otherwise the spring fights
+            // the cursor and nodes only lean instead of following it.
             p.x += (dx / d) * 0.12;
             p.y += (dy / d) * 0.12;
+            p.hx += (dx / d) * 0.12;
+            p.hy += (dy / d) * 0.12;
           }
         }
       }
