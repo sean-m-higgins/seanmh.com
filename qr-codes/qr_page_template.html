@@ -1,0 +1,657 @@
+<title>b-card QR Kit</title>
+<style>
+  :root {
+    --ground: #fbfbfe;
+    --plate: #ffffff;
+    --edge: #e3e3f0;
+    --ink: #14142b;
+    --muted: #5f5f7d;
+    --faint: #8a8aa6;
+    --accent: #4338ca;
+    --accent-soft: #6366f1;
+    --accent-wash: #eeeefc;
+    --pass: #1f7a4d;
+    --pass-wash: #e4f4ec;
+    --warn: #8a5a12;
+    --warn-wash: #faf0dd;
+
+    --mono: ui-monospace, "SF Mono", SFMono-Regular, "JetBrains Mono", Menlo, monospace;
+    --sans: "Avenir Next", "Segoe UI", system-ui, -apple-system, sans-serif;
+  }
+
+  :root:not([data-theme="light"]) {
+    color-scheme: light dark;
+  }
+
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --ground: #0b0b14;
+      --plate: #13131f;
+      --edge: #26263a;
+      --ink: #e8e8f4;
+      --muted: #a0a0be;
+      --faint: #6f6f92;
+      --accent: #a5b4fc;
+      --accent-soft: #818cf8;
+      --accent-wash: #1c1c30;
+      --pass: #6ee7a8;
+      --pass-wash: #12241c;
+      --warn: #f0c27b;
+      --warn-wash: #2a2113;
+    }
+  }
+
+  :root[data-theme="dark"] {
+    --ground: #0b0b14;
+    --plate: #13131f;
+    --edge: #26263a;
+    --ink: #e8e8f4;
+    --muted: #a0a0be;
+    --faint: #6f6f92;
+    --accent: #a5b4fc;
+    --accent-soft: #818cf8;
+    --accent-wash: #1c1c30;
+    --pass: #6ee7a8;
+    --pass-wash: #12241c;
+    --warn: #f0c27b;
+    --warn-wash: #2a2113;
+  }
+
+  * { box-sizing: border-box; }
+
+  body {
+    background: var(--ground);
+    color: var(--ink);
+    font-family: var(--sans);
+    font-size: 16px;
+    line-height: 1.6;
+    margin: 0;
+    padding: 3rem 1.5rem 5rem;
+  }
+
+  .wrap {
+    max-width: 60rem;
+    margin: 0 auto;
+    display: flex;
+    flex-direction: column;
+    gap: 3.5rem;
+  }
+
+  .eyebrow {
+    font-family: var(--mono);
+    font-size: 0.75rem;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--faint);
+    margin: 0;
+  }
+
+  h1 {
+    font-family: var(--mono);
+    font-size: clamp(1.75rem, 4vw, 2.5rem);
+    font-weight: 600;
+    letter-spacing: -0.02em;
+    text-wrap: balance;
+    margin: 0.5rem 0 0;
+  }
+
+  h2 {
+    font-family: var(--mono);
+    font-size: 1.125rem;
+    font-weight: 600;
+    letter-spacing: -0.01em;
+    margin: 0;
+    padding-bottom: 0.75rem;
+    border-bottom: 1px solid var(--edge);
+  }
+
+  h3 {
+    font-family: var(--mono);
+    font-size: 0.9375rem;
+    font-weight: 600;
+    margin: 0;
+  }
+
+  p { margin: 0; max-width: 65ch; }
+  .lede { color: var(--muted); font-size: 1.0625rem; margin-top: 1rem; }
+
+  section { display: flex; flex-direction: column; gap: 1.5rem; }
+
+  .payload {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.75rem;
+    flex-wrap: wrap;
+    font-family: var(--mono);
+    font-size: 0.9375rem;
+    background: var(--accent-wash);
+    color: var(--accent);
+    border: 1px solid var(--edge);
+    border-radius: 8px;
+    padding: 0.6rem 0.9rem;
+    width: fit-content;
+    word-break: break-all;
+  }
+  .payload .tag {
+    font-size: 0.6875rem;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--faint);
+  }
+
+  .grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(15rem, 1fr));
+    gap: 1.5rem;
+  }
+
+  .card {
+    background: var(--plate);
+    border: 1px solid var(--edge);
+    border-radius: 12px;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+  }
+
+  .code-plate {
+    padding: 1.25rem;
+    display: flex;
+    justify-content: center;
+    background: var(--plate);
+  }
+  .code-plate.on-dark { background: #0a0a0a; }
+
+  .code-plate svg { width: 100%; height: auto; max-width: 15rem; display: block; }
+
+  .card-body {
+    padding: 1rem 1.25rem 1.25rem;
+    border-top: 1px solid var(--edge);
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+  }
+
+  .card-body p { font-size: 0.875rem; color: var(--muted); }
+
+  dl {
+    margin: 0;
+    display: grid;
+    grid-template-columns: auto 1fr;
+    gap: 0.25rem 1rem;
+    font-family: var(--mono);
+    font-size: 0.75rem;
+    font-variant-numeric: tabular-nums;
+  }
+  dt { color: var(--faint); }
+  dd { margin: 0; color: var(--ink); text-align: right; }
+
+  .pill {
+    display: inline-block;
+    font-family: var(--mono);
+    font-size: 0.6875rem;
+    letter-spacing: 0.06em;
+    padding: 0.15rem 0.5rem;
+    border-radius: 999px;
+    white-space: nowrap;
+  }
+  .pill.pass { background: var(--pass-wash); color: var(--pass); }
+  .pill.warn { background: var(--warn-wash); color: var(--warn); }
+
+  .table-scroll { overflow-x: auto; }
+
+  table {
+    border-collapse: collapse;
+    width: 100%;
+    font-size: 0.875rem;
+    min-width: 32rem;
+  }
+  th, td {
+    text-align: left;
+    padding: 0.7rem 0.75rem;
+    border-bottom: 1px solid var(--edge);
+  }
+  th {
+    font-family: var(--mono);
+    font-size: 0.6875rem;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--faint);
+    font-weight: 500;
+  }
+  td:first-child { font-family: var(--mono); font-size: 0.8125rem; }
+  td.num { font-family: var(--mono); font-variant-numeric: tabular-nums; }
+
+  ul { margin: 0; padding-left: 1.1rem; display: flex; flex-direction: column; gap: 0.5rem; }
+  li { max-width: 65ch; }
+  li::marker { color: var(--faint); }
+
+  code {
+    font-family: var(--mono);
+    font-size: 0.875em;
+    white-space: nowrap;
+    background: var(--accent-wash);
+    color: var(--accent);
+    padding: 0.1em 0.35em;
+    border-radius: 4px;
+  }
+
+  .note {
+    border-left: 2px solid var(--accent-soft);
+    padding: 0.25rem 0 0.25rem 1rem;
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+  }
+
+  .files {
+    font-family: var(--mono);
+    font-size: 0.8125rem;
+    background: var(--accent-wash);
+    border: 1px solid var(--edge);
+    border-radius: 10px;
+    padding: 1rem 1.25rem;
+    overflow-x: auto;
+    color: var(--muted);
+    line-height: 1.9;
+  }
+  .files b { color: var(--ink); font-weight: 600; }
+
+  footer {
+    border-top: 1px solid var(--edge);
+    padding-top: 1.5rem;
+    font-family: var(--mono);
+    font-size: 0.75rem;
+    color: var(--faint);
+  }
+
+  a { color: var(--accent); text-decoration-thickness: 1px; text-underline-offset: 2px; }
+  a:focus-visible { outline: 2px solid var(--accent-soft); outline-offset: 2px; border-radius: 3px; }
+</style>
+
+<div class="wrap">
+
+  <header>
+    <p class="eyebrow">seanmh.com &middot; version b-card</p>
+    <h1>b-card QR Kit</h1>
+    <p class="lede">
+      Four scannable codes for the Card version of the site — one plain, three
+      styled to the site's indigo. Sized for print, and read back by two
+      independent decoders at every size from 110 to 400 pixels before any of
+      them made this page.
+    </p>
+  </header>
+
+  <section>
+    <h2>What they encode</h2>
+    <div class="payload">
+      <span class="tag">url</span>
+      <span>https://seanmh.com/card</span>
+    </div>
+    <p style="color: var(--muted); font-size: 0.9375rem;">
+      <code>/card</code> is a short path the Worker owns: it redirects to
+      <code>?v=b-card</code>, so a scan lands on the Card version specifically
+      rather than whatever a returning visitor's cookie last selected. It is
+      short enough to say out loud, and it encodes into a 29&times;29 symbol
+      instead of the 33&times;33 the query string needed — a 12% larger module
+      at any given sticker size, which is exactly the margin that matters at
+      one inch.
+    </p>
+    <p style="color: var(--muted); font-size: 0.9375rem;">
+      The redirect is a 302, not a 301. These get printed on objects that
+      outlive routing decisions, and a permanent redirect would sit in the
+      cache of every browser that ever scanned an old sticker.
+    </p>
+  </section>
+
+  <section>
+    <h2>The four codes</h2>
+    <div class="grid">
+
+      <article class="card">
+        <div class="code-plate">__SVG_MONO__</div>
+        <div class="card-body">
+          <h3>qr-mono</h3>
+          <p>Pure black on white, square modules, no styling. The one to use when
+             you cannot test the scanner — old handhelds, fax-grade photocopies,
+             a badge printer.</p>
+          <dl>
+            <dt>Correction</dt><dd>M &middot; 15%</dd>
+            <dt>Grid</dt><dd>25 &times; 25</dd>
+            <dt>ZXing</dt><dd><span class="pill pass">59 / 59</span></dd>
+          </dl>
+        </div>
+      </article>
+
+      <article class="card">
+        <div class="code-plate">__SVG_INDIGO__</div>
+        <div class="card-body">
+          <h3>qr-indigo</h3>
+          <p>Rounded modules and a vertical indigo gradient built from the site's
+             own <code>--color-accent</code>. The default pick for slides, email
+             signatures and light-background print.</p>
+          <dl>
+            <dt>Correction</dt><dd>H &middot; 30%</dd>
+            <dt>Grid</dt><dd>29 &times; 29</dd>
+            <dt>ZXing</dt><dd><span class="pill pass">59 / 59</span></dd>
+          </dl>
+        </div>
+      </article>
+
+      <article class="card">
+        <div class="code-plate">__SVG_GLYPH__</div>
+        <div class="card-body">
+          <h3>qr-indigo-glyph</h3>
+          <p>Same code with the dial's <strong>&#9635;</strong> Card glyph knocked
+             into the middle. The hole costs 3% of the modules against a 30%
+             budget, so the error correction absorbs it easily.</p>
+          <dl>
+            <dt>Correction</dt><dd>H &middot; 30%</dd>
+            <dt>Grid</dt><dd>29 &times; 29</dd>
+            <dt>ZXing</dt><dd><span class="pill pass">59 / 59</span></dd>
+          </dl>
+        </div>
+      </article>
+
+      <article class="card">
+        <div class="code-plate on-dark">__SVG_DARK__</div>
+        <div class="card-body">
+          <h3>qr-dark</h3>
+          <p>Light modules on the site's <code>#0a0a0a</code> ground, for dark
+             slides and the dark-mode site itself. Inverted codes need a scanner
+             that handles inversion — see the caveat below.</p>
+          <dl>
+            <dt>Correction</dt><dd>H &middot; 30%</dd>
+            <dt>Grid</dt><dd>29 &times; 29</dd>
+            <dt>ZXing</dt><dd><span class="pill pass">59 / 59</span></dd>
+          </dl>
+        </div>
+      </article>
+
+    </div>
+  </section>
+
+  <section>
+    <h2>How they were checked</h2>
+    <p style="color: var(--muted); font-size: 0.9375rem;">
+      Two independent decoders read every file: a ZXing-derived one, whose
+      lineage most phone scanners share, and a strict geometric one. Both were
+      run at every size from 110 to 400 pixels in 5-pixel steps — 59 sizes
+      each — plus blur, dim, skew and print-noise passes. The SVGs were then
+      re-rendered through a real browser and swept again, to confirm the vector
+      files carry identical geometry to the PNGs.
+    </p>
+    <div class="table-scroll">
+      <table>
+        <thead>
+          <tr>
+            <th>Variant</th>
+            <th>ZXing-derived reader</th>
+            <th>Strict geometric reader</th>
+            <th>Verdict</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>qr-mono</td>
+            <td class="num">59 / 59</td>
+            <td class="num">59 / 59</td>
+            <td><span class="pill pass">clean sweep</span></td>
+          </tr>
+          <tr>
+            <td>qr-indigo</td>
+            <td class="num">59 / 59</td>
+            <td class="num">55 / 59</td>
+            <td><span class="pill pass">clean on both in print sizes</span></td>
+          </tr>
+          <tr>
+            <td>qr-indigo-glyph</td>
+            <td class="num">59 / 59</td>
+            <td class="num">55 / 59</td>
+            <td><span class="pill pass">clean on both in print sizes</span></td>
+          </tr>
+          <tr>
+            <td>qr-dark</td>
+            <td class="num">59 / 59</td>
+            <td class="num">0 / 59</td>
+            <td><span class="pill warn">inversion only</span></td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+    <div class="note">
+      <p style="font-size: 0.9375rem;">
+        <strong>About those three misses.</strong> The strict reader drops the
+        styled codes at 150, 160 and 170 pixels, plus an isolated 235, and
+        reads them at every one of the other 55 sizes. The
+        same reader has its own scattered dead sizes on the previous, larger
+        version of these codes too — it is a quirk of how that library samples
+        certain scale ratios, not something about the artwork, and it does not
+        correspond to anything a camera does. A phone sees continuous optics,
+        not a bitmap resampled to an unlucky integer. The ZXing-derived reader
+        has no dead sizes at all.
+      </p>
+      <p style="font-size: 0.9375rem;">
+        Worth stating plainly: an earlier version of this page claimed a clean
+        sweep from a six-size sample. A denser sweep found the band. The codes
+        did not change; the measurement got better.
+      </p>
+    </div>
+    <div class="note">
+      <p style="font-size: 0.9375rem;">
+        <strong>The one asterisk.</strong> The strict reader scores zero on
+        <code>qr-dark</code> — but it scores zero on a plain, perfectly ordinary
+        black-and-white code with the colors flipped too. That reader simply
+        cannot invert; it is a limitation of the library, not a defect in the
+        design. The ZXing-derived reader, whose lineage most phone scanners
+        share, reads the dark code under every condition. iOS Camera and Android
+        both handle inverted codes; a few older third-party scanner apps do not.
+      </p>
+      <p style="font-size: 0.9375rem;">
+        If a code has to work on an unknown scanner with no chance to test,
+        use <code>qr-mono</code>.
+      </p>
+    </div>
+  </section>
+
+  <section>
+    <h2>Where the styling budget went</h2>
+    <p style="color: var(--muted); font-size: 0.9375rem;">
+      Two findings from sweeping the design parameters against both readers,
+      worth keeping if these ever get restyled:
+    </p>
+    <ul>
+      <li><strong>Rounding the data modules is almost free.</strong> Even fully
+        circular dots decoded everywhere. The shape of the small squares carries
+        far less weight than it looks like it should.</li>
+      <li><strong>Rounding the three corner eyes is expensive.</strong> As the
+        corner radius grows, the strict reader stops recognising the
+        1&#8239;:&#8239;1&#8239;:&#8239;3&#8239;:&#8239;1&#8239;:&#8239;1 finder
+        ratio, and it falls off a cliff.</li>
+    </ul>
+    <div class="table-scroll">
+      <table>
+        <thead>
+          <tr>
+            <th>Eye corner radius</th>
+            <th>Strict reader, 59 sizes</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr><td>0.5 module &nbsp;<span class="pill pass">shipped</span></td><td class="num">55 / 59</td></tr>
+          <tr><td>1.0 module</td><td class="num">37 / 59</td></tr>
+          <tr><td>1.25 module</td><td class="num">27 / 59</td></tr>
+          <tr><td>1.75 module</td><td class="num">2 / 59</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <p style="color: var(--muted); font-size: 0.9375rem;">
+      The generator settles at <code>mod_round = 0.35</code>,
+      <code>eye_round = 0.5</code> — the roundest combination that still holds
+      up on both readers. The first styled attempt used 1.75 and did not scan
+      at all.
+    </p>
+  </section>
+
+  <section>
+    <h2>About those Apple codes</h2>
+    <div class="note">
+      <p style="font-size: 0.9375rem;">
+        The round, three-lobed Apple codes are <strong>App Clip Codes</strong>,
+        and they are not a general-purpose QR alternative. They are generated
+        only by Apple's own App Clip Code Generator, they must be tied to an App
+        Clip registered in App Store Connect, and they point at an app
+        experience rather than a plain web page. There is no way to make one for
+        a personal site, and non-Apple devices cannot read the distinctive part
+        of them at all.
+      </p>
+      <p style="font-size: 0.9375rem;">
+        What you can borrow is the idea: a QR code with real color and a
+        deliberate shape is still a completely standard QR code. That is what
+        these are.
+      </p>
+    </div>
+  </section>
+
+  <section>
+    <h2>Sizing for print</h2>
+    <p style="color: var(--muted); font-size: 0.9375rem;">
+      The styled codes are 37 modules wide including their quiet zone. Scan
+      distance is the usual rule of thumb — roughly ten times the code's
+      width — not something measured here.
+    </p>
+    <div class="table-scroll">
+      <table>
+        <thead>
+          <tr>
+            <th>Piece</th>
+            <th>QR width</th>
+            <th>Module</th>
+            <th>Scan distance</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr><td>1in sticker</td><td class="num">21.6&nbsp;mm</td><td class="num">0.58&nbsp;mm</td><td class="num">~22&nbsp;cm</td></tr>
+          <tr><td>1.5in sticker</td><td class="num">32.4&nbsp;mm</td><td class="num">0.88&nbsp;mm</td><td class="num">~32&nbsp;cm</td></tr>
+          <tr><td>2in sticker</td><td class="num">43.2&nbsp;mm</td><td class="num">1.17&nbsp;mm</td><td class="num">~43&nbsp;cm</td></tr>
+          <tr><td>Business card back</td><td class="num">37.4&nbsp;mm</td><td class="num">1.01&nbsp;mm</td><td class="num">~37&nbsp;cm</td></tr>
+          <tr><td>Laptop decal</td><td class="num">85.0&nbsp;mm</td><td class="num">2.30&nbsp;mm</td><td class="num">~85&nbsp;cm</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <p style="color: var(--muted); font-size: 0.9375rem;">
+      Assumes the code occupies about 85% of the piece. The hard floor is
+      roughly <strong>18&nbsp;mm</strong> square at a 0.5&nbsp;mm module; a
+      1-inch sticker sits comfortably above it.
+    </p>
+  </section>
+
+  <section>
+    <h2>Handing this to a printer</h2>
+    <ul>
+      <li><strong>Ask for matte, never gloss or UV.</strong> Specular glare off
+        a glossy laminate under direct light is one of the most common ways a
+        perfectly good printed code fails to scan. It costs the same.</li>
+      <li><strong>Specify 100% K for <code>qr-mono</code>, not rich black.</strong>
+        Converted naively it becomes a 294%-ink four-plate build; on modules
+        near 1&nbsp;mm, plate registration error fuzzes every edge. One plate
+        cannot misregister.</li>
+      <li><strong>Expect the indigo to shift.</strong> Through a generic CMYK
+        profile <code>#4338ca</code> becomes 87/71/0/0 and prints back around
+        <code>#2f5293</code> — duller, bluer, most of the violet gone. Contrast
+        against white only moves 7.90 to 7.64, so scanning is unaffected; it is
+        purely cosmetic. Ask for a Pantone if screen-to-print match matters.</li>
+      <li><strong>Keep the white space around the edge.</strong> The four-module
+        quiet zone is drawn into every file. Cropping to the code itself is the
+        most common way a working QR stops working.</li>
+      <li><strong>Send the SVG</strong>, not the PNG — most shops want vector,
+        and the PNGs top out near 4.4&nbsp;in at 300&nbsp;dpi.</li>
+      <li><strong>Do not recolor them by hand.</strong> The indigo was picked to
+        hold contrast against white. Lighter accents look fine on screen and
+        fail on a phone in a dim room — rerun the generator instead.</li>
+      <li><strong>For <code>qr-dark</code> on dark stock</strong>, the shop needs
+        a white underbase to lay light ink down. Not every sticker vendor does
+        it; ask before ordering.</li>
+    </ul>
+  </section>
+
+  <section>
+    <h2>Print-ready PDFs</h2>
+    <p style="color: var(--muted); font-size: 0.9375rem;">
+      Nine vector PDFs, drawn from the same module matrix as the PNG and SVG —
+      not traced from an image. Each carries a 3&nbsp;mm bleed and proper page
+      boxes, and each was rendered back out at 150, 300 and 600&nbsp;dpi and
+      decoded to confirm the artwork survives the trip through PDF.
+    </p>
+    <div class="table-scroll">
+      <table>
+        <thead>
+          <tr><th>File</th><th>Finished size</th><th>Module</th></tr>
+        </thead>
+        <tbody>
+          <tr><td>sticker-2in-{indigo, indigo-glyph, dark}</td><td class="num">50.8 &times; 50.8&nbsp;mm</td><td class="num">1.37&nbsp;mm</td></tr>
+          <tr><td>sticker-2in-mono</td><td class="num">50.8 &times; 50.8&nbsp;mm</td><td class="num">1.54&nbsp;mm</td></tr>
+          <tr><td>sticker-1.5in-indigo-glyph</td><td class="num">38.1 &times; 38.1&nbsp;mm</td><td class="num">1.03&nbsp;mm</td></tr>
+          <tr><td>sticker-1in-indigo-glyph</td><td class="num">25.4 &times; 25.4&nbsp;mm</td><td class="num">0.69&nbsp;mm</td></tr>
+          <tr><td>card-back-3.5x2in</td><td class="num">88.9 &times; 50.8&nbsp;mm</td><td class="num">0.70&nbsp;mm</td></tr>
+          <tr><td>sheet-letter-1in-x48</td><td class="num">US Letter, 48 up</td><td class="num">0.69&nbsp;mm</td></tr>
+          <tr><td>PROOF-geometry-2in</td><td colspan="2">marks visible &mdash; for checking, not printing</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <div class="note">
+      <p style="font-size: 0.9375rem;">
+        <strong>The quiet zone is the safe area.</strong> Rather than inset the
+        code inside a separate 3&nbsp;mm margin, the symbol is sized so its own
+        four-module quiet zone runs out to the trim line. That buys the largest
+        possible module at every finished size, and a die-cut that drifts inward
+        eats quiet zone instead of data — which is what a quiet zone is for. The
+        background then bleeds 3&nbsp;mm past the trim, so a drift outward never
+        exposes bare paper. On the 2-inch sticker the data sits 5.5&nbsp;mm
+        inside the cut line, comfortably past the usual 3&nbsp;mm requirement.
+      </p>
+      <p style="font-size: 0.9375rem;">
+        <strong>No crop marks, on purpose.</strong> The production files set
+        MediaBox, TrimBox and BleedBox properly, which is how a shop's software
+        finds the cut — machine-readable, and it cannot be misread the way a
+        drawn mark can. Most online printers want exactly this. If yours insists
+        on visible marks, say so and I will add a slug area.
+      </p>
+      <p style="font-size: 0.9375rem;">
+        <strong>They are RGB.</strong> Sticker Mule, Moo and similar accept RGB
+        and convert. If your shop wants CMYK supplied, hand them the numbers
+        from the section above rather than letting a default profile decide.
+      </p>
+    </div>
+  </section>
+
+  <section>
+    <h2>Files</h2>
+    <div class="files">
+      <b>qr-codes/</b><br>
+      &nbsp;&nbsp;qr-mono.png &middot; .svg<br>
+      &nbsp;&nbsp;qr-indigo.png &middot; .svg<br>
+      &nbsp;&nbsp;qr-indigo-glyph.png &middot; .svg<br>
+      &nbsp;&nbsp;qr-dark.png &middot; .svg<br>
+      &nbsp;&nbsp;<b>print/</b> &mdash; the nine PDFs above<br>
+      &nbsp;&nbsp;<b>make_qr.py</b> &mdash; regenerates all four<br>
+      &nbsp;&nbsp;<b>make_pdfs.py</b> &mdash; regenerates the print files<br>
+      &nbsp;&nbsp;<b>verify_qr.py</b> &mdash; reruns the decoder sweep<br>
+      &nbsp;&nbsp;<b>verify_pdfs.py</b> &mdash; checks boxes and decodes the PDFs<br>
+      &nbsp;&nbsp;<b>qr_page_template.html</b> &mdash; source of this page
+    </div>
+    <p style="color: var(--muted); font-size: 0.9375rem;">
+      The folder sits in the <code>version/b-card</code> worktree and is
+      untracked, so it will show up in <code>git status</code> until you commit
+      it, move it into <code>public/</code>, or delete it. The
+      <code>/card</code> route itself lives in <code>worker.js</code> on
+      <code>main</code>, with tests in <code>test/worker.test.js</code>.
+    </p>
+  </section>
+
+  <footer>
+    Generated with segno &middot; verified with OpenCV and its ZXing-derived
+    WeChat reader &middot; https://seanmh.com/card
+  </footer>
+
+</div>
