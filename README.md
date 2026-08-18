@@ -1,36 +1,31 @@
-# Shared portfolio content
+# Version F — Blueprint
 
-This branch is the canonical source for content and cross-version UI shared by
-the standalone portfolio versions. It is not deployed directly.
+The living systems map for seanmh.com. Blueprint explains how the portfolio's
+edge routing, independent versions, shared content, optional services, and
+fallbacks fit together.
 
-## Shared contract
+Blueprint is deployed as its own Cloudflare Pages project but is public at the
+stable, indexable path `https://seanmh.com/systems/`. The front Worker owns
+`/systems/*`, strips that prefix when proxying to this origin, and resolves the
+path before any `pv` version cookie. It is not a `?v=` destination and does not
+change the visitor's selected portfolio version.
 
-Keep these files byte-identical on `content`, `version/a-scroll`,
-`version/b-card`, and `version/c-terminal`:
+## Development
 
-- `src/content/site.ts`
-- `src/content/experience.ts`
-- `src/assets/images/headshot.jpeg`
-- `src/components/VersionSwitcher.astro`
-- `src/styles/transitions.css`
-
-`src/content/projects.ts` is also canonical here, but only needs to exist on a
-version branch that consumes project data.
-
-Make shared changes here first. Commit them on `content`, then cherry-pick that
-commit into each consuming version branch and adapt only the version-specific
-rendering around the shared files. Do not edit a shared copy independently on a
-version branch.
-
-## Validation
-
-Use Node 22.12 or newer (see `.nvmrc`), then run:
+Use Node 22.12 or newer:
 
 ```bash
 npm install
+npm run dev
 npm run check
 npm run build
+npm run preview -- --port 4327
 ```
 
-The build validates the canonical content against the reference Astro page.
-Run the main branch's shared-file check after syncing all worktrees.
+The site is deliberately dependency-light: Astro renders the complete system
+record as static HTML, while a small TypeScript module adds the node inspector
+and guided request tour. The vertical architecture index remains complete
+without JavaScript.
+
+To exercise path routing with the other versions, start this preview on port
+4327 and use `node scripts/dev-proxy.mjs` from the main worktree.

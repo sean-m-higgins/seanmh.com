@@ -1,0 +1,266 @@
+---
+import { nodes, regions, tour, verifiedDate } from "../content/systems.ts";
+
+const tourNodes = tour.map((stop) => nodes.find((node) => node.id === stop.node)!);
+---
+
+<header class="site-header">
+  <a class="brand" href="/systems/" aria-label="Blueprint home">
+    <span class="brand-mark" aria-hidden="true">
+      <span></span><span></span><span></span>
+    </span>
+    <span>
+      <strong>Blueprint</strong>
+      <small>version / f</small>
+    </span>
+  </a>
+
+  <nav aria-label="Blueprint navigation">
+    <button class="header-tour" type="button" data-start-tour>
+      <span class="status-dot" aria-hidden="true"></span>
+      Follow a request
+    </button>
+    <a href="/?v=nexus">Nexus</a>
+    <a class="portfolio-link" href="/?v=a-scroll">Portfolio <span aria-hidden="true">↗</span></a>
+  </nav>
+</header>
+
+<main id="main-content">
+  <section class="hero" aria-labelledby="blueprint-title">
+    <div class="hero-copy">
+      <p class="eyebrow"><span>SYS / 007</span> Living architecture</p>
+      <h1 id="blueprint-title">
+        The system behind<br />
+        <em>the spectacle.</em>
+      </h1>
+      <p class="lede">
+        One domain. Seven experiences. Independent deployments, shared facts,
+        optional services, and fallbacks designed as first-class architecture.
+      </p>
+      <div class="hero-actions">
+        <button class="button button-primary" type="button" data-start-tour>
+          <span aria-hidden="true">▶</span> Follow one request
+        </button>
+        <a class="button" href="#system-map">Explore the map</a>
+      </div>
+    </div>
+
+    <aside class="hero-spec" aria-label="System summary">
+      <div class="spec-heading">
+        <span>SEANMH.COM</span>
+        <span>ARCH / F</span>
+      </div>
+      <dl>
+        <div><dt>Experiences</dt><dd>07</dd></div>
+        <div><dt>Public origin</dt><dd>01</dd></div>
+        <div><dt>Runtime dependencies</dt><dd>00</dd></div>
+        <div><dt>Live telemetry</dt><dd>OFF</dd></div>
+        <div><dt>Verified</dt><dd>{verifiedDate}</dd></div>
+      </dl>
+      <p>
+        This is a documented model of the current repository—not a live
+        operations dashboard.
+      </p>
+    </aside>
+  </section>
+
+  <section id="system-map" class="map-section" aria-labelledby="map-title">
+    <div class="section-heading">
+      <div>
+        <p class="eyebrow">MAP / SYSTEM TOPOLOGY</p>
+        <h2 id="map-title">Trace the architecture.</h2>
+      </div>
+      <div class="map-legend" aria-label="Map legend">
+        <span><i class="legend-line"></i> request path</span>
+        <span><i class="legend-node"></i> selectable system</span>
+      </div>
+    </div>
+
+    <div class="blueprint-frame">
+      <div class="frame-coordinates" aria-hidden="true">
+        <span>Y / 00—100</span>
+        <span>X / 00—100</span>
+      </div>
+
+      <div class="spatial-map" aria-label="Interactive system architecture map">
+        <svg class="connection-map" viewBox="0 0 1000 620" preserveAspectRatio="none" aria-hidden="true">
+          <defs>
+            <marker id="arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+              <path d="M 0 0 L 10 5 L 0 10 z"></path>
+            </marker>
+          </defs>
+          <path data-flow="request-router" d="M 105 273 H 205" />
+          <path data-flow="router-resolver" d="M 290 273 H 375" />
+          <path data-flow="resolver-experiences" d="M 460 273 H 505 V 124 H 575" />
+          <path data-flow="resolver-experiments" d="M 460 273 H 505 V 124 H 765" />
+          <path data-flow="content-experiences" d="M 605 304 V 166" />
+          <path data-flow="content-experiments" d="M 650 304 H 735 V 166" />
+          <path data-flow="resolver-services" d="M 460 273 H 505 V 304 H 765" />
+          <path data-flow="services-storage" d="M 840 304 H 910" />
+          <path data-flow="quality-delivery" d="M 630 489 H 730" />
+          <path data-flow="delivery-experiences" d="M 785 456 V 384 H 700 V 170" />
+        </svg>
+
+        <div class="map-region-label region-label-edge" aria-hidden="true">02 / EDGE</div>
+        <div class="map-region-label region-label-experience" aria-hidden="true">01 / EXPERIENCE</div>
+        <div class="map-region-label region-label-content" aria-hidden="true">03 / CONTENT</div>
+        <div class="map-region-label region-label-service" aria-hidden="true">04 / SERVICE</div>
+        <div class="map-region-label region-label-delivery" aria-hidden="true">05 / DELIVERY</div>
+
+        {
+          nodes.map((node) => (
+            <a
+              class={`system-node node-${node.region}`}
+              href={`#detail-${node.id}`}
+              data-node={node.id}
+              style={`--node-x:${node.position.x}%;--node-y:${node.position.y}%`}
+              aria-label={`Inspect ${node.title}: ${node.summary}`}
+            >
+              <span class="node-code">{node.code}</span>
+              <strong>{node.label}</strong>
+              <span class="node-port" aria-hidden="true"></span>
+            </a>
+          ))
+        }
+      </div>
+
+      <div class="mobile-flow" aria-label="Request journey">
+        <p class="mobile-flow-label">Primary request path</p>
+        <ol>
+          {
+            tourNodes.map((node, index) => (
+              <li>
+                <a href={`#detail-${node.id}`} data-node={node.id}>
+                  <span>{String(index + 1).padStart(2, "0")}</span>
+                  <div>
+                    <small>{node.code}</small>
+                    <strong>{node.label}</strong>
+                    <p>{node.summary}</p>
+                  </div>
+                  <i aria-hidden="true">↘</i>
+                </a>
+              </li>
+            ))
+          }
+        </ol>
+      </div>
+
+      <div class="frame-footer" aria-hidden="true">
+        <span>SELECT A NODE TO INSPECT</span>
+        <span>MODEL / REPOSITORY-VERIFIED</span>
+      </div>
+    </div>
+  </section>
+
+  <section class="architecture" aria-labelledby="architecture-title">
+    <div class="section-heading">
+      <div>
+        <p class="eyebrow">INDEX / FIVE LAYERS</p>
+        <h2 id="architecture-title">Read the whole system.</h2>
+      </div>
+      <p class="section-intro">
+        The spatial map is an interface. This index is the complete, accessible
+        record behind it.
+      </p>
+    </div>
+
+    <div class="region-index">
+      {
+        regions.map((region) => (
+          <section id={region.id === "edge" ? "routing" : region.id} class={`region region-${region.id}`}>
+            <header>
+              <span>{region.number}</span>
+              <div>
+                <h3>{region.title}</h3>
+                <p>{region.summary}</p>
+              </div>
+            </header>
+            <div class="region-systems">
+              {nodes.filter((node) => node.region === region.id).map((node) => (
+                <article id={`detail-${node.id}`} class="system-detail">
+                  <div class="detail-title">
+                    <span>{node.code}</span>
+                    <h4>{node.title}</h4>
+                  </div>
+                  <p class="detail-summary">{node.detail}</p>
+                  <div class="detail-columns">
+                    <div>
+                      <h5>Key decisions</h5>
+                      <ul>{node.decisions.map((decision) => <li>{decision}</li>)}</ul>
+                    </div>
+                    <div>
+                      <h5>Evidence</h5>
+                      <ul class="evidence-list">{node.evidence.map((item) => <li>{item}</li>)}</ul>
+                    </div>
+                  </div>
+                  {node.href && <a class="detail-link" href={node.href}>Open related experience <span aria-hidden="true">↗</span></a>}
+                </article>
+              ))}
+            </div>
+          </section>
+        ))
+      }
+    </div>
+  </section>
+
+  <section class="principles" aria-labelledby="principles-title">
+    <div>
+      <p class="eyebrow">DESIGN / OPERATING PRINCIPLES</p>
+      <h2 id="principles-title">The constraints are the design.</h2>
+    </div>
+    <ol>
+      <li><span>01</span><strong>One identity, many interfaces.</strong><p>Presentation can change radically; professional facts should not.</p></li>
+      <li><span>02</span><strong>Opt in to spectacle.</strong><p>The canonical journey is clear. Experiments wait to be invited.</p></li>
+      <li><span>03</span><strong>Enhancement, never dependence.</strong><p>Motion, WebGL, storage, and APIs can disappear without taking the experience with them.</p></li>
+      <li><span>04</span><strong>Prove the boundary.</strong><p>Tests focus on the routing and service contracts where independent systems meet.</p></li>
+    </ol>
+  </section>
+
+  <section class="closing" aria-labelledby="closing-title">
+    <p class="eyebrow">END / CHOOSE A VIEW</p>
+    <h2 id="closing-title">The map is only one version.</h2>
+    <p>Step into the system, or return to the portfolio it was built to support.</p>
+    <div class="hero-actions">
+      <a class="button button-primary" href="/?v=nexus">Enter the Nexus <span aria-hidden="true">↗</span></a>
+      <a class="button" href="/?v=a-scroll">Open the portfolio</a>
+    </div>
+  </section>
+</main>
+
+<footer class="site-footer">
+  <span>BLUEPRINT / VERSION F</span>
+  <span>Designed and engineered by Sean Higgins</span>
+  <a href="#main-content">Back to top ↑</a>
+</footer>
+
+<dialog id="system-dialog" class="system-dialog" aria-labelledby="dialog-title">
+  <form method="dialog">
+    <button class="dialog-close" aria-label="Close system details">×</button>
+  </form>
+  <div id="dialog-content"></div>
+</dialog>
+
+<aside id="tour-panel" class="tour-panel" hidden aria-live="polite" aria-label="Guided architecture tour">
+  <div class="tour-progress" aria-hidden="true">
+    {tour.map(() => <span></span>)}
+  </div>
+  <div class="tour-copy">
+    <p id="tour-eyebrow" class="eyebrow"></p>
+    <h2 id="tour-title"></h2>
+    <p id="tour-description"></p>
+  </div>
+  <div class="tour-controls">
+    <button type="button" data-tour-back>Back</button>
+    <button type="button" class="tour-next" data-tour-next>Next <span aria-hidden="true">→</span></button>
+    <button type="button" class="tour-exit" data-tour-exit>Exit tour</button>
+  </div>
+</aside>
+
+<noscript>
+  <p class="noscript-note">
+    The interactive node inspector and guided tour require JavaScript. The complete architecture is available in the five-layer index above.
+  </p>
+</noscript>
+
+<script is:inline id="tour-data" type="application/json" set:html={JSON.stringify(tour)}></script>
+<script src="../scripts/blueprint.ts"></script>

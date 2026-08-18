@@ -1,0 +1,12 @@
+{
+  // Blueprint is fully static. The front Worker on main owns /systems/* and
+  // proxies this project's assets after stripping the public path prefix.
+  "name": "seanmh-blueprint",
+  "compatibility_date": "2025-09-27",
+  "assets": {
+    "directory": "dist"
+  },
+  "observability": {
+    "enabled": true
+  }
+}

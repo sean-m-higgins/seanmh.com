@@ -1,14 +1,12 @@
 ---
 import BaseLayout from "../layouts/BaseLayout.astro";
-import Hero from "../components/Hero.astro";
-import About from "../components/About.astro";
-import Experience from "../components/Experience.astro";
-import Contact from "../components/Contact.astro";
+import Blueprint from "../components/Blueprint.astro";
+
+const title = "Blueprint — The Systems Behind seanmh.com";
+const description =
+  "Explore how Sean Higgins designed and operates a multi-version portfolio across edge routing, shared content, independent deployments, optional services, and accessible fallbacks.";
 ---
 
-<BaseLayout title="Sean Higgins — Software Engineer">
-  <Hero />
-  <About />
-  <Experience />
-  <Contact />
+<BaseLayout title={title} description={description}>
+  <Blueprint />
 </BaseLayout>

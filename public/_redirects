@@ -1,0 +1,5 @@
+# The production Worker strips /systems before this origin. These rewrites make
+# the direct Pages production/preview hosts usable too, including base-prefixed
+# Astro assets, without changing their noindex posture.
+/systems /systems/ 301
+/systems/* /:splat 200

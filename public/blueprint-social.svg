@@ -1,0 +1,64 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 630" role="img" aria-labelledby="title desc">
+  <title id="title">Blueprint — the systems behind seanmh.com</title>
+  <desc id="desc">A technical systems diagram connecting one domain to edge routing, seven experiences, shared content, optional services, and independent delivery.</desc>
+  <defs>
+    <pattern id="minor" width="24" height="24" patternUnits="userSpaceOnUse">
+      <path d="M24 0H0V24" fill="none" stroke="#7ee6c2" stroke-opacity=".055" stroke-width="1"/>
+    </pattern>
+    <pattern id="major" width="120" height="120" patternUnits="userSpaceOnUse">
+      <rect width="120" height="120" fill="url(#minor)"/>
+      <path d="M120 0H0V120" fill="none" stroke="#7ee6c2" stroke-opacity=".12" stroke-width="1"/>
+    </pattern>
+    <filter id="glow" x="-100%" y="-100%" width="300%" height="300%">
+      <feGaussianBlur stdDeviation="7" result="blur"/>
+      <feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge>
+    </filter>
+  </defs>
+  <rect width="1200" height="630" fill="#071011"/>
+  <rect width="1200" height="630" fill="url(#major)"/>
+  <circle cx="1010" cy="-40" r="300" fill="#1f6a56" opacity=".13"/>
+  <path d="M76 78h1048v474H76z" fill="none" stroke="#7ee6c2" stroke-opacity=".34"/>
+  <path d="M76 112h1048M1084 78v474" fill="none" stroke="#7ee6c2" stroke-opacity=".18"/>
+
+  <g font-family="ui-monospace, SFMono-Regular, Menlo, monospace" letter-spacing="3">
+    <text x="104" y="103" fill="#7ee6c2" font-size="14">SEANMH.COM / SYSTEMS</text>
+    <text x="1100" y="103" fill="#557c70" font-size="12" text-anchor="end">ARCH / F</text>
+  </g>
+
+  <g transform="translate(112 176)">
+    <text fill="#f2fff9" font-family="Inter, ui-sans-serif, system-ui, sans-serif" font-size="72" font-weight="550" letter-spacing="-4">
+      <tspan x="0" y="0">The system behind</tspan>
+      <tspan x="0" y="78" fill="none" stroke="#7ee6c2" stroke-width="1.5">the spectacle.</tspan>
+    </text>
+    <text x="2" y="132" fill="#83a99c" font-family="Inter, ui-sans-serif, system-ui, sans-serif" font-size="21">
+      One domain. Seven experiences. A living architecture map.
+    </text>
+  </g>
+
+  <g transform="translate(775 172)" font-family="ui-monospace, SFMono-Regular, Menlo, monospace" font-size="11" letter-spacing="1.2">
+    <g fill="none" stroke="#7ee6c2" stroke-opacity=".55">
+      <path d="M10 169h78m118 0h62v-88h72"/>
+      <path d="M206 169h62v88h72"/>
+      <path d="M170 81v176" stroke="#ffc66d" stroke-opacity=".5"/>
+    </g>
+    <g filter="url(#glow)">
+      <circle cx="10" cy="169" r="4" fill="#7ee6c2"/>
+      <circle cx="206" cy="169" r="4" fill="#7ee6c2"/>
+    </g>
+    <g>
+      <rect x="88" y="145" width="118" height="48" fill="#091817" stroke="#7ee6c2"/>
+      <text x="102" y="174" fill="#d9f7ec">EDGE ROUTER</text>
+      <rect x="340" y="57" width="132" height="48" fill="#091817" stroke="#65d7ec"/>
+      <text x="354" y="86" fill="#d9f7ec">EXPERIENCES</text>
+      <rect x="340" y="233" width="132" height="48" fill="#091817" stroke="#ff8e9d"/>
+      <text x="354" y="262" fill="#d9f7ec">SERVICES</text>
+      <rect x="112" y="233" width="118" height="48" fill="#091817" stroke="#ffc66d"/>
+      <text x="126" y="262" fill="#d9f7ec">CONTENT</text>
+    </g>
+  </g>
+
+  <g font-family="ui-monospace, SFMono-Regular, Menlo, monospace" font-size="12" letter-spacing="2">
+    <text x="104" y="526" fill="#557c70">VERSION F / BLUEPRINT</text>
+    <text x="1062" y="526" fill="#7ee6c2" text-anchor="end">SEAN HIGGINS</text>
+  </g>
+</svg>
