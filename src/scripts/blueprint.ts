@@ -70,7 +70,10 @@ dialog?.addEventListener("close", () => {
 });
 
 function scrollToMap() {
-  document.querySelector("#system-map")?.scrollIntoView({
+  // On narrow screens the tour panel sits at the bottom of the viewport, so
+  // frame the diagram itself rather than the section heading above it.
+  const narrow = window.matchMedia("(max-width: 780px)").matches;
+  document.querySelector(narrow ? ".blueprint-frame" : "#system-map")?.scrollIntoView({
     behavior: reducedMotion ? "auto" : "smooth",
     block: "start",
   });

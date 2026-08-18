@@ -662,6 +662,7 @@ h2 {
   margin-top: 0.75rem;
 }
 
+.map-hint,
 .mobile-flow {
   display: none;
 }
@@ -1146,17 +1147,89 @@ h2 {
   }
 
   .blueprint-frame {
-    padding: 0.75rem;
+    padding: 0.55rem;
   }
 
-  .spatial-map,
   .frame-coordinates {
+    margin-bottom: 0.5rem;
+    font-size: 0.5rem;
+  }
+
+  /* Keep the whole diagram on screen: the map keeps its proportions and every
+     measurement inside it scales with the map's own width, so a phone gets a
+     miniature of the desktop drawing rather than a cropped slice of it. */
+  .spatial-map {
+    container-type: inline-size;
+    min-height: 0;
+    aspect-ratio: 100 / 76;
+    background-size: 8% 9%, 10% 7.5%, 2% 2.25%, 2.5% 1.9%;
+  }
+
+  .spatial-map::after {
+    width: 2rem;
+    height: 2rem;
+  }
+
+  .map-region-label {
+    font-size: 1.5cqw;
+    letter-spacing: 0.09em;
+  }
+
+  .connection-map path {
+    stroke-width: 0.9;
+  }
+
+  .system-node {
+    width: 11.8cqw;
+    min-height: 0;
+    padding: 0.85cqw;
+    gap: 0.4cqw;
+  }
+
+  .system-node::before,
+  .system-node::after {
+    width: 1.1cqw;
+    height: 1.1cqw;
+    border-width: 1.5px;
+  }
+
+  .node-code {
+    font-size: 1.3cqw;
+    letter-spacing: 0.03em;
+  }
+
+  .system-node strong {
+    font-size: 1.45cqw;
+    line-height: 1.35;
+    letter-spacing: -0.01em;
+    overflow-wrap: anywhere;
+  }
+
+  .node-port {
+    right: -0.55cqw;
+    width: 1.1cqw;
+    height: 1.1cqw;
+  }
+
+  .map-hint {
+    display: block;
+    margin: 0.7rem 0 0;
+    color: var(--faint);
+    font-family: var(--font-mono);
+    font-size: 0.56rem;
+    letter-spacing: 0.11em;
+    text-transform: uppercase;
+  }
+
+  .frame-footer span:first-child {
     display: none;
   }
 
   .mobile-flow {
     display: block;
+    margin-top: 1.4rem;
     padding: 0.4rem;
+    border-top: 1px solid var(--line);
   }
 
   .mobile-flow-label {
@@ -1268,6 +1341,27 @@ h2 {
 
   .tour-controls {
     grid-template-columns: 1fr 1fr;
+  }
+}
+
+/* The miniature map is sized in container units; browsers without container
+   queries keep the previous linear request path instead of a broken diagram. */
+@supports not (container-type: inline-size) {
+  @media (max-width: 780px) {
+    .spatial-map,
+    .frame-coordinates,
+    .map-hint {
+      display: none;
+    }
+
+    .frame-footer span:first-child {
+      display: inline;
+    }
+
+    .mobile-flow {
+      margin-top: 0;
+      border-top: 0;
+    }
   }
 }
 
