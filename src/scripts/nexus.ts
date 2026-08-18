@@ -1247,6 +1247,7 @@ function init() {
   // Pointer parallax + raycast hover.
   const pointer = new THREE.Vector2(0, 0);
   const pointerTarget = new THREE.Vector2(0, 0);
+  const neutralPointer = new THREE.Vector2(0, 0);
   const tilt = new THREE.Vector2(0, 0);
   const tiltTarget = new THREE.Vector2(0, 0);
   const raycaster = new THREE.Raycaster();
@@ -1261,6 +1262,7 @@ function init() {
   let dragLastTime = 0;
   let dragDistance = 0;
   let suppressClick = false;
+  let orbitControlHovered = false;
   const hasFinePointer = window.matchMedia("(hover: hover) and (pointer: fine)").matches;
 
   function setPointerPosition(clientX: number, clientY: number) {
@@ -1472,6 +1474,12 @@ function init() {
 
   previousButton?.addEventListener("click", () => stepOrbit(-1));
   nextButton?.addEventListener("click", () => stepOrbit(1));
+  [previousButton, nextButton].forEach((control) => {
+    control?.addEventListener("pointerenter", (event) => {
+      if (event.pointerType !== "touch") orbitControlHovered = true;
+    });
+    control?.addEventListener("pointerleave", () => (orbitControlHovered = false));
+  });
 
   window.addEventListener("keydown", (event) => {
     if (event.defaultPrevented || event.metaKey || event.ctrlKey || event.altKey) return;
@@ -1584,8 +1592,11 @@ function init() {
     positionPortals(elapsed, motion);
 
     // Parallax drift toward a fine pointer or, on mobile, the phone's tilt.
+    // Orbit controls temporarily neutralize it so their translucent surfaces
+    // stay legible instead of sliding across differently layered glass orbs.
     if (!entering) {
-      if (tiltActive && motion) {
+      const controlsSuppressParallax = orbitControlHovered;
+      if (tiltActive && motion && !controlsSuppressParallax) {
         // A slower low-pass filter keeps noisy phone sensors calm and makes
         // the response noticeable without pulling focus from the orbs.
         tilt.lerp(tiltTarget, 1 - Math.pow(0.002, dt));
@@ -1595,8 +1606,11 @@ function init() {
           baseCameraZ
         );
       } else {
-        if (pointerActive && hasFinePointer && motion)
+        if (controlsSuppressParallax) {
+          pointer.lerp(neutralPointer, 1 - Math.pow(0.000001, dt));
+        } else if (pointerActive && hasFinePointer && motion) {
           pointer.lerp(pointerTarget, 1 - Math.pow(0.001, dt));
+        }
         camera.position.set(pointer.x * 1.1, BASE_CAMERA_Y + pointer.y * 0.5, baseCameraZ);
       }
       camera.lookAt(LOOK_TARGET);
