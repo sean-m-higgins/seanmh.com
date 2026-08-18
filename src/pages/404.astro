@@ -1,23 +1,324 @@
 ---
+// 404: the page slips the punch. A giant 404 whose middle zero bobs away from
+// the cursor; clicking the ring throws a glove that whiffs, the scorecard
+// tallies misses with escalating corner-man taunts, and after five the corner
+// throws in the towel and points home. Boxing motif borrowed from the loader's
+// sparring silhouettes (red gloves, same #ef4444).
+//
+// Progressive enhancement: without JS the page is a normal 404 with copy and a
+// way home — the punch button and hint stay hidden until the script runs.
+// Reduced motion keeps the scorecard and taunts but skips all movement.
 import BaseLayout from "../layouts/BaseLayout.astro";
 ---
 
-<BaseLayout title="404 — Page Not Found">
-  <div class="flex min-h-screen items-center justify-center px-6">
-    <div class="text-center">
-      <p class="mb-2 font-mono text-sm text-accent">404</p>
-      <h1 class="mb-4 text-3xl font-bold text-neutral-900 dark:text-neutral-100">
-        Page not found
-      </h1>
-      <p class="mb-8 text-neutral-600 dark:text-neutral-400">
-        The page you're looking for doesn't exist or has been moved.
-      </p>
-      <a
-        href="/"
-        class="inline-block rounded-lg bg-accent px-6 py-3 text-sm font-medium text-white transition-all hover:bg-accent-light"
-      >
-        Go Home
-      </a>
+<BaseLayout
+  title="404 — Page Not Found"
+  description="This page doesn't exist. Swing at it anyway."
+>
+  <section
+    class="relative isolate flex min-h-screen items-center justify-center overflow-hidden px-6 max-md:min-h-svh"
+    data-ring
+  >
+    <!-- Same gradient mesh the hero uses, so a dead URL still feels like the
+         same room. -->
+    <div
+      class="absolute -inset-[10%] -z-10 bg-[radial-gradient(ellipse_at_top_right,_rgba(99,102,241,0.15),_transparent_50%)]"
+    >
     </div>
-  </div>
+    <div
+      class="absolute -inset-[10%] -z-10 bg-[radial-gradient(ellipse_at_bottom_left,_rgba(99,102,241,0.1),_transparent_50%)]"
+    >
+    </div>
+
+    <div class="mx-auto w-full max-w-3xl py-24 text-center">
+      <p class="mb-6 font-mono text-xs uppercase tracking-[0.3em] text-accent">
+        Round 404 · page undefeated
+      </p>
+
+      <h1
+        class="mb-6 select-none text-[clamp(5rem,20vw,12rem)] font-bold leading-none tracking-tight text-neutral-900 dark:text-neutral-100"
+      >
+        <span>4</span><span
+          class="inline-block will-change-transform"
+          data-zero>0</span
+        ><span>4</span>
+      </h1>
+
+      <h2
+        class="mb-4 text-2xl font-bold text-neutral-900 dark:text-neutral-100 sm:text-3xl"
+        data-headline
+      >
+        You swung. It slipped.
+      </h2>
+      <p
+        class="mx-auto mb-10 max-w-md text-neutral-600 dark:text-neutral-400"
+        data-blurb
+      >
+        There's no page at this address — just air, and a URL with very good
+        head movement.
+      </p>
+
+      <!-- Scorecard: JS-only, like the punch button — without a script there
+           is nothing to score. -->
+      <div class="mb-8 hidden" data-scorecard>
+        <div
+          class="flex items-center justify-center gap-3 font-mono text-[10px] uppercase tracking-[0.25em] text-neutral-400 dark:text-neutral-600"
+        >
+          <span>Misses</span>
+          <span class="flex gap-1.5" data-misses aria-hidden="true"></span>
+          <span class="sr-only" data-count>0 of 5 misses</span>
+        </div>
+        <p
+          class="mt-3 min-h-9 font-handwriting text-2xl text-accent"
+          data-taunt
+          aria-live="polite"
+        >
+        </p>
+      </div>
+
+      <div class="flex flex-wrap items-center justify-center gap-3">
+        <button
+          type="button"
+          class="hidden rounded-lg border border-neutral-300 px-6 py-3 text-sm font-medium text-neutral-700 transition-all hover:border-accent hover:text-accent dark:border-neutral-700 dark:text-neutral-300 dark:hover:border-accent-light dark:hover:text-accent-light"
+          data-punch
+        >
+          Throw a punch
+        </button>
+        <a
+          href="/"
+          class="inline-block rounded-lg bg-accent px-6 py-3 text-sm font-medium text-white transition-all hover:bg-accent-light hover:shadow-lg hover:shadow-accent/25"
+          data-magnetic
+        >
+          Back to the corner
+        </a>
+        <a
+          href="/#experience"
+          class="px-2 py-3 text-sm font-medium text-neutral-500 underline-offset-4 transition-colors hover:text-accent hover:underline dark:text-neutral-500 dark:hover:text-accent-light"
+        >
+          See the work
+        </a>
+      </div>
+
+      <p
+        class="mt-8 hidden font-mono text-[10px] uppercase tracking-[0.25em] text-neutral-400 dark:text-neutral-600"
+        data-hint
+      >
+        Click anywhere in the ring to swing
+      </p>
+    </div>
+
+    <!-- Glove: parked off-layout, flown in on each punch. -->
+    <div
+      class="pointer-events-none absolute hidden w-24 sm:w-32"
+      data-glove
+      aria-hidden="true"
+    >
+      <svg viewBox="0 0 72 46" class="h-auto w-full">
+        <path
+          d="M0 15 H12 M0 31 H8"
+          stroke="currentColor"
+          stroke-width="3"
+          stroke-linecap="round"
+          opacity="0.35"></path>
+        <rect x="14" y="13" width="22" height="20" rx="6" fill="#b91c1c"></rect>
+        <circle cx="50" cy="23" r="18" fill="#ef4444"></circle>
+        <circle cx="36" cy="34" r="8" fill="#ef4444"></circle>
+      </svg>
+    </div>
+
+    <!-- Towel: thrown in once the corner has seen enough. -->
+    <div
+      class="pointer-events-none absolute hidden w-24 drop-shadow-[0_10px_24px_rgba(0,0,0,0.45)] sm:w-32"
+      data-towel
+      aria-hidden="true"
+    >
+      <svg viewBox="0 0 80 48" class="h-auto w-full">
+        <rect
+          x="2"
+          y="6"
+          width="76"
+          height="36"
+          rx="8"
+          fill="#f5f5f5"
+          stroke="#d4d4d4"
+          stroke-width="2"></rect>
+        <path
+          d="M22 8 V40 M58 8 V40"
+          stroke="#ef4444"
+          stroke-width="4"
+          opacity="0.7"></path>
+      </svg>
+    </div>
+  </section>
+
+  <script>
+    const ring = document.querySelector<HTMLElement>("[data-ring]");
+    const zero = document.querySelector<HTMLElement>("[data-zero]");
+    const glove = document.querySelector<HTMLElement>("[data-glove]");
+    const towel = document.querySelector<HTMLElement>("[data-towel]");
+    const dots = document.querySelector<HTMLElement>("[data-misses]");
+    const count = document.querySelector<HTMLElement>("[data-count]");
+    const taunt = document.querySelector<HTMLElement>("[data-taunt]");
+    const punchBtn = document.querySelector<HTMLButtonElement>("[data-punch]");
+    const scoreboard = document.querySelector<HTMLElement>("[data-scorecard]");
+    const hint = document.querySelector<HTMLElement>("[data-hint]");
+    const headline = document.querySelector<HTMLElement>("[data-headline]");
+    const blurb = document.querySelector<HTMLElement>("[data-blurb]");
+
+    if (ring && zero && glove && towel && dots && count && taunt && punchBtn && scoreboard && hint && headline && blurb) {
+      const reduce = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+      const ROUNDS = 5;
+      const TAUNTS = [
+        "nice wind-up. nothing there.",
+        "it saw that one coming.",
+        "you're swinging at a 404, kid.",
+        "head movement. look it up.",
+        "okay. that's enough.",
+      ];
+      const OPENING = "You swung. It slipped.";
+      const OPENING_BLURB = blurb.textContent ?? "";
+
+      let misses = 0;
+      let over = false;
+
+      // The scorecard, punch button and hint are JS-only affordances.
+      scoreboard.classList.remove("hidden");
+      punchBtn.classList.remove("hidden");
+      hint.classList.remove("hidden");
+      if (!reduce) zero.style.transition = "transform 0.28s cubic-bezier(0.22, 1, 0.36, 1)";
+
+      function slip(x: number, y: number) {
+        if (reduce) return;
+        zero!.style.transform = `translate(${x}px, ${y}px) rotate(${x * 0.06}deg)`;
+      }
+
+      function settle() {
+        if (reduce) return;
+        zero!.style.transform = "";
+      }
+
+      function scorecard() {
+        dots!.textContent = "";
+        for (let i = 0; i < ROUNDS; i++) {
+          const dot = document.createElement("span");
+          dot.className =
+            i < misses
+              ? "h-1.5 w-1.5 rounded-full bg-red-500"
+              : "h-1.5 w-1.5 rounded-full bg-neutral-300 dark:bg-neutral-700";
+          dots!.append(dot);
+        }
+        count!.textContent = `${misses} of ${ROUNDS} misses`;
+      }
+
+      function throwGlove(fromLeft: boolean, box: DOMRect) {
+        if (reduce) return;
+        const ringBox = ring!.getBoundingClientRect();
+        glove!.style.left = `${box.left - ringBox.left + box.width / 2}px`;
+        glove!.style.top = `${box.top - ringBox.top + box.height / 2}px`;
+        const svg = glove!.firstElementChild as HTMLElement;
+        svg.style.transform = fromLeft ? "" : "scaleX(-1)";
+        const dir = fromLeft ? -1 : 1;
+        const travel = Math.min(ringBox.width * 0.45, 420);
+        glove!.classList.remove("hidden");
+        const run = glove!.animate(
+          [
+            { transform: `translate(calc(-50% + ${dir * travel}px), -50%)`, opacity: 0 },
+            { transform: "translate(-50%, -50%)", opacity: 1, offset: 0.5 },
+            { transform: `translate(calc(-50% + ${-dir * 40}px), -50%)`, opacity: 0 },
+          ],
+          { duration: 520, easing: "cubic-bezier(0.2, 0, 0.2, 1)" },
+        );
+        run.onfinish = () => glove!.classList.add("hidden");
+      }
+
+      function throwTowel(box: DOMRect) {
+        const ringBox = ring!.getBoundingClientRect();
+        towel!.style.left = `${box.left - ringBox.left + box.width / 2}px`;
+        towel!.style.top = `${box.top - ringBox.top + box.height / 2}px`;
+        towel!.classList.remove("hidden");
+        // Drapes off the zero's lower edge rather than dead-centre, so a white
+        // towel still reads against the white glyph.
+        const landed = "translate(-22%, 34%) rotate(-14deg)";
+        towel!.style.transform = landed;
+        if (reduce) return;
+        towel!.animate(
+          [
+            { transform: `translate(calc(-22% - ${ringBox.width * 0.4}px), 60vh) rotate(-220deg)`, opacity: 0 },
+            { transform: landed, opacity: 1 },
+          ],
+          { duration: 760, easing: "cubic-bezier(0.16, 1, 0.3, 1)" },
+        );
+      }
+
+      function bell() {
+        over = true;
+        settle();
+        headline!.textContent = "The corner's throwing in the towel.";
+        blurb!.textContent =
+          "Five swings, no page. Let's get you back to something that actually exists.";
+        taunt!.textContent = "TKO — the URL wins by not being there.";
+        punchBtn!.textContent = "Rematch";
+        hint!.classList.add("hidden");
+        throwTowel(zero!.getBoundingClientRect());
+      }
+
+      function rematch() {
+        over = false;
+        misses = 0;
+        scorecard();
+        taunt!.textContent = "";
+        headline!.textContent = OPENING;
+        blurb!.textContent = OPENING_BLURB;
+        punchBtn!.textContent = "Throw a punch";
+        hint!.classList.remove("hidden");
+        towel!.classList.add("hidden");
+      }
+
+      function punch(clientX?: number) {
+        if (over) return rematch();
+        const box = zero!.getBoundingClientRect();
+        const fromLeft = clientX === undefined ? true : clientX <= box.left + box.width / 2;
+        misses += 1;
+        scorecard();
+        taunt!.textContent = TAUNTS[Math.min(misses, TAUNTS.length) - 1];
+        throwGlove(fromLeft, box);
+        slip(fromLeft ? box.width * 0.36 : -box.width * 0.36, -box.width * 0.3);
+        window.setTimeout(() => {
+          if (!over) settle();
+        }, 620);
+        if (misses >= ROUNDS) window.setTimeout(bell, 380);
+      }
+
+      // The zero ducks away from the cursor as it comes near.
+      if (!reduce) {
+        ring.addEventListener("pointermove", (event) => {
+          if (over || event.pointerType !== "mouse") return;
+          const box = zero.getBoundingClientRect();
+          const dx = event.clientX - (box.left + box.width / 2);
+          const dy = event.clientY - (box.top + box.height / 2);
+          const distance = Math.hypot(dx, dy);
+          const reach = box.width * 2;
+          if (distance > reach) return settle();
+          // Mostly a duck rather than a lean: a wide sideways slide would
+          // just collide with the 4s, so vertical carries the movement.
+          const strength = 1 - distance / reach;
+          const angle = Math.atan2(dy, dx);
+          slip(
+            -Math.cos(angle) * strength * box.width * 0.3,
+            -Math.sin(angle) * strength * box.width * 0.5,
+          );
+        });
+        ring.addEventListener("pointerleave", () => settle());
+      }
+
+      // Swing on any click in the ring, but leave the real controls alone.
+      ring.addEventListener("click", (event) => {
+        if ((event.target as HTMLElement).closest("a, button")) return;
+        punch(event.clientX);
+      });
+      punchBtn.addEventListener("click", () => punch());
+
+      scorecard();
+    }
+  </script>
 </BaseLayout>
