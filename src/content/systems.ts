@@ -34,7 +34,7 @@ export interface TourStop {
   flow: string;
 }
 
-export const verifiedDate = "August 17, 2026";
+export const establishedDate = "February 26, 2026";
 
 export const regions: readonly SystemRegion[] = [
   {

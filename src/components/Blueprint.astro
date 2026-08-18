@@ -1,5 +1,5 @@
 ---
-import { nodes, regions, tour, verifiedDate } from "../content/systems.ts";
+import { establishedDate, nodes, regions, tour } from "../content/systems.ts";
 
 const tourNodes = tour.map((stop) => nodes.find((node) => node.id === stop.node)!);
 ---
@@ -55,7 +55,7 @@ const tourNodes = tour.map((stop) => nodes.find((node) => node.id === stop.node)
         <div><dt>Public origin</dt><dd>01</dd></div>
         <div><dt>Runtime dependencies</dt><dd>00</dd></div>
         <div><dt>Live telemetry</dt><dd>OFF</dd></div>
-        <div><dt>Verified</dt><dd>{verifiedDate}</dd></div>
+        <div><dt>Established</dt><dd>{establishedDate}</dd></div>
       </dl>
       <p>
         This is a documented model of the current repository—not a live
@@ -206,7 +206,7 @@ const tourNodes = tour.map((stop) => nodes.find((node) => node.id === stop.node)
   <section class="principles" aria-labelledby="principles-title">
     <div>
       <p class="eyebrow">DESIGN / OPERATING PRINCIPLES</p>
-      <h2 id="principles-title">The constraints are the design.</h2>
+      <h2 id="principles-title">The constraints are the design... and token limits</h2>
     </div>
     <ol>
       <li><span>01</span><strong>One identity, many interfaces.</strong><p>Presentation can change radically; professional facts should not.</p></li>
@@ -218,7 +218,7 @@ const tourNodes = tour.map((stop) => nodes.find((node) => node.id === stop.node)
 
   <section class="closing" aria-labelledby="closing-title">
     <p class="eyebrow">END / CHOOSE A VIEW</p>
-    <h2 id="closing-title">The map is only one version.</h2>
+    <h2 id="closing-title">The design map is only one version</h2>
     <p>Step into the system, or return to the portfolio it was built to support.</p>
     <div class="hero-actions">
       <a class="button button-primary" href="/?v=nexus">Enter the Nexus <span aria-hidden="true">↗</span></a>

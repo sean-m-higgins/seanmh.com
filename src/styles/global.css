@@ -275,10 +275,12 @@ h1 {
 }
 
 h1 em {
-  color: transparent;
-  font-style: normal;
-  -webkit-text-stroke: 1px var(--mint);
-  text-shadow: 0 0 2.5rem rgba(126, 230, 194, 0.12);
+  color: var(--mint-bright);
+  font-family: Georgia, "Times New Roman", serif;
+  font-style: italic;
+  font-weight: 400;
+  letter-spacing: -0.06em;
+  text-shadow: 0 0 2.5rem rgba(126, 230, 194, 0.16);
 }
 
 .lede {
