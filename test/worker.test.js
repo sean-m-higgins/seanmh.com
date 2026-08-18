@@ -558,3 +558,60 @@ test('ask returns 429 without calling the model after the limit', async (t) => {
   assert.equal(response.status, 429);
   assert.equal(called, false);
 });
+
+test('/card redirects to the Card version without touching an origin', async (t) => {
+  const restore = mockFetch(async () => {
+    throw new Error('/card must resolve at the edge, not proxy');
+  });
+  t.after(restore);
+
+  for (const path of ['/card', '/card/']) {
+    const response = await worker.fetch(request(path, {
+      headers: { Accept: 'text/html' },
+    }));
+
+    assert.equal(response.status, 302);
+    assert.equal(response.headers.get('Location'), 'https://seanmh.com/?v=b-card');
+    // A permanent redirect would be cached by every browser that ever scanned
+    // a printed code, which would make the path impossible to repoint.
+    assert.equal(response.headers.get('Cache-Control'), 'no-store');
+    // The bounce itself must not set a preference; ?v=b-card does that.
+    assert.equal(response.headers.get('Set-Cookie'), null);
+  }
+});
+
+test('/card carries tracking params across and wins over an existing ?v=', async (t) => {
+  const restore = mockFetch(async () => {
+    throw new Error('/card must resolve at the edge, not proxy');
+  });
+  t.after(restore);
+
+  const tracked = await worker.fetch(request('/card?utm_source=sticker', {
+    headers: { Accept: 'text/html' },
+  }));
+  assert.equal(
+    tracked.headers.get('Location'),
+    'https://seanmh.com/?utm_source=sticker&v=b-card',
+  );
+
+  const overridden = await worker.fetch(request('/card?v=c-terminal', {
+    headers: { Accept: 'text/html' },
+  }));
+  assert.equal(overridden.headers.get('Location'), 'https://seanmh.com/?v=b-card');
+});
+
+test('/card does not shadow other paths that start with card', async (t) => {
+  let upstreamUrl;
+  const restore = mockFetch(async (url) => {
+    upstreamUrl = String(url);
+    return new Response('page');
+  });
+  t.after(restore);
+
+  const response = await worker.fetch(request('/cards', {
+    headers: { Accept: 'text/html' },
+  }));
+
+  assert.equal(response.status, 200);
+  assert.equal(upstreamUrl, 'https://seanmh-scroll.pages.dev/cards');
+});

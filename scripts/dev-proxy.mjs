@@ -37,6 +37,10 @@ const ROUTABLE = [
 ];
 const BLUEPRINT = { name: "f-blueprint", origin: "http://localhost:4327" };
 const BLUEPRINT_PREFIX = "/systems";
+
+// Mirror worker.js: the short path printed on stickers and business cards.
+const CARD_PATH = "/card";
+const CARD_VERSION = "b-card";
 const PORT = Number.parseInt(process.env.PORT || "8787", 10);
 const COOKIE_NAME = "pv";
 // Intentionally omit Secure because this dev proxy is served over plain HTTP.
@@ -188,6 +192,19 @@ const server = http.createServer(async (req, res) => {
     res.writeHead(308, {
       location: url.toString(),
       "cache-control": "public, max-age=3600",
+    });
+    res.end();
+    return;
+  }
+
+  // Mirror worker.js: the printed short path bounces into ?v=, carrying any
+  // query string with it.
+  if (url.pathname === CARD_PATH || url.pathname === `${CARD_PATH}/`) {
+    url.pathname = "/";
+    url.searchParams.set("v", CARD_VERSION);
+    res.writeHead(302, {
+      location: url.toString(),
+      "cache-control": "no-store",
     });
     res.end();
     return;

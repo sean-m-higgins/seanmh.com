@@ -39,6 +39,19 @@ const GAME_2D = { name: 'e-2d-game', origin: 'https://seanmh-2d-game.pages.dev' 
 const BLUEPRINT = { name: 'f-blueprint', origin: 'https://seanmh-blueprint.pages.dev' };
 const BLUEPRINT_PREFIX = '/systems';
 
+// Short path for print: stickers, business cards and the QR codes on them
+// point at /card, which redirects into the ?v= system rather than proxying.
+// Two reasons it is worth its own route. It is short enough to set in type and
+// read aloud, and it encodes into a smaller QR symbol than the query string it
+// resolves to — 29x29 modules against 33x33 at the same error correction,
+// which is a 10% larger module at any given sticker size.
+//
+// Deliberately a redirect and not a second way to serve b-card: ?v= already
+// owns version selection and the preference cookie, and bouncing through it
+// keeps that logic in exactly one place.
+const CARD_PATH = '/card';
+const CARD_VERSION = 'b-card';
+
 // Site-wide discovery files cannot vary with a visual-version cookie. Keep
 // the small canonical set at the edge so Blueprint is discoverable alongside
 // the profile regardless of which presentation a returning visitor selected.
@@ -618,6 +631,29 @@ export default {
         status: resp.status,
         statusText: resp.statusText,
         headers,
+      });
+    }
+
+    // /card resolves to the Card version's canonical URL. Any query string the
+    // visitor arrived with is carried across, so a per-batch tracking param
+    // printed on one run of stickers survives the bounce; an explicit ?v= is
+    // overwritten, because the whole point of this path is which version it
+    // lands on.
+    //
+    // 302 rather than 301/308 on purpose. This path gets printed on physical
+    // objects that outlive routing decisions, and a permanent redirect would
+    // sit in the browser cache of everyone who ever scanned an old sticker,
+    // making the target impossible to repoint later.
+    if (url.pathname === CARD_PATH || url.pathname === `${CARD_PATH}/`) {
+      const target = new URL(url);
+      target.pathname = '/';
+      target.searchParams.set('v', CARD_VERSION);
+      return new Response(null, {
+        status: 302,
+        headers: {
+          Location: target.toString(),
+          'Cache-Control': 'no-store',
+        },
       });
     }
 
