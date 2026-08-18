@@ -6,13 +6,18 @@ import * as THREE from "three";
 import { VERSIONS, type VersionDef } from "../content/versions.ts";
 
 const ORB_RADIUS = 1.2;
-const ORB_SPACING = 2.9; // landscape arc distance between orb centers
+const MIN_ORBIT_CHORD = 3.1; // center-to-center room for neighboring glass orbs
+const MIN_ORB_SCALE = 0.58;
 const LOOK_TARGET = new THREE.Vector3(0, 0.3, 0);
+const BASE_CAMERA_Y = 3; // elevation turns the receding ring into a readable ellipse
 const ENTER_DURATION = 1.05; // seconds
 const TILT_RANGE = 14; // degrees from the visitor's starting position
 const TILT_DEAD_ZONE = 0.75; // filters small sensor noise while held still
 const TILT_CAMERA_X = 0.55;
 const TILT_CAMERA_Y = 0.28;
+const DRAG_STEP_PORTION = 0.28; // drag this fraction of the viewport per universe
+const DRAG_FRICTION = 4.8;
+const SNAP_STRENGTH = 10;
 
 const reducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
 
@@ -623,8 +628,9 @@ interface Portal {
   hover: number; // eased 0..1
   bobPhase: number;
   introDelay: number;
-  home: THREE.Vector3; // layout position (arc on wide screens, grid on portrait)
+  home: THREE.Vector3; // current un-bobbed position on the orbital ring
   layoutScale: number;
+  frontness: number; // 0 at the back of the orbit, 1 at the active position
   labelOffset: number; // world units below orb center for the HTML label
 }
 
@@ -644,6 +650,7 @@ function showFallback() {
   document.getElementById("nexus-fallback")?.removeAttribute("hidden");
   document.getElementById("nexus-scene")?.setAttribute("hidden", "");
   document.getElementById("nexus-labels")?.setAttribute("hidden", "");
+  document.getElementById("nexus-orbit-controls")?.setAttribute("hidden", "");
 }
 
 function easeOutCubic(x: number): number {
@@ -1014,6 +1021,7 @@ function buildOrb(def: VersionDef, index: number): Portal {
     introDelay: 0.15 + index * 0.16,
     home: new THREE.Vector3(),
     layoutScale: 1,
+    frontness: 1,
     labelOffset: ORB_RADIUS + 0.55,
   };
 }
@@ -1040,6 +1048,23 @@ function init() {
   const ambient = buildAmbientField();
   scene.add(ambient.object);
 
+  const orbitTrack = new THREE.LineLoop(
+    new THREE.BufferGeometry().setFromPoints(
+      Array.from({ length: 96 }, (_, index) => {
+        const angle = (index / 96) * Math.PI * 2;
+        return new THREE.Vector3(Math.sin(angle), 0, Math.cos(angle));
+      })
+    ),
+    new THREE.LineBasicMaterial({
+      color: 0x65719a,
+      transparent: true,
+      opacity: 0.13,
+      depthWrite: false,
+    })
+  );
+  orbitTrack.renderOrder = 0;
+  scene.add(orbitTrack);
+
   const portals = VERSIONS.map(buildOrb);
   portals.forEach((portal) => {
     portal.group.scale.setScalar(reducedMotion ? 1 : 0.001);
@@ -1051,62 +1076,161 @@ function init() {
     .querySelectorAll<HTMLAnchorElement>("#nexus-labels a[data-version]")
     .forEach((el) => labels.set(el.dataset.version!, el));
 
+  const labelsContainer = document.getElementById("nexus-labels");
+  const previousButton = document.getElementById("nexus-orbit-prev");
+  const nextButton = document.getElementById("nexus-orbit-next");
+  const orbitStatus = document.getElementById("nexus-orbit-status");
   const veil = document.getElementById("nexus-veil")!;
 
-  // Wide screens get a shallow arc sized to however many orbs exist; portrait
-  // uses a centered column (≤3 orbs) or a two-column grid (4+, since this page
-  // never scrolls). The camera backs up until everything fits.
+  const portalCount = Math.max(portals.length, 1);
+  const orbitStep = (Math.PI * 2) / portalCount;
+  let orbitRadius = 3.1;
+  let orbitOrbScale = 1;
+  let orbitRotation = 0;
+  let snapTarget: number | null = 0;
+  let angularVelocity = 0;
+  let activeIndex = 0;
+  let orbitBusy = false;
+  let dragging = false;
+
+  function wrapIndex(index: number): number {
+    return THREE.MathUtils.euclideanModulo(index, portals.length);
+  }
+
+  function normalizeOrbitAngle(angle: number): number {
+    return Math.atan2(Math.sin(angle), Math.cos(angle));
+  }
+
+  function frontIndex(): number {
+    return wrapIndex(Math.round(-orbitRotation / orbitStep));
+  }
+
+  function rotationForIndex(index: number): number {
+    const canonical = -wrapIndex(index) * orbitStep;
+    return orbitRotation + normalizeOrbitAngle(canonical - orbitRotation);
+  }
+
+  function setActiveIndex(index: number) {
+    const nextIndex = wrapIndex(index);
+    if (nextIndex === activeIndex && labels.get(portals[nextIndex].def.name)?.dataset.active === "true") return;
+    const moveLabelFocus = document.activeElement instanceof HTMLAnchorElement
+      && document.activeElement.classList.contains("portal-label");
+    activeIndex = nextIndex;
+
+    portals.forEach((portal, portalIndex) => {
+      const label = labels.get(portal.def.name);
+      if (!label) return;
+      const active = portalIndex === activeIndex;
+      label.tabIndex = active ? 0 : -1;
+      if (active) {
+        label.dataset.active = "true";
+        label.removeAttribute("aria-hidden");
+      } else {
+        label.removeAttribute("data-active");
+        label.setAttribute("aria-hidden", "true");
+      }
+    });
+
+    const active = portals[activeIndex];
+    if (orbitStatus && isOrbitSettled()) {
+      orbitStatus.textContent = `${active.def.label}, universe ${activeIndex + 1} of ${portals.length}`;
+    }
+    previousButton?.setAttribute(
+      "aria-label",
+      `Previous universe: ${portals[wrapIndex(activeIndex - 1)].def.label}`
+    );
+    nextButton?.setAttribute(
+      "aria-label",
+      `Next universe: ${portals[wrapIndex(activeIndex + 1)].def.label}`
+    );
+    if (moveLabelFocus) {
+      labels.get(active.def.name)?.focus({ preventScroll: true });
+    }
+  }
+
+  function isOrbitSettled(): boolean {
+    return (
+      !dragging &&
+      Math.abs(angularVelocity) < 0.02 &&
+      snapTarget !== null &&
+      Math.abs(snapTarget - orbitRotation) < 0.025
+    );
+  }
+
+  function updateOrbitBusyState() {
+    const busy = !isOrbitSettled();
+    if (busy === orbitBusy) return;
+    orbitBusy = busy;
+    labelsContainer?.toggleAttribute("data-spinning", busy);
+    if (!busy && orbitStatus) {
+      const active = portals[activeIndex];
+      orbitStatus.textContent = `${active.def.label}, universe ${activeIndex + 1} of ${portals.length}`;
+    }
+  }
+
+  function snapToIndex(index: number) {
+    angularVelocity = 0;
+    snapTarget = rotationForIndex(index);
+    if (reducedMotion) orbitRotation = snapTarget;
+  }
+
+  function snapToNearest() {
+    snapToIndex(frontIndex());
+  }
+
+  function stepOrbit(direction: -1 | 1) {
+    if (entering) return;
+    const queuedIndex = snapTarget === null
+      ? frontIndex()
+      : wrapIndex(Math.round(-snapTarget / orbitStep));
+    snapToIndex(queuedIndex + direction);
+    updateOrbitBusyState();
+  }
+
+  function positionPortals(elapsed: number, motion: number) {
+    portals.forEach((portal, index) => {
+      const angle = index * orbitStep + orbitRotation;
+      portal.frontness = (Math.cos(angle) + 1) / 2;
+      portal.home.set(
+        Math.sin(angle) * orbitRadius,
+        LOOK_TARGET.y,
+        orbitRadius * (Math.cos(angle) - 1)
+      );
+      portal.group.position.copy(portal.home);
+      portal.group.position.y += Math.sin(elapsed * 0.8 + portal.bobPhase) * 0.07 * motion;
+    });
+  }
+
+  // A real horizontal ring replaces the old line/grid. Its circumference grows
+  // with the version count, while the orb scale steps down gently after six.
+  // Centering the ring behind z=0 keeps the active orb fixed at the front.
   let baseCameraZ = 9;
   function layout() {
     const aspect = window.innerWidth / window.innerHeight;
     camera.aspect = aspect;
-    const portrait = aspect < 0.9;
-    const count = portals.length;
-    let halfWidthNeeded: number;
-    let halfHeightNeeded: number;
-
-    if (!portrait) {
-      const halfSpan = (ORB_SPACING * (count - 1)) / 2;
-      portals.forEach((portal, index) => {
-        const t = count > 1 ? (index - (count - 1) / 2) / ((count - 1) / 2) : 0;
-        portal.home.set(t * halfSpan, 0.3, -0.9 * t * t);
-        portal.layoutScale = 1;
-      });
-      halfWidthNeeded = halfSpan + ORB_RADIUS + 0.9;
-      halfHeightNeeded = 3.9;
-    } else if (count <= 3) {
-      portals.forEach((portal, index) => {
-        portal.home.set(0, ((count - 1) / 2 - index) * 4.0 - 0.3, 0);
-        portal.layoutScale = 0.72;
-      });
-      halfWidthNeeded = 1.6;
-      // The extra factor leaves the header/footer bands clear.
-      halfHeightNeeded = (2.0 * (count - 1) + ORB_RADIUS * 0.72 + 1.5) * 1.4;
-    } else {
-      const rows = Math.ceil(count / 2);
-      portals.forEach((portal, index) => {
-        const row = Math.floor(index / 2);
-        const soloRow = count % 2 === 1 && row === rows - 1;
-        const x = soloRow ? 0 : index % 2 === 0 ? -1.45 : 1.45;
-        portal.home.set(x, ((rows - 1) / 2 - row) * 3.1 + 0.1, 0);
-        portal.layoutScale = 0.62;
-      });
-      halfWidthNeeded = 1.45 + ORB_RADIUS * 0.62 + 0.5;
-      halfHeightNeeded = (((rows - 1) / 2) * 3.1 + ORB_RADIUS * 0.62 + 1.4) * 1.4;
-    }
+    orbitOrbScale = THREE.MathUtils.clamp(
+      1 - Math.max(0, portals.length - 6) * 0.055,
+      MIN_ORB_SCALE,
+      1
+    );
+    const chord = MIN_ORBIT_CHORD * (0.75 + orbitOrbScale * 0.25);
+    orbitRadius = portals.length > 1
+      ? chord / (2 * Math.sin(Math.PI / portals.length))
+      : 0;
 
     portals.forEach((portal) => {
-      portal.labelOffset = ORB_RADIUS * portal.layoutScale + (portrait ? 0.4 : 0.55);
-      portal.group.position.copy(portal.home);
+      portal.layoutScale = orbitOrbScale;
+      portal.labelOffset = ORB_RADIUS * orbitOrbScale + (aspect < 0.9 ? 0.42 : 0.55);
     });
 
-    const halfVerticalTan = Math.tan(THREE.MathUtils.degToRad(camera.fov / 2));
-    const halfHorizontalTan = halfVerticalTan * aspect;
-    baseCameraZ = THREE.MathUtils.clamp(
-      Math.max(halfWidthNeeded / halfHorizontalTan, halfHeightNeeded / halfVerticalTan),
-      9,
-      26
-    );
+    orbitTrack.visible = portals.length > 1;
+    orbitTrack.position.set(0, LOOK_TARGET.y, -orbitRadius);
+    orbitTrack.scale.setScalar(Math.max(orbitRadius, 0.001));
+
+    baseCameraZ = aspect < 0.65 ? 9.6 : aspect < 0.9 ? 9.25 : 9;
+    camera.position.set(0, BASE_CAMERA_Y, baseCameraZ);
+    camera.lookAt(LOOK_TARGET);
+    positionPortals(0, 0);
     ambient.layout(camera, baseCameraZ);
     camera.updateProjectionMatrix();
   }
@@ -1118,6 +1242,7 @@ function init() {
   }
   resize();
   window.addEventListener("resize", resize);
+  setActiveIndex(0);
 
   // Pointer parallax + raycast hover.
   const pointer = new THREE.Vector2(0, 0);
@@ -1130,6 +1255,12 @@ function init() {
   let pointerActive = false;
   let tiltActive = false;
   let tiltOrigin: { beta: number; gamma: number } | null = null;
+  let dragPointerId: number | null = null;
+  let dragStartX = 0;
+  let dragLastX = 0;
+  let dragLastTime = 0;
+  let dragDistance = 0;
+  let suppressClick = false;
   const hasFinePointer = window.matchMedia("(hover: hover) and (pointer: fine)").matches;
 
   function setPointerPosition(clientX: number, clientY: number) {
@@ -1139,11 +1270,14 @@ function init() {
     );
   }
 
-  function portalAt(clientX: number, clientY: number): number {
+  function activePortalAt(clientX: number, clientY: number): number {
+    if (!isOrbitSettled()) return -1;
     setPointerPosition(clientX, clientY);
     raycaster.setFromCamera(pointerTarget, camera);
-    const hits = raycaster.intersectObjects(portals.map((portal) => portal.shell));
-    return hits.length ? (hits[0].object.userData.portalIndex as number) : -1;
+    const activeShell = portals[activeIndex]?.shell;
+    if (!activeShell) return -1;
+    const hits = raycaster.intersectObject(activeShell);
+    return hits.length ? activeIndex : -1;
   }
 
   function shortestAngle(value: number, origin: number): number {
@@ -1197,7 +1331,7 @@ function init() {
 
     if (!coarsePointer) return;
     if (reducedMotion || !("DeviceOrientationEvent" in window)) {
-      if (hint) hint.textContent = "tap a portal";
+      if (hint) hint.textContent = "drag to spin · arrows to step";
       return;
     }
 
@@ -1209,7 +1343,7 @@ function init() {
     const enableTilt = () => {
       window.addEventListener("deviceorientation", onDeviceOrientation, { passive: true });
       screen.orientation?.addEventListener("change", resetTiltOrigin);
-      if (hint) hint.textContent = "tilt to look";
+      if (hint) hint.textContent = "drag to spin · tilt to look";
       if (permissionButton instanceof HTMLButtonElement) permissionButton.hidden = true;
     };
 
@@ -1219,7 +1353,7 @@ function init() {
     }
 
     if (!(permissionButton instanceof HTMLButtonElement)) return;
-    if (hint) hint.textContent = "tilt to look";
+    if (hint) hint.textContent = "drag to spin · enable tilt";
     permissionButton.hidden = false;
     permissionButton.addEventListener(
       "click",
@@ -1231,11 +1365,11 @@ function init() {
             enableTilt();
           } else {
             permissionButton.hidden = true;
-            if (hint) hint.textContent = "tap a portal";
+            if (hint) hint.textContent = "drag to spin · arrows to step";
           }
         } catch {
           permissionButton.hidden = true;
-          if (hint) hint.textContent = "tap a portal";
+          if (hint) hint.textContent = "drag to spin · arrows to step";
         } finally {
           permissionButton.disabled = false;
         }
@@ -1251,13 +1385,112 @@ function init() {
     pointerActive = true;
   });
 
-  // Keyboard focus on a label highlights its orb too.
+  function dragSensitivity(): number {
+    return orbitStep / Math.max(window.innerWidth * DRAG_STEP_PORTION, 140);
+  }
+
+  renderer.domElement.addEventListener("pointerdown", (event) => {
+    if (entering || event.button !== 0) return;
+    dragging = true;
+    dragPointerId = event.pointerId;
+    dragStartX = event.clientX;
+    dragLastX = event.clientX;
+    dragLastTime = event.timeStamp;
+    dragDistance = 0;
+    angularVelocity = 0;
+    snapTarget = null;
+    suppressClick = false;
+    renderer.domElement.setPointerCapture(event.pointerId);
+    document.body.setAttribute("data-dragging", "");
+    updateOrbitBusyState();
+  });
+
+  renderer.domElement.addEventListener("pointermove", (event) => {
+    if (!dragging || event.pointerId !== dragPointerId) return;
+    event.preventDefault();
+    const deltaX = event.clientX - dragLastX;
+    const deltaSeconds = Math.max((event.timeStamp - dragLastTime) / 1000, 0.001);
+    const deltaRotation = deltaX * dragSensitivity();
+    orbitRotation += deltaRotation;
+    dragDistance += Math.abs(deltaX);
+    angularVelocity = THREE.MathUtils.lerp(
+      angularVelocity,
+      deltaRotation / deltaSeconds,
+      0.52
+    );
+    dragLastX = event.clientX;
+    dragLastTime = event.timeStamp;
+    setActiveIndex(frontIndex());
+  });
+
+  function finishDrag(event: PointerEvent, cancelled = false) {
+    if (!dragging || event.pointerId !== dragPointerId) return;
+    const moved = dragDistance > 6 || Math.abs(event.clientX - dragStartX) > 6;
+    dragging = false;
+    dragPointerId = null;
+    document.body.removeAttribute("data-dragging");
+    if (renderer.domElement.hasPointerCapture(event.pointerId)) {
+      renderer.domElement.releasePointerCapture(event.pointerId);
+    }
+
+    suppressClick = moved || cancelled;
+    angularVelocity = THREE.MathUtils.clamp(angularVelocity, -4.2, 4.2);
+    if (reducedMotion || cancelled || !moved || Math.abs(angularVelocity) < 0.08) {
+      snapToNearest();
+    }
+    updateOrbitBusyState();
+  }
+
+  renderer.domElement.addEventListener("pointerup", (event) => finishDrag(event));
+  renderer.domElement.addEventListener("pointercancel", (event) => finishDrag(event, true));
+
+  renderer.domElement.addEventListener(
+    "wheel",
+    (event) => {
+      if (entering) return;
+      event.preventDefault();
+      const rawDelta = Math.abs(event.deltaX) > Math.abs(event.deltaY)
+        ? event.deltaX
+        : event.deltaY;
+      const modeScale = event.deltaMode === WheelEvent.DOM_DELTA_LINE
+        ? 16
+        : event.deltaMode === WheelEvent.DOM_DELTA_PAGE
+          ? window.innerHeight
+          : 1;
+      const pixelDelta = THREE.MathUtils.clamp(rawDelta * modeScale, -140, 140);
+      snapTarget = null;
+      angularVelocity = reducedMotion
+        ? 0
+        : THREE.MathUtils.clamp(angularVelocity - pixelDelta * 0.026, -4.2, 4.2);
+      if (reducedMotion) {
+        stepOrbit(pixelDelta >= 0 ? 1 : -1);
+      }
+      updateOrbitBusyState();
+    },
+    { passive: false }
+  );
+
+  previousButton?.addEventListener("click", () => stepOrbit(-1));
+  nextButton?.addEventListener("click", () => stepOrbit(1));
+
+  window.addEventListener("keydown", (event) => {
+    if (event.defaultPrevented || event.metaKey || event.ctrlKey || event.altKey) return;
+    if (event.key === "ArrowLeft") {
+      event.preventDefault();
+      stepOrbit(-1);
+    } else if (event.key === "ArrowRight") {
+      event.preventDefault();
+      stepOrbit(1);
+    }
+  });
+
+  // Only the label belonging to the front orb is focusable and actionable.
   labels.forEach((el, name) => {
     const index = portals.findIndex((p) => p.def.name === name);
     el.addEventListener("focus", () => (focusedIndex = index));
     el.addEventListener("blur", () => (focusedIndex = -1));
     el.addEventListener("click", (event) => {
-      if (entering) {
+      if (entering || index !== activeIndex || !isOrbitSettled()) {
         event.preventDefault();
         return;
       }
@@ -1270,10 +1503,13 @@ function init() {
 
   renderer.domElement.addEventListener("click", (event) => {
     if (entering) return;
-    // A touch tap often has no pointermove beforehand, so hoveredIndex can be
-    // stale or unset. Raycast the activation coordinates directly to make the
-    // visible orb itself a reliable touch target.
-    const tappedIndex = portalAt(event.clientX, event.clientY);
+    if (suppressClick) {
+      suppressClick = false;
+      return;
+    }
+    // A tap enters only the orb snapped into the front slot. Every other shell
+    // is scenery until the visitor rotates it forward.
+    const tappedIndex = activePortalAt(event.clientX, event.clientY);
     if (tappedIndex >= 0) beginEnter(tappedIndex);
   });
 
@@ -1284,6 +1520,7 @@ function init() {
   const enterTo = new THREE.Vector3();
 
   function beginEnter(index: number) {
+    if (index !== activeIndex || !isOrbitSettled()) return;
     const portal = portals[index];
     entering = portal;
     enterStart = clock.elapsedTime;
@@ -1319,6 +1556,33 @@ function init() {
     const elapsed = clock.elapsedTime;
     const motion = reducedMotion ? 0 : 1;
 
+    // Direct manipulation feeds angular velocity into the ring. Once released,
+    // friction carries it briefly before a spring settles the nearest orb into
+    // the only actionable slot at angle zero.
+    if (!entering && !dragging) {
+      if (snapTarget === null) {
+        if (!reducedMotion) {
+          orbitRotation += angularVelocity * dt;
+          angularVelocity *= Math.exp(-DRAG_FRICTION * dt);
+        }
+        if (reducedMotion || Math.abs(angularVelocity) < 0.08) snapToNearest();
+      } else if (reducedMotion) {
+        orbitRotation = snapTarget;
+        angularVelocity = 0;
+      } else {
+        const difference = snapTarget - orbitRotation;
+        orbitRotation += difference * (1 - Math.exp(-SNAP_STRENGTH * dt));
+        if (Math.abs(difference) < 0.0005) {
+          orbitRotation = snapTarget;
+          angularVelocity = 0;
+        }
+      }
+    }
+
+    setActiveIndex(frontIndex());
+    updateOrbitBusyState();
+    positionPortals(elapsed, motion);
+
     // Parallax drift toward a fine pointer or, on mobile, the phone's tilt.
     if (!entering) {
       if (tiltActive && motion) {
@@ -1327,13 +1591,13 @@ function init() {
         tilt.lerp(tiltTarget, 1 - Math.pow(0.002, dt));
         camera.position.set(
           tilt.x * TILT_CAMERA_X,
-          0.4 + tilt.y * TILT_CAMERA_Y,
+          BASE_CAMERA_Y + tilt.y * TILT_CAMERA_Y,
           baseCameraZ
         );
       } else {
         if (pointerActive && hasFinePointer && motion)
           pointer.lerp(pointerTarget, 1 - Math.pow(0.001, dt));
-        camera.position.set(pointer.x * 1.1, 0.4 + pointer.y * 0.5, baseCameraZ);
+        camera.position.set(pointer.x * 1.1, BASE_CAMERA_Y + pointer.y * 0.5, baseCameraZ);
       }
       camera.lookAt(LOOK_TARGET);
     } else if (!reducedMotion) {
@@ -1356,18 +1620,19 @@ function init() {
 
     portals.forEach((portal, index) => {
       const isHovered = index === hoveredIndex || index === focusedIndex;
+      const depthScale = 0.68 + Math.pow(portal.frontness, 0.72) * 0.32;
       if (!reducedMotion) {
         // Intro: orbs bloom in, staggered; then a gentle bob.
         const introT = THREE.MathUtils.clamp((elapsed - portal.introDelay) / 0.9, 0, 1);
         const intro = easeOutCubic(introT);
         portal.hover += ((isHovered ? 1 : 0) - portal.hover) * Math.min(dt * 8, 1);
         portal.uniforms.uHover.value = portal.hover;
-        portal.group.scale.setScalar(intro * portal.layoutScale * (1 + portal.hover * 0.06));
-        portal.group.position.y =
-          portal.home.y + Math.sin(elapsed * 0.8 + portal.bobPhase) * 0.07;
+        portal.group.scale.setScalar(
+          intro * portal.layoutScale * depthScale * (1 + portal.hover * 0.06)
+        );
       } else {
         portal.uniforms.uHover.value = isHovered ? 1 : 0;
-        portal.group.scale.setScalar(portal.layoutScale);
+        portal.group.scale.setScalar(portal.layoutScale * depthScale);
       }
 
       // Each interior runs on its own clock; hovering dilates time so the
@@ -1387,15 +1652,18 @@ function init() {
       }
     });
 
-    // Hover raycast (skip while entering).
-    if (!entering && pointerActive) {
+    // Only the settled front shell participates in hover or entry raycasts.
+    if (!entering && !dragging && pointerActive && isOrbitSettled()) {
       raycaster.setFromCamera(pointerTarget, camera);
-      const hits = raycaster.intersectObjects(portals.map((p) => p.shell));
-      const nextHovered = hits.length ? (hits[0].object.userData.portalIndex as number) : -1;
+      const hits = raycaster.intersectObject(portals[activeIndex].shell);
+      const nextHovered = hits.length ? activeIndex : -1;
       if (nextHovered !== hoveredIndex) {
         hoveredIndex = nextHovered;
-        renderer.domElement.style.cursor = hoveredIndex >= 0 ? "pointer" : "default";
+        renderer.domElement.style.cursor = hoveredIndex >= 0 ? "pointer" : "grab";
       }
+    } else if (hoveredIndex !== -1) {
+      hoveredIndex = -1;
+      renderer.domElement.style.cursor = "grab";
     }
 
     renderer.render(scene, camera);

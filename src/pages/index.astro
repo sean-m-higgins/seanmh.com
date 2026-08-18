@@ -57,10 +57,13 @@ const portals = VERSIONS;
     <!-- Floating labels: real links, positioned under each portal by the scene. -->
     <div id="nexus-labels">
       {
-        portals.map((p) => (
+        portals.map((p, index) => (
           <a
             href={p.href}
             data-version={p.name}
+            data-active={index === 0 ? "true" : undefined}
+            tabindex={index === 0 ? 0 : -1}
+            aria-hidden={index === 0 ? undefined : "true"}
             class="portal-label"
             style={`--portal-color: ${p.color}`}
           >
@@ -74,9 +77,23 @@ const portals = VERSIONS;
       }
     </div>
 
+    <div id="nexus-orbit-controls" class="nexus-orbit-controls" aria-label="Universe carousel controls">
+      <button id="nexus-orbit-prev" class="nexus-orbit-control nexus-orbit-prev" type="button" aria-label="Previous universe">
+        <span aria-hidden="true">‹</span>
+        <small>previous</small>
+      </button>
+      <button id="nexus-orbit-next" class="nexus-orbit-control nexus-orbit-next" type="button" aria-label="Next universe">
+        <span aria-hidden="true">›</span>
+        <small>next</small>
+      </button>
+    </div>
+    <p id="nexus-orbit-status" class="sr-only" aria-live="polite">
+      {portals[0]?.label}, universe 1 of {portals.length}
+    </p>
+
     <footer class="pointer-events-none absolute inset-x-0 bottom-0 z-10 flex flex-col items-center justify-center gap-2 px-6 pb-6">
       <p class="nexus-fade font-mono text-[0.7rem] tracking-[0.2em] text-neutral-600" style="animation-delay: 0.6s">
-        <span id="nexus-look-hint">move to look</span> · enter a portal
+        <span id="nexus-look-hint">drag to spin · arrows to step</span> · enter the front portal
       </p>
       <button
         id="nexus-tilt-permission"
@@ -156,14 +173,24 @@ const portals = VERSIONS;
         text-align: center;
         text-decoration: none;
         opacity: 0;
-        /* Opacity-only keyframes: the scene positions labels via inline
-           transform every frame, which a transform animation would override. */
-        animation: nexus-label-fade 0.8s ease-out 0.9s forwards;
+        pointer-events: none;
+        transition: opacity 0.3s ease;
         will-change: transform;
       }
 
+      .portal-label[data-active="true"] {
+        opacity: 1;
+        pointer-events: auto;
+        /* Opacity-only keyframes: the scene positions labels via inline
+           transform every frame, which a transform animation would override. */
+        animation: nexus-label-fade 0.8s ease-out 0.55s both;
+      }
+
+      #nexus-labels[data-spinning] .portal-label {
+        pointer-events: none;
+      }
+
       #nexus-labels[data-entering] .portal-label {
-        transition: opacity 0.3s ease;
         opacity: 0;
       }
 
@@ -214,6 +241,82 @@ const portals = VERSIONS;
         animation: nexus-fade-in 0.9s ease-out forwards;
       }
 
+      .nexus-orbit-controls {
+        position: absolute;
+        inset: 0;
+        z-index: 15;
+        pointer-events: none;
+      }
+
+      .nexus-orbit-control {
+        position: absolute;
+        top: 50%;
+        display: flex;
+        width: clamp(3.25rem, 5.5vw, 5rem);
+        min-height: 5rem;
+        padding: 0.75rem 0.4rem;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        gap: 0.1rem;
+        border: 1px solid rgba(125, 136, 174, 0.25);
+        border-radius: 999px;
+        color: #9ca7ca;
+        background: rgba(7, 8, 20, 0.48);
+        box-shadow: inset 0 0 1.5rem rgba(99, 102, 241, 0.06);
+        backdrop-filter: blur(8px);
+        pointer-events: auto;
+        transform: translateY(-50%);
+        transition: color 0.2s ease, border-color 0.2s ease, background 0.2s ease, scale 0.2s ease;
+      }
+
+      .nexus-orbit-control:hover,
+      .nexus-orbit-control:focus-visible {
+        color: #e4e8ff;
+        border-color: rgba(164, 175, 218, 0.62);
+        background: rgba(14, 16, 34, 0.78);
+      }
+
+      .nexus-orbit-control:active {
+        scale: 0.94;
+      }
+
+      .nexus-orbit-control:focus-visible {
+        outline: 2px solid #a4afda;
+        outline-offset: 4px;
+      }
+
+      .nexus-orbit-control span {
+        font-family: var(--font-sans);
+        font-size: 2.4rem;
+        font-weight: 300;
+        line-height: 0.75;
+      }
+
+      .nexus-orbit-control small {
+        font-family: var(--font-mono);
+        font-size: 0.54rem;
+        letter-spacing: 0.1em;
+        text-transform: uppercase;
+      }
+
+      .nexus-orbit-prev {
+        left: clamp(0.75rem, 2.5vw, 2.5rem);
+      }
+
+      .nexus-orbit-next {
+        right: clamp(0.75rem, 2.5vw, 2.5rem);
+      }
+
+      #nexus-scene canvas {
+        cursor: grab;
+        touch-action: none;
+      }
+
+      body[data-dragging] #nexus-scene canvas {
+        cursor: grabbing !important;
+      }
+
       #nexus-veil {
         transition: opacity 0.1s linear;
       }
@@ -258,6 +361,17 @@ const portals = VERSIONS;
         .portal-label-branch {
           font-size: 0.6rem;
         }
+        .nexus-orbit-control {
+          width: 3rem;
+          min-height: 3rem;
+          padding: 0.5rem;
+        }
+        .nexus-orbit-control span {
+          font-size: 2rem;
+        }
+        .nexus-orbit-control small {
+          display: none;
+        }
       }
 
       @media (prefers-reduced-motion: reduce) {
@@ -266,9 +380,12 @@ const portals = VERSIONS;
           opacity: 1;
           transform: none;
         }
-        .portal-label {
+        .portal-label[data-active="true"] {
           animation: none;
           opacity: 1;
+        }
+        .nexus-orbit-control {
+          transition: none;
         }
       }
     </style>
