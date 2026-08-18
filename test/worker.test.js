@@ -180,6 +180,89 @@ test('e-2d-game is routable via ?v= but never randomly assigned', async (t) => {
   }
 });
 
+test('Blueprint owns /systems independently of version selection', async (t) => {
+  const upstreamUrls = [];
+  const restore = mockFetch(async (url) => {
+    upstreamUrls.push(String(url));
+    return new Response('blueprint', {
+      headers: {
+        'X-Robots-Tag': 'noindex',
+        'Set-Cookie': 'origin=value; Path=/',
+      },
+    });
+  });
+  t.after(restore);
+
+  const document = await worker.fetch(request('/systems/?view=edge', {
+    headers: {
+      Accept: 'text/html',
+      Cookie: 'pv=c-terminal',
+    },
+  }));
+  const asset = await worker.fetch(request('/systems/_astro/app.js', {
+    headers: { Cookie: 'pv=d-3d-game' },
+  }));
+
+  assert.deepEqual(upstreamUrls, [
+    'https://seanmh-blueprint.pages.dev/?view=edge',
+    'https://seanmh-blueprint.pages.dev/_astro/app.js',
+  ]);
+  assert.equal(document.headers.get('X-Portfolio-Version'), 'f-blueprint');
+  assert.equal(document.headers.get('Cache-Control'), 'public, max-age=0, must-revalidate');
+  assert.equal(document.headers.get('Set-Cookie'), null);
+  assert.equal(document.headers.get('X-Robots-Tag'), null);
+  assert.equal(asset.headers.get('X-Portfolio-Version'), 'f-blueprint');
+  assert.equal(asset.headers.get('Set-Cookie'), null);
+  assert.equal(asset.headers.get('X-Robots-Tag'), null);
+});
+
+test('Blueprint canonicalizes its root and rewrites origin redirects under /systems', async (t) => {
+  let calls = 0;
+  const restore = mockFetch(async () => {
+    calls += 1;
+    return new Response(null, {
+      status: 302,
+      headers: { Location: '../next?from=blueprint' },
+    });
+  });
+  t.after(restore);
+
+  const canonical = await worker.fetch(request('/systems?keep=1', {
+    headers: { Accept: 'text/html', Cookie: 'pv=b-card' },
+  }));
+  assert.equal(canonical.status, 308);
+  assert.equal(canonical.headers.get('Location'), 'https://seanmh.com/systems/?keep=1');
+  assert.equal(canonical.headers.get('Set-Cookie'), null);
+  assert.equal(calls, 0);
+
+  const redirected = await worker.fetch(request('/systems/one/page', {
+    headers: { Accept: 'text/html' },
+  }));
+  assert.equal(redirected.headers.get('Location'), 'https://seanmh.com/systems/next?from=blueprint');
+});
+
+test('SEO control routes are stable across version cookies and include Blueprint', async (t) => {
+  const restore = mockFetch(async () => {
+    throw new Error('control routes must not reach an origin');
+  });
+  t.after(restore);
+
+  const sitemap = await worker.fetch(request('/sitemap-0.xml', {
+    headers: { Cookie: 'pv=nexus' },
+  }));
+  assert.equal(sitemap.status, 200);
+  assert.match(sitemap.headers.get('Content-Type'), /^application\/xml/);
+  assert.equal(sitemap.headers.get('Set-Cookie'), null);
+  const body = await sitemap.text();
+  assert.match(body, /https:\/\/seanmh\.com\/<\/loc>/);
+  assert.match(body, /https:\/\/seanmh\.com\/systems\/<\/loc>/);
+
+  const robots = await worker.fetch(request('/robots.txt', {
+    headers: { Cookie: 'pv=e-2d-game' },
+  }));
+  assert.match(await robots.text(), /Sitemap: https:\/\/seanmh\.com\/sitemap-index\.xml/);
+});
+
 test('asset requests honor the cookie without refreshing it', async (t) => {
   let upstreamUrl;
   const restore = mockFetch(async (url) => {

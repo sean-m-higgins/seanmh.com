@@ -32,6 +32,31 @@ const GAME = { name: 'd-3d-game', origin: 'https://seanmh-3d-game.pages.dev' };
 // never served by default.
 const GAME_2D = { name: 'e-2d-game', origin: 'https://seanmh-2d-game.pages.dev' };
 
+// Version F is a public architectural case study, not a preference-selected
+// homepage. The Worker owns its stable path before ?v=/cookie resolution and
+// strips /systems when proxying to the dedicated Pages project. Keeping it out
+// of ROUTABLE means visiting Blueprint never changes the visitor's portfolio.
+const BLUEPRINT = { name: 'f-blueprint', origin: 'https://seanmh-blueprint.pages.dev' };
+const BLUEPRINT_PREFIX = '/systems';
+
+// Site-wide discovery files cannot vary with a visual-version cookie. Keep
+// the small canonical set at the edge so Blueprint is discoverable alongside
+// the profile regardless of which presentation a returning visitor selected.
+const CONTROL_ROUTES = new Map([
+  ['/robots.txt', {
+    type: 'text/plain; charset=utf-8',
+    body: 'User-agent: *\nAllow: /\n\nSitemap: https://seanmh.com/sitemap-index.xml\n',
+  }],
+  ['/sitemap-index.xml', {
+    type: 'application/xml; charset=utf-8',
+    body: '<?xml version="1.0" encoding="UTF-8"?>\n<sitemapindex xmlns="http://www.sitemaps.org/schemas/sitemap/0.9"><sitemap><loc>https://seanmh.com/sitemap-0.xml</loc></sitemap></sitemapindex>\n',
+  }],
+  ['/sitemap-0.xml', {
+    type: 'application/xml; charset=utf-8',
+    body: '<?xml version="1.0" encoding="UTF-8"?>\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9"><url><loc>https://seanmh.com/</loc></url><url><loc>https://seanmh.com/systems/</loc></url></urlset>\n',
+  }],
+]);
+
 // Everything the Worker will proxy when named explicitly (?v= or cookie).
 // Only DEFAULT_VERSION is ever served without being asked for.
 const ROUTABLE = [...VERSIONS, NEXUS, GAME, GAME_2D];
@@ -471,6 +496,28 @@ function isDocumentRequest(request) {
     || (request.headers.get('Accept') || '').includes('text/html');
 }
 
+function controlRouteResponse(request, pathname) {
+  const route = CONTROL_ROUTES.get(pathname);
+  if (!route) return null;
+  if (request.method !== 'GET' && request.method !== 'HEAD') {
+    return new Response('Method not allowed.', {
+      status: 405,
+      headers: {
+        Allow: 'GET, HEAD',
+        'Cache-Control': 'no-store',
+        'Content-Type': 'text/plain; charset=utf-8',
+      },
+    });
+  }
+  return new Response(request.method === 'HEAD' ? null : route.body, {
+    headers: {
+      'Content-Type': route.type,
+      'Cache-Control': 'public, max-age=3600',
+      'X-Content-Type-Options': 'nosniff',
+    },
+  });
+}
+
 function proxiedRequestInit(request) {
   const init = {
     method: request.method,
@@ -485,7 +532,7 @@ function proxiedRequestInit(request) {
   return init;
 }
 
-function rewriteLocationHeader(headers, publicUrl, upstreamUrl) {
+function rewriteLocationHeader(headers, publicUrl, upstreamUrl, publicPathPrefix = '') {
   const location = headers.get('Location');
   if (!location) return;
 
@@ -494,7 +541,7 @@ function rewriteLocationHeader(headers, publicUrl, upstreamUrl) {
     if (originLocation.origin !== new URL(upstreamUrl).origin) return;
 
     const rewritten = new URL(publicUrl);
-    rewritten.pathname = originLocation.pathname;
+    rewritten.pathname = publicPathPrefix + originLocation.pathname;
     rewritten.search = originLocation.search;
     rewritten.hash = originLocation.hash;
     headers.set('Location', rewritten.toString());
@@ -513,6 +560,65 @@ export default {
       if (url.pathname === '/api/score') return handleScore(request, env);
       if (url.pathname === '/api/score/boxing') return handleBoxingScore(request, env);
       return askError(404, 'Unknown API route.');
+    }
+
+    const controlResponse = controlRouteResponse(request, url.pathname);
+    if (controlResponse) return controlResponse;
+
+    // Blueprint is durable, indexable content. Resolve the complete path
+    // namespace—including its /systems/_astro assets—before a pv cookie can
+    // select a different origin. /systems itself normalizes to the canonical
+    // trailing-slash URL without setting or refreshing a preference cookie.
+    if (url.pathname === BLUEPRINT_PREFIX) {
+      url.pathname = `${BLUEPRINT_PREFIX}/`;
+      return new Response(null, {
+        status: 308,
+        headers: {
+          Location: url.toString(),
+          'Cache-Control': 'public, max-age=3600',
+        },
+      });
+    }
+
+    if (url.pathname.startsWith(`${BLUEPRINT_PREFIX}/`)) {
+      const originPath = url.pathname.slice(BLUEPRINT_PREFIX.length) || '/';
+      const proxyUrl = BLUEPRINT.origin + originPath + url.search;
+      let resp;
+      try {
+        resp = await fetch(proxyUrl, proxiedRequestInit(request));
+      } catch (err) {
+        const message = err instanceof Error ? err.message : String(err);
+        return new Response(
+          `Upstream ${BLUEPRINT.origin} not reachable.\n${message}`,
+          {
+            status: 502,
+            headers: {
+              'Content-Type': 'text/plain; charset=utf-8',
+              'Cache-Control': 'no-store',
+              'X-Content-Type-Options': 'nosniff',
+              'X-Portfolio-Version': BLUEPRINT.name,
+            },
+          },
+        );
+      }
+
+      const headers = new Headers(resp.headers);
+      rewriteLocationHeader(headers, url, proxyUrl, BLUEPRINT_PREFIX);
+      // The Pages origin deliberately returns noindex so its production and
+      // preview hostnames cannot compete with the apex. That origin-only rule
+      // must never leak through the public, self-canonical /systems/ path.
+      headers.delete('X-Robots-Tag');
+      headers.delete('Set-Cookie');
+      headers.set('X-Portfolio-Version', BLUEPRINT.name);
+      if (isDocumentRequest(request)) {
+        headers.set('Cache-Control', 'public, max-age=0, must-revalidate');
+      }
+
+      return new Response(resp.body, {
+        status: resp.status,
+        statusText: resp.statusText,
+        headers,
+      });
     }
 
     const forceParam = url.searchParams.get('v');

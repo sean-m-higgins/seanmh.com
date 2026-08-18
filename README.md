@@ -1,17 +1,21 @@
 # seanmh.com
 
-Multi-version portfolio site. Three visual versions are served from the same domain — visitors are randomly assigned a version, with a switcher to explore the others.
+Multi-version portfolio site. Scroll is the canonical default; visitors can explicitly explore alternate portfolio presentations, opt-in games, the Nexus portal world, and the public Blueprint systems map.
 
 | Branch | Version | URL |
 |--------|---------|-----|
 | `version/a-scroll` | Scrollable single-page | seanmh-scroll.pages.dev |
 | `version/b-card` | Digital business card | seanmh-card.pages.dev |
 | `version/c-terminal` | Terminal/CLI-themed | seanmh-terminal.pages.dev |
+| `version/nexus` | 3D portal world | seanmh-nexus.pages.dev |
+| `version/d-3d-game` | Halfpipe arcade game | seanmh-3d-game.pages.dev |
+| `version/e-2d-game` | Counter boxing game | seanmh-2d-game.pages.dev |
+| `version/f-blueprint` | Living systems map at `/systems/` | seanmh-blueprint.pages.dev |
 
 ## Quick Start
 
 ```bash
-git checkout version/a-scroll  # or b-card, c-terminal
+git checkout version/a-scroll  # or another version branch
 npm install
 npm run dev    # localhost:4321
 ```

@@ -11,6 +11,7 @@
 //        d-3d-game:  npm run preview -- --port 4324
 //        nexus:      npm run preview -- --port 4325
 //        e-2d-game:  npm run preview -- --port 4326
+//        f-blueprint: npm run preview -- --port 4327
 //   2. node scripts/dev-proxy.mjs
 //   3. Open http://localhost:8787 in Chrome/Edge and use the dial.
 import http from "node:http";
@@ -34,6 +35,8 @@ const ROUTABLE = [
   { name: "nexus", origin: "http://localhost:4325" },
   { name: "e-2d-game", origin: "http://localhost:4326" },
 ];
+const BLUEPRINT = { name: "f-blueprint", origin: "http://localhost:4327" };
+const BLUEPRINT_PREFIX = "/systems";
 const PORT = Number.parseInt(process.env.PORT || "8787", 10);
 const COOKIE_NAME = "pv";
 // Intentionally omit Secure because this dev proxy is served over plain HTTP.
@@ -136,7 +139,7 @@ function responseHeadersFrom(upstream) {
   return headers;
 }
 
-function rewriteLocationHeader(headers, publicUrl, upstreamUrl) {
+function rewriteLocationHeader(headers, publicUrl, upstreamUrl, publicPathPrefix = "") {
   const location = headers.location;
   if (!location) return;
 
@@ -145,7 +148,7 @@ function rewriteLocationHeader(headers, publicUrl, upstreamUrl) {
     if (originLocation.origin !== new URL(upstreamUrl).origin) return;
 
     const rewritten = new URL(publicUrl);
-    rewritten.pathname = originLocation.pathname;
+    rewritten.pathname = publicPathPrefix + originLocation.pathname;
     rewritten.search = originLocation.search;
     rewritten.hash = originLocation.hash;
     headers.location = rewritten.toString();
@@ -180,27 +183,50 @@ function pipeUpstreamBody(upstream, res) {
 const server = http.createServer(async (req, res) => {
   const url = new URL(req.url, `http://${req.headers.host || `localhost:${PORT}`}`);
 
+  if (url.pathname === BLUEPRINT_PREFIX) {
+    url.pathname = `${BLUEPRINT_PREFIX}/`;
+    res.writeHead(308, {
+      location: url.toString(),
+      "cache-control": "public, max-age=3600",
+    });
+    res.end();
+    return;
+  }
+
+  const isBlueprint = url.pathname.startsWith(`${BLUEPRINT_PREFIX}/`);
+
   // Mirror worker.js: ?v= override, then pv cookie, then the default.
-  const force = url.searchParams.get("v");
-  url.searchParams.delete("v");
-  const forced = findVersion(force);
-  const cookieVersion = findVersion(getCookieValue(req.headers.cookie || "", COOKIE_NAME));
-  const chosen = forced || cookieVersion || DEFAULT_VERSION;
+  const force = isBlueprint ? null : url.searchParams.get("v");
+  if (!isBlueprint) url.searchParams.delete("v");
+  const forced = isBlueprint ? undefined : findVersion(force);
+  const cookieVersion = isBlueprint
+    ? undefined
+    : findVersion(getCookieValue(req.headers.cookie || "", COOKIE_NAME));
+  const chosen = isBlueprint ? BLUEPRINT : forced || cookieVersion || DEFAULT_VERSION;
 
   try {
-    const upstreamUrl = chosen.origin + url.pathname + url.search;
+    const upstreamPath = isBlueprint
+      ? url.pathname.slice(BLUEPRINT_PREFIX.length) || "/"
+      : url.pathname;
+    const upstreamUrl = chosen.origin + upstreamPath + url.search;
     const upstream = await fetch(upstreamUrl, upstreamRequestInit(req));
     const headers = responseHeadersFrom(upstream);
-    rewriteLocationHeader(headers, url, upstreamUrl);
+    rewriteLocationHeader(headers, url, upstreamUrl, isBlueprint ? BLUEPRINT_PREFIX : "");
+    if (isBlueprint) {
+      delete headers["x-robots-tag"];
+      delete headers["set-cookie"];
+    }
     // Mirror worker.js: only refresh the cookie on page navigations, so a stale
     // in-flight asset request from the previous version can't overwrite a
     // just-switched cookie. A manual ?v= selection also updates the cookie.
     const isDocument = isDocumentRequest(req);
-    if (forced || isDocument) {
+    if (!isBlueprint && (forced || isDocument)) {
       appendSetCookie(headers, cookieFor(chosen));
     }
     if (isDocument) {
-      headers["cache-control"] = DOCUMENT_CACHE_CONTROL;
+      headers["cache-control"] = isBlueprint
+        ? "public, max-age=0, must-revalidate"
+        : DOCUMENT_CACHE_CONTROL;
     }
     headers["x-portfolio-version"] = chosen.name;
 
@@ -234,4 +260,5 @@ server.on("error", (err) => {
 server.listen(PORT, () => {
   console.log(`Dev proxy on http://localhost:${PORT}`);
   for (const v of ROUTABLE) console.log(`  ${v.name} ← ${v.origin}`);
+  console.log(`  ${BLUEPRINT.name} ← ${BLUEPRINT.origin}${BLUEPRINT_PREFIX}/*`);
 });
