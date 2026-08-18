@@ -4,6 +4,15 @@ import { site } from "../content/site";
 
 <footer class="border-t border-neutral-200/10 py-8">
   <div class="mx-auto max-w-4xl px-6 text-center text-sm text-neutral-500 dark:text-neutral-500">
+    <nav class="mb-3 flex items-center justify-center gap-3 font-mono text-[0.68rem] uppercase tracking-[0.12em]" aria-label="Explore the portfolio system">
+      <a class="transition-colors hover:text-neutral-800 dark:hover:text-neutral-200" href="/systems/">
+        System blueprint
+      </a>
+      <span aria-hidden="true">/</span>
+      <a class="transition-colors hover:text-neutral-800 dark:hover:text-neutral-200" href="/?v=nexus">
+        Nexus
+      </a>
+    </nav>
     <p>&copy; {new Date().getFullYear()} {site.name}. All rights reserved.</p>
   </div>
 </footer>
