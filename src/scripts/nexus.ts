@@ -6,10 +6,10 @@ import * as THREE from "three";
 import { VERSIONS, type VersionDef } from "../content/versions.ts";
 
 const ORB_RADIUS = 1.2;
-const MIN_ORBIT_CHORD = 3.1; // center-to-center room for neighboring glass orbs
+const MIN_ORBIT_CHORD = 3.8; // generous center-to-center room for neighboring orbs
 const MIN_ORB_SCALE = 0.58;
 const LOOK_TARGET = new THREE.Vector3(0, 0.3, 0);
-const BASE_CAMERA_Y = 3; // elevation turns the receding ring into a readable ellipse
+const BASE_CAMERA_Y = 4.2; // stronger elevation separates the ring's rear arc
 const ENTER_DURATION = 1.05; // seconds
 const TILT_RANGE = 14; // degrees from the visitor's starting position
 const TILT_DEAD_ZONE = 0.75; // filters small sensor noise while held still
