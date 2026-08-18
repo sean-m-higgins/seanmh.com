@@ -420,6 +420,36 @@ h1 em {
   border-top: 1px solid var(--line);
 }
 
+.case-study-brief {
+  display: grid;
+  padding: 0 0 clamp(5.5rem, 10vw, 9rem);
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 1px;
+  background: var(--line);
+}
+
+.case-study-brief > div {
+  padding: clamp(1.2rem, 3vw, 2.2rem);
+  background: var(--surface);
+}
+
+.case-study-brief .eyebrow {
+  margin-bottom: 1rem;
+}
+
+.case-study-brief strong {
+  display: block;
+  margin-bottom: 0.65rem;
+  color: var(--ink-strong);
+  font-size: 0.95rem;
+}
+
+.case-study-brief div > p:last-child {
+  margin: 0;
+  color: var(--muted);
+  font-size: 0.8rem;
+}
+
 .section-heading {
   display: flex;
   margin-bottom: 2.8rem;
@@ -801,6 +831,15 @@ h2 {
   font-size: 0.62rem;
 }
 
+.evidence-list a {
+  color: inherit;
+  text-underline-offset: 0.2em;
+}
+
+.evidence-list a:hover {
+  color: var(--ink-strong);
+}
+
 .detail-link {
   display: inline-block;
   margin-top: 1.2rem;
@@ -1088,6 +1127,10 @@ h2 {
   .hero {
     grid-template-columns: 1fr minmax(17rem, 0.55fr);
     gap: 3rem;
+  }
+
+  .case-study-brief {
+    grid-template-columns: 1fr;
   }
 
   .system-node {

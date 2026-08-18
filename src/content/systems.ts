@@ -12,6 +12,11 @@ export interface SystemRegion {
   summary: string;
 }
 
+export interface SystemEvidence {
+  label: string;
+  href?: string;
+}
+
 export interface SystemNode {
   id: string;
   region: SystemRegionId;
@@ -21,7 +26,7 @@ export interface SystemNode {
   summary: string;
   detail: string;
   decisions: string[];
-  evidence: string[];
+  evidence: SystemEvidence[];
   href?: string;
   position: { x: number; y: number };
 }
@@ -70,7 +75,7 @@ export const regions: readonly SystemRegion[] = [
     number: "05",
     title: "Delivery layer",
     summary:
-      "Independent branches and deployments are held together by shared validation, progressive enhancement, and release evidence.",
+      "Independent branches and deployments are supported by repository checks, progressive enhancement, and documented fallbacks.",
   },
 ] as const;
 
@@ -88,7 +93,11 @@ export const nodes: readonly SystemNode[] = [
       "Keep the apex domain authoritative.",
       "Never choose content by crawler or user-agent.",
     ],
-    evidence: ["Cloudflare DNS", "HTTPS apex", "Same-origin navigation"],
+    evidence: [
+      { label: "Public HTTPS apex", href: "https://seanmh.com/" },
+      { label: "Router configuration", href: "https://github.com/sean-m-higgins/seanmh.com/blob/main/worker.js" },
+      { label: "Routing tests", href: "https://github.com/sean-m-higgins/seanmh.com/blob/main/test/worker.test.js" },
+    ],
     href: "https://seanmh.com/",
     position: { x: 7, y: 44 },
   },
@@ -106,7 +115,11 @@ export const nodes: readonly SystemNode[] = [
       "Keep games and Nexus opt-in.",
       "Route stable content paths before version cookies.",
     ],
-    evidence: ["worker.js", "X-Portfolio-Version", "Worker regression suite"],
+    evidence: [
+      { label: "worker.js", href: "https://github.com/sean-m-higgins/seanmh.com/blob/main/worker.js" },
+      { label: "X-Portfolio-Version tests", href: "https://github.com/sean-m-higgins/seanmh.com/blob/main/test/worker.test.js" },
+      { label: "Worker configuration", href: "https://github.com/sean-m-higgins/seanmh.com/blob/main/wrangler.jsonc" },
+    ],
     position: { x: 24, y: 44 },
   },
   {
@@ -122,7 +135,11 @@ export const nodes: readonly SystemNode[] = [
       "Do not place Blueprint in the preference cookie.",
       "Keep invalid controls away from upstream origins.",
     ],
-    evidence: ["pv session cookie", "?v= manual control", "Path ownership"],
+    evidence: [
+      { label: "Resolver implementation", href: "https://github.com/sean-m-higgins/seanmh.com/blob/main/worker.js" },
+      { label: "Precedence regression tests", href: "https://github.com/sean-m-higgins/seanmh.com/blob/main/test/worker.test.js" },
+      { label: "Routing documentation", href: "https://github.com/sean-m-higgins/seanmh.com#router-worker" },
+    ],
     position: { x: 41, y: 44 },
   },
   {
@@ -138,7 +155,11 @@ export const nodes: readonly SystemNode[] = [
       "Let presentation diverge while facts stay aligned.",
       "Keep the canonical default readable and recruiter-safe.",
     ],
-    evidence: ["Astro", "View Transitions", "Shared identity data"],
+    evidence: [
+      { label: "Scroll source", href: "https://github.com/sean-m-higgins/seanmh.com/tree/version/a-scroll" },
+      { label: "Card source", href: "https://github.com/sean-m-higgins/seanmh.com/tree/version/b-card" },
+      { label: "Terminal source", href: "https://github.com/sean-m-higgins/seanmh.com/tree/version/c-terminal" },
+    ],
     href: "/?v=a-scroll",
     position: { x: 61, y: 20 },
   },
@@ -155,7 +176,11 @@ export const nodes: readonly SystemNode[] = [
       "Make playful work discoverable, never mandatory.",
       "Keep every game playable when storage or APIs fail.",
     ],
-    evidence: ["Three.js", "Canvas 2D", "Local-first game state"],
+    evidence: [
+      { label: "Nexus source", href: "https://github.com/sean-m-higgins/seanmh.com/tree/version/nexus" },
+      { label: "Halfpipe source", href: "https://github.com/sean-m-higgins/seanmh.com/tree/version/d-3d-game" },
+      { label: "Counter source", href: "https://github.com/sean-m-higgins/seanmh.com/tree/version/e-2d-game" },
+    ],
     href: "/?v=nexus",
     position: { x: 80, y: 20 },
   },
@@ -167,12 +192,16 @@ export const nodes: readonly SystemNode[] = [
     label: "identity · experience · projects",
     summary: "Facts have a canonical source even when layouts diverge.",
     detail:
-      "Identity, career history, project metadata, the universe dial, and transition styles originate from a shared content branch. A repository check catches drift across consuming worktrees before release.",
+      "Identity, career history, project metadata, the universe dial, and transition styles originate from a shared content branch. A manually run repository check compares shared files across five configured version worktrees and reports drift.",
     decisions: [
       "Synchronize durable facts, not whole applications.",
       "Allow intentional schema divergence where a version needs richer storytelling.",
     ],
-    evidence: ["content branch", "check:shared", "Typed TypeScript modules"],
+    evidence: [
+      { label: "Canonical content branch", href: "https://github.com/sean-m-higgins/seanmh.com/tree/content" },
+      { label: "check:shared implementation", href: "https://github.com/sean-m-higgins/seanmh.com/blob/main/scripts/check-shared.mjs" },
+      { label: "Shared-check command", href: "https://github.com/sean-m-higgins/seanmh.com/blob/main/package.json" },
+    ],
     position: { x: 61, y: 49 },
   },
   {
@@ -189,7 +218,11 @@ export const nodes: readonly SystemNode[] = [
       "Treat global state as optional enhancement.",
       "Separate each game's score contract and storage key.",
     ],
-    evidence: ["/api/ask", "/api/score", "/api/score/boxing"],
+    evidence: [
+      { label: "/api/ask implementation", href: "https://github.com/sean-m-higgins/seanmh.com/blob/main/worker.js" },
+      { label: "Service contract tests", href: "https://github.com/sean-m-higgins/seanmh.com/blob/main/test/worker.test.js" },
+      { label: "Terminal fallback", href: "https://github.com/sean-m-higgins/seanmh.com/tree/version/c-terminal" },
+    ],
     position: { x: 80, y: 49 },
   },
   {
@@ -205,7 +238,11 @@ export const nodes: readonly SystemNode[] = [
       "Store only what the feature needs.",
       "Avoid accounts and visitor tracking.",
     ],
-    evidence: ["Namespaced keys", "No-store API responses", "Graceful degradation"],
+    evidence: [
+      { label: "KV binding", href: "https://github.com/sean-m-higgins/seanmh.com/blob/main/wrangler.jsonc" },
+      { label: "Namespaced storage keys", href: "https://github.com/sean-m-higgins/seanmh.com/blob/main/worker.js" },
+      { label: "Degradation tests", href: "https://github.com/sean-m-higgins/seanmh.com/blob/main/test/worker.test.js" },
+    ],
     position: { x: 94, y: 49 },
   },
   {
@@ -216,19 +253,23 @@ export const nodes: readonly SystemNode[] = [
     label: "Git branches → Pages",
     summary: "Each universe deploys independently behind the same domain.",
     detail:
-      "The visual versions live on separate long-running branches and Cloudflare Pages projects. The main branch owns only the public router and operating documentation, keeping presentation deployments isolated from edge behavior.",
+      "The visual versions live on separate long-running branches and Cloudflare Pages projects. The main branch owns the public Worker, routing tests, shared-content checker, local development proxy, and operating documentation—not a presentation app.",
     decisions: [
       "Make branch-per-version part of the product idea.",
       "Keep the public router independently testable and deployable.",
     ],
-    evidence: ["Seven version branches", "Cloudflare Pages", "Router Worker"],
+    evidence: [
+      { label: "Version and deployment index", href: "https://github.com/sean-m-higgins/seanmh.com#seanmhcom" },
+      { label: "Repository branches", href: "https://github.com/sean-m-higgins/seanmh.com/branches/all" },
+      { label: "Router Worker", href: "https://github.com/sean-m-higgins/seanmh.com/blob/main/worker.js" },
+    ],
     position: { x: 78, y: 79 },
   },
   {
     id: "quality",
     region: "delivery",
     code: "SHIP.02",
-    title: "Quality gates",
+    title: "Quality checks",
     label: "build · test · fallback",
     summary: "The enhanced experience is never the only experience.",
     detail:
@@ -237,7 +278,11 @@ export const nodes: readonly SystemNode[] = [
       "Treat accessibility as architecture, not polish.",
       "Test routing contracts independently from visual code.",
     ],
-    evidence: ["Astro check", "Node test runner", "Progressive enhancement"],
+    evidence: [
+      { label: "Worker test suite", href: "https://github.com/sean-m-higgins/seanmh.com/blob/main/test/worker.test.js" },
+      { label: "Shared-file validator", href: "https://github.com/sean-m-higgins/seanmh.com/blob/main/scripts/check-shared.mjs" },
+      { label: "Blueprint build commands", href: "https://github.com/sean-m-higgins/seanmh.com/blob/version/f-blueprint/package.json" },
+    ],
     position: { x: 56, y: 79 },
   },
 ];

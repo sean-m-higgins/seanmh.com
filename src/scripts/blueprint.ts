@@ -15,6 +15,7 @@ const tour = tourDataElement ? (JSON.parse(tourDataElement.textContent || "[]") 
 
 let activeNode = "";
 let lastTrigger: HTMLElement | null = null;
+let tourTrigger: HTMLButtonElement | null = null;
 let tourIndex = -1;
 
 function nodeElements(id: string): HTMLElement[] {
@@ -113,8 +114,11 @@ function renderTourStep() {
     : 'Next <span aria-hidden="true">→</span>';
 }
 
-function startTour() {
+function startTour(event?: Event) {
   if (!tourPanel || tour.length === 0) return;
+  if (event?.currentTarget instanceof HTMLButtonElement) {
+    tourTrigger = event.currentTarget;
+  }
   dialog?.close();
   tourIndex = 0;
   tourPanel.hidden = false;
@@ -134,10 +138,17 @@ function endTour(showDetails = false) {
   document.querySelectorAll(".connection-map .flow-active").forEach((path) => path.classList.remove("flow-active"));
 
   if (showDetails && finalNode) {
-    const detail = document.querySelector(`#detail-${CSS.escape(finalNode)}`);
+    const detail = document.querySelector<HTMLElement>(`#detail-${CSS.escape(finalNode)}`);
     detail?.scrollIntoView({ behavior: reducedMotion ? "auto" : "smooth", block: "center" });
     history.replaceState(null, "", `#detail-${finalNode}`);
+    if (detail) {
+      detail.tabIndex = -1;
+      window.setTimeout(() => detail.focus({ preventScroll: true }), reducedMotion ? 0 : 450);
+    }
+  } else {
+    tourTrigger?.focus({ preventScroll: true });
   }
+  tourTrigger = null;
 }
 
 document.querySelectorAll<HTMLButtonElement>("[data-start-tour]").forEach((button) => {

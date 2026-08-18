@@ -53,15 +53,33 @@ const tourNodes = tour.map((stop) => nodes.find((node) => node.id === stop.node)
       <dl>
         <div><dt>Experiences</dt><dd>07</dd></div>
         <div><dt>Public origin</dt><dd>01</dd></div>
-        <div><dt>Runtime dependencies</dt><dd>00</dd></div>
-        <div><dt>Live telemetry</dt><dd>OFF</dd></div>
-        <div><dt>Established</dt><dd>{establishedDate}</dd></div>
+        <div><dt>Required app services</dt><dd>00</dd></div>
+        <div><dt>Live dashboard</dt><dd>NO</dd></div>
+        <div><dt>Repository started</dt><dd>{establishedDate}</dd></div>
       </dl>
       <p>
         This is a documented model of the current repository—not a live
         operations dashboard.
       </p>
     </aside>
+  </section>
+
+  <section class="case-study-brief" aria-label="Architecture case study summary">
+    <div>
+      <p class="eyebrow">01 / Challenge</p>
+      <strong>One identity, divergent applications.</strong>
+      <p>Let radically different portfolio experiences share one trustworthy public address.</p>
+    </div>
+    <div>
+      <p class="eyebrow">02 / Tradeoff</p>
+      <strong>Isolation creates coordination work.</strong>
+      <p>Long-running version branches deploy independently, but shared facts require an explicit validation workflow.</p>
+    </div>
+    <div>
+      <p class="eyebrow">03 / Result</p>
+      <strong>A stable default with room to experiment.</strong>
+      <p>Deterministic routing protects the core portfolio while games, graphics, and optional services remain opt-in.</p>
+    </div>
   </section>
 
   <section id="system-map" class="map-section" aria-labelledby="map-title">
@@ -149,7 +167,7 @@ const tourNodes = tour.map((stop) => nodes.find((node) => node.id === stop.node)
 
       <div class="frame-footer" aria-hidden="true">
         <span>SELECT A NODE TO INSPECT</span>
-        <span>MODEL / REPOSITORY-VERIFIED</span>
+        <span>MODEL / REPOSITORY-TRACEABLE</span>
       </div>
     </div>
   </section>
@@ -192,7 +210,17 @@ const tourNodes = tour.map((stop) => nodes.find((node) => node.id === stop.node)
                     </div>
                     <div>
                       <h5>Evidence</h5>
-                      <ul class="evidence-list">{node.evidence.map((item) => <li>{item}</li>)}</ul>
+                      <ul class="evidence-list">
+                        {node.evidence.map((item) => (
+                          <li>
+                            {item.href ? (
+                              <a href={item.href} target="_blank" rel="noopener noreferrer">
+                                {item.label} <span aria-hidden="true">↗</span>
+                              </a>
+                            ) : item.label}
+                          </li>
+                        ))}
+                      </ul>
                     </div>
                   </div>
                   {node.href && <a class="detail-link" href={node.href}>Open related experience <span aria-hidden="true">↗</span></a>}
@@ -208,7 +236,7 @@ const tourNodes = tour.map((stop) => nodes.find((node) => node.id === stop.node)
   <section class="principles" aria-labelledby="principles-title">
     <div>
       <p class="eyebrow">DESIGN / OPERATING PRINCIPLES</p>
-      <h2 id="principles-title">The constraints are the design... and token limits</h2>
+      <h2 id="principles-title">The constraints are the design—even the agents’ context windows.</h2>
     </div>
     <ol>
       <li><span>01</span><strong>One identity, many interfaces.</strong><p>Presentation can change radically; professional facts should not.</p></li>
