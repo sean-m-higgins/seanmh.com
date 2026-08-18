@@ -59,7 +59,7 @@ const portals = VERSIONS;
       {
         portals.map((p) => (
           <a
-            href={`/?v=${p.name}`}
+            href={p.href}
             data-version={p.name}
             class="portal-label"
             style={`--portal-color: ${p.color}`}
@@ -100,7 +100,7 @@ const portals = VERSIONS;
             portals.map((p) => (
               <li>
                 <a
-                  href={`/?v=${p.name}`}
+                  href={p.href}
                   class="flex items-baseline justify-between rounded-lg border border-neutral-800 px-4 py-3 font-mono text-sm text-neutral-200 transition-colors hover:border-neutral-600"
                   style={`--portal-color: ${p.color}`}
                 >
@@ -122,7 +122,7 @@ const portals = VERSIONS;
           {
             portals.map((p) => (
               <li>
-                <a href={`/?v=${p.name}`} class="underline">
+                <a href={p.href} class="underline">
                   {p.glyph} {p.label} — {p.blurb} ({p.branch})
                 </a>
               </li>

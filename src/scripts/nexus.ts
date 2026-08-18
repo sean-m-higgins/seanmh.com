@@ -1,8 +1,7 @@
 // The Nexus — 3D entry world for the multiverse portfolio.
-// Each version floats as a glass orb holding a miniature world (aurora ribbons
-// = scroll, card constellation = card, glyph rain = terminal, low-poly planet
-// = game). Clicking one flies the camera into the glass and hands off to the
-// Worker via /?v=. The version list lives in ../content/versions.ts.
+// Each version floats as a glass orb holding a miniature world. Clicking one
+// flies the camera into the glass and hands off to that version's canonical
+// route. The version list lives in ../content/versions.ts.
 import * as THREE from "three";
 import { VERSIONS, type VersionDef } from "../content/versions.ts";
 
@@ -519,12 +518,93 @@ function buildRing(color: THREE.Color): Interior {
   };
 }
 
+// f-blueprint: a tiny drafting plane with a connected system graph and a
+// bright request pulse travelling through it. Unlike the other miniature
+// worlds it stays nearly face-on, reading as a technical drawing in glass.
+function buildBlueprint(color: THREE.Color): Interior {
+  const group = new THREE.Group();
+  const plane = new THREE.Group();
+  const lineMaterial = new THREE.LineBasicMaterial({
+    color,
+    transparent: true,
+    opacity: 0.42,
+    blending: THREE.AdditiveBlending,
+    depthWrite: false,
+  });
+
+  const gridPoints: THREE.Vector3[] = [];
+  for (let i = -3; i <= 3; i++) {
+    const p = i * 0.18;
+    gridPoints.push(new THREE.Vector3(-0.62, p, 0), new THREE.Vector3(0.62, p, 0));
+    gridPoints.push(new THREE.Vector3(p, -0.62, 0), new THREE.Vector3(p, 0.62, 0));
+  }
+  plane.add(new THREE.LineSegments(new THREE.BufferGeometry().setFromPoints(gridPoints), lineMaterial));
+
+  const pathPoints = [
+    new THREE.Vector3(-0.53, 0.12, 0.025),
+    new THREE.Vector3(-0.24, 0.12, 0.025),
+    new THREE.Vector3(0.02, 0.12, 0.025),
+    new THREE.Vector3(0.27, 0.36, 0.025),
+    new THREE.Vector3(0.52, 0.36, 0.025),
+  ];
+  plane.add(new THREE.Line(new THREE.BufferGeometry().setFromPoints(pathPoints), lineMaterial));
+
+  const nodes = new THREE.InstancedMesh(
+    new THREE.BoxGeometry(0.12, 0.08, 0.035),
+    new THREE.MeshBasicMaterial({
+      color,
+      transparent: true,
+      opacity: 0.85,
+      blending: THREE.AdditiveBlending,
+      depthWrite: false,
+    }),
+    7
+  );
+  const positions = [
+    pathPoints[0], pathPoints[1], pathPoints[2], pathPoints[3], pathPoints[4],
+    new THREE.Vector3(0.28, -0.28, 0.025),
+    new THREE.Vector3(0.52, -0.28, 0.025),
+  ];
+  const dummy = new THREE.Object3D();
+  positions.forEach((position, index) => {
+    dummy.position.copy(position);
+    dummy.updateMatrix();
+    nodes.setMatrixAt(index, dummy.matrix);
+  });
+  plane.add(nodes);
+
+  const pulse = new THREE.Mesh(
+    new THREE.SphereGeometry(0.045, 10, 10),
+    new THREE.MeshBasicMaterial({
+      color: 0xffffff,
+      blending: THREE.AdditiveBlending,
+      depthWrite: false,
+    })
+  );
+  plane.add(pulse);
+  plane.rotation.set(-0.16, -0.38, -0.04);
+  group.add(plane);
+
+  return {
+    object: group,
+    update(time_) {
+      const progress = THREE.MathUtils.euclideanModulo(time_ * 0.38, pathPoints.length - 1);
+      const segment = Math.floor(progress);
+      pulse.position.lerpVectors(pathPoints[segment], pathPoints[segment + 1], progress - segment);
+      const pulseScale = 0.8 + Math.sin(time_ * 8) * 0.18;
+      pulse.scale.setScalar(pulseScale);
+      group.rotation.y = Math.sin(time_ * 0.22) * 0.22;
+    },
+  };
+}
+
 const INTERIOR_BUILDERS: Record<VersionDef["interior"], (color: THREE.Color) => Interior> = {
   aurora: buildAurora,
   cards: buildCards,
   rain: buildRain,
   halfpipe: buildHalfpipe,
   ring: buildRing,
+  blueprint: buildBlueprint,
 };
 
 // ---------------------------------------------------------------------------
@@ -598,6 +678,298 @@ function buildStars(): THREE.Points {
   return new THREE.Points(geometry, material);
 }
 
+// ---------------------------------------------------------------------------
+// Deep-space workshop — a handful of small, quiet artifacts beyond the orbs.
+// They are real low-poly scene objects rather than a texture, so pointer/tilt
+// parallax gives them depth. Their carriers own the slow travel while each
+// model owns one restrained mechanical gesture.
+interface AmbientModel {
+  object: THREE.Group;
+  update(time: number): void;
+}
+
+interface AmbientArtifact extends AmbientModel {
+  carrier: THREE.Group;
+  base: THREE.Vector3;
+  screen: THREE.Vector2;
+  depth: number;
+  screenScale: number;
+  layoutScale: number;
+  phase: number;
+  drift: THREE.Vector2;
+  spin: THREE.Vector3;
+}
+
+interface AmbientField {
+  object: THREE.Group;
+  layout(camera: THREE.PerspectiveCamera, cameraZ: number): void;
+  update(time: number, motion: number): void;
+}
+
+function ambientMaterial(
+  color: THREE.ColorRepresentation,
+  opacity: number,
+  wireframe = false
+): THREE.MeshBasicMaterial {
+  return new THREE.MeshBasicMaterial({
+    color,
+    transparent: true,
+    opacity,
+    wireframe,
+    side: THREE.DoubleSide,
+    depthWrite: false,
+  });
+}
+
+function buildTelescope(): AmbientModel {
+  const object = new THREE.Group();
+  const hull = ambientMaterial(0x9ba7ca, 0.34);
+  const frame = ambientMaterial(0xb9c5ea, 0.28, true);
+  const glass = ambientMaterial(0x7da5db, 0.48);
+
+  const tube = new THREE.Mesh(new THREE.CylinderGeometry(0.16, 0.22, 0.82, 10), hull);
+  tube.rotation.x = Math.PI / 2;
+  object.add(tube);
+
+  const lens = new THREE.Mesh(new THREE.CircleGeometry(0.16, 18), glass);
+  lens.position.z = 0.42;
+  object.add(lens);
+
+  const lensRing = new THREE.Mesh(new THREE.TorusGeometry(0.18, 0.025, 6, 18), frame);
+  lensRing.position.z = 0.425;
+  object.add(lensRing);
+
+  const panels = new THREE.Group();
+  for (const side of [-1, 1]) {
+    const panel = new THREE.Mesh(new THREE.PlaneGeometry(0.58, 0.34, 4, 2), frame);
+    panel.position.x = side * 0.49;
+    panels.add(panel);
+  }
+  object.add(panels);
+
+  const antenna = new THREE.Mesh(new THREE.CylinderGeometry(0.012, 0.012, 0.42, 6), hull);
+  antenna.position.set(0, 0.34, -0.2);
+  object.add(antenna);
+
+  const dish = new THREE.Mesh(new THREE.CircleGeometry(0.17, 14), frame);
+  dish.position.set(0, 0.54, -0.2);
+  dish.rotation.x = -0.45;
+  object.add(dish);
+
+  return {
+    object,
+    update(time) {
+      panels.rotation.y = Math.sin(time * 0.16) * 0.28;
+      dish.rotation.z = Math.sin(time * 0.32) * 0.42;
+    },
+  };
+}
+
+function buildCourier(): AmbientModel {
+  const object = new THREE.Group();
+  const hull = ambientMaterial(0xa6aed0, 0.34);
+  const wingMaterial = ambientMaterial(0x6e7ca8, 0.3);
+  const windowMaterial = ambientMaterial(0x87d9ff, 0.58);
+  const engineMaterial = ambientMaterial(0xffb767, 0.55);
+
+  const body = new THREE.Mesh(new THREE.ConeGeometry(0.15, 0.78, 4), hull);
+  body.rotation.z = -Math.PI / 2;
+  object.add(body);
+
+  const wingGeometry = new THREE.BufferGeometry();
+  wingGeometry.setAttribute(
+    "position",
+    new THREE.Float32BufferAttribute([
+      -0.22, 0.02, 0,
+      0.18, 0.02, 0,
+      -0.32, 0.42, 0,
+      -0.22, -0.02, 0,
+      -0.32, -0.42, 0,
+      0.18, -0.02, 0,
+    ], 3)
+  );
+  const wings = new THREE.Mesh(wingGeometry, wingMaterial);
+  object.add(wings);
+
+  const canopy = new THREE.Mesh(new THREE.SphereGeometry(0.105, 10, 8), windowMaterial);
+  canopy.scale.set(1.15, 0.7, 0.45);
+  canopy.position.set(0.06, 0, 0.09);
+  object.add(canopy);
+
+  const engine = new THREE.Mesh(new THREE.SphereGeometry(0.075, 8, 8), engineMaterial);
+  engine.position.x = -0.42;
+  object.add(engine);
+
+  const trail = new THREE.Line(
+    new THREE.BufferGeometry().setFromPoints([
+      new THREE.Vector3(-0.46, 0, 0),
+      new THREE.Vector3(-1.05, 0, 0),
+    ]),
+    new THREE.LineBasicMaterial({
+      color: 0xffb767,
+      transparent: true,
+      opacity: 0.24,
+      depthWrite: false,
+    })
+  );
+  object.add(trail);
+
+  return {
+    object,
+    update(time) {
+      const thrust = 0.82 + Math.sin(time * 6.5) * 0.18;
+      engine.scale.setScalar(thrust);
+      engineMaterial.opacity = 0.42 + thrust * 0.16;
+      object.rotation.z = Math.sin(time * 0.48) * 0.12;
+    },
+  };
+}
+
+function buildVisitor(): AmbientModel {
+  const object = new THREE.Group();
+  const shell = ambientMaterial(0x9ca9c9, 0.3);
+  const ringMaterial = ambientMaterial(0x9f8cff, 0.42, true);
+  const glass = ambientMaterial(0x7ee6c2, 0.18);
+  const eyeMaterial = ambientMaterial(0xc4ffe9, 0.72);
+  const beamMaterial = ambientMaterial(0x7ee6c2, 0.055);
+
+  const saucer = new THREE.Mesh(new THREE.SphereGeometry(0.5, 18, 9), shell);
+  saucer.scale.y = 0.24;
+  object.add(saucer);
+
+  const rim = new THREE.Mesh(new THREE.TorusGeometry(0.42, 0.026, 6, 22), ringMaterial);
+  rim.rotation.x = Math.PI / 2;
+  object.add(rim);
+
+  const dome = new THREE.Mesh(new THREE.SphereGeometry(0.23, 14, 9), glass);
+  dome.scale.y = 0.7;
+  dome.position.y = 0.12;
+  object.add(dome);
+
+  for (const x of [-0.055, 0.055]) {
+    const eye = new THREE.Mesh(new THREE.SphereGeometry(0.018, 6, 6), eyeMaterial);
+    eye.position.set(x, 0.16, 0.205);
+    object.add(eye);
+  }
+
+  const beam = new THREE.Mesh(new THREE.ConeGeometry(0.34, 0.9, 16, 1, true), beamMaterial);
+  beam.position.y = -0.52;
+  beam.rotation.z = Math.PI;
+  object.add(beam);
+
+  return {
+    object,
+    update(time) {
+      object.rotation.y = time * 0.14;
+      beamMaterial.opacity = 0.035 + (0.5 + Math.sin(time * 1.6) * 0.5) * 0.04;
+      beam.scale.x = beam.scale.z = 0.88 + Math.sin(time * 0.8) * 0.12;
+    },
+  };
+}
+
+function buildSignalBuoy(): AmbientModel {
+  const object = new THREE.Group();
+  const frame = ambientMaterial(0x8e9abd, 0.3, true);
+  const coreMaterial = ambientMaterial(0x7984a8, 0.34);
+  const signalMaterial = ambientMaterial(0xff8e9d, 0.62);
+
+  const core = new THREE.Mesh(new THREE.OctahedronGeometry(0.2, 0), coreMaterial);
+  object.add(core);
+
+  const rings: THREE.Mesh[] = [];
+  for (let i = 0; i < 3; i++) {
+    const ring = new THREE.Mesh(new THREE.TorusGeometry(0.38 + i * 0.08, 0.008, 4, 28), frame);
+    ring.rotation.set(i * 0.7, i * 0.85, i * 0.45);
+    rings.push(ring);
+    object.add(ring);
+  }
+
+  const mast = new THREE.Mesh(new THREE.CylinderGeometry(0.01, 0.01, 0.52, 6), coreMaterial);
+  mast.position.y = 0.35;
+  object.add(mast);
+
+  const beacon = new THREE.Mesh(new THREE.SphereGeometry(0.045, 8, 8), signalMaterial);
+  beacon.position.y = 0.62;
+  object.add(beacon);
+
+  return {
+    object,
+    update(time) {
+      rings.forEach((ring, index) => {
+        ring.rotation.z = time * (0.08 + index * 0.025) * (index % 2 ? -1 : 1);
+      });
+      const ping = 0.72 + Math.pow(0.5 + Math.sin(time * 2.2) * 0.5, 5) * 0.55;
+      beacon.scale.setScalar(ping);
+      signalMaterial.opacity = 0.38 + ping * 0.18;
+    },
+  };
+}
+
+function buildAmbientField(): AmbientField {
+  const object = new THREE.Group();
+  const definitions = [
+    { build: buildTelescope, screen: [-0.76, 0.48], depth: -7, scale: 0.048, phase: 0.3, drift: [0.28, 0.18], spin: [0.018, 0.028, -0.012] },
+    { build: buildCourier, screen: [0.73, 0.52], depth: -11, scale: 0.044, phase: 2.2, drift: [0.42, 0.12], spin: [0.012, -0.018, 0] },
+    { build: buildVisitor, screen: [0.79, -0.5], depth: -9, scale: 0.046, phase: 4.1, drift: [0.24, 0.2], spin: [0.008, 0, 0.01] },
+    { build: buildSignalBuoy, screen: [-0.79, -0.52], depth: -13, scale: 0.042, phase: 5.4, drift: [0.2, 0.28], spin: [0.025, 0.035, -0.018] },
+  ] as const;
+
+  const artifacts: AmbientArtifact[] = definitions.map((definition) => {
+    const model = definition.build();
+    const carrier = new THREE.Group();
+    carrier.add(model.object);
+    carrier.traverse((child) => (child.renderOrder = 0));
+    object.add(carrier);
+    return {
+      ...model,
+      carrier,
+      base: new THREE.Vector3(),
+      screen: new THREE.Vector2(...definition.screen),
+      depth: definition.depth,
+      screenScale: definition.scale,
+      layoutScale: 1,
+      phase: definition.phase,
+      drift: new THREE.Vector2(...definition.drift),
+      spin: new THREE.Vector3(...definition.spin),
+    };
+  });
+
+  return {
+    object,
+    layout(camera, cameraZ) {
+      const halfVerticalTan = Math.tan(THREE.MathUtils.degToRad(camera.fov / 2));
+      artifacts.forEach((artifact) => {
+        const distance = cameraZ - artifact.depth;
+        const halfHeight = halfVerticalTan * distance;
+        const halfWidth = halfHeight * camera.aspect;
+        artifact.base.set(
+          artifact.screen.x * halfWidth,
+          LOOK_TARGET.y + artifact.screen.y * halfHeight,
+          artifact.depth
+        );
+        artifact.layoutScale = distance * artifact.screenScale;
+        artifact.carrier.scale.setScalar(artifact.layoutScale);
+      });
+    },
+    update(time, motion) {
+      const t = time * motion;
+      artifacts.forEach((artifact) => {
+        artifact.carrier.position.set(
+          artifact.base.x + Math.sin(t * 0.16 + artifact.phase) * artifact.drift.x,
+          artifact.base.y + Math.cos(t * 0.13 + artifact.phase) * artifact.drift.y,
+          artifact.base.z + Math.sin(t * 0.11 + artifact.phase) * 0.24
+        );
+        artifact.carrier.rotation.set(
+          t * artifact.spin.x,
+          t * artifact.spin.y,
+          t * artifact.spin.z
+        );
+        artifact.update(t);
+      });
+    },
+  };
+}
+
 function buildOrb(def: VersionDef, index: number): Portal {
   const group = new THREE.Group();
   const color = new THREE.Color(def.color);
@@ -664,6 +1036,9 @@ function init() {
 
   const stars = buildStars();
   scene.add(stars);
+
+  const ambient = buildAmbientField();
+  scene.add(ambient.object);
 
   const portals = VERSIONS.map(buildOrb);
   portals.forEach((portal) => {
@@ -732,6 +1107,7 @@ function init() {
       9,
       26
     );
+    ambient.layout(camera, baseCameraZ);
     camera.updateProjectionMatrix();
   }
 
@@ -930,7 +1306,7 @@ function init() {
   }
 
   function navigate(portal: Portal) {
-    window.location.href = `/?v=${portal.def.name}`;
+    window.location.href = portal.def.href;
   }
 
   const clock = new THREE.Clock();
@@ -976,6 +1352,7 @@ function init() {
     }
 
     stars.rotation.y += dt * 0.006 * motion;
+    ambient.update(elapsed, motion);
 
     portals.forEach((portal, index) => {
       const isHovered = index === hoveredIndex || index === focusedIndex;

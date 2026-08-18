@@ -3,18 +3,20 @@
 // Adding a version = one entry here + an interior builder in scripts/nexus.ts.
 export interface VersionDef {
   name: string;
+  href: string;
   glyph: string;
   label: string;
   branch: string;
   blurb: string;
   color: string;
   /** Which miniature world lives inside this version's orb. */
-  interior: "aurora" | "cards" | "rain" | "halfpipe" | "ring";
+  interior: "aurora" | "cards" | "rain" | "halfpipe" | "ring" | "blueprint";
 }
 
 export const VERSIONS: readonly VersionDef[] = [
   {
     name: "a-scroll",
+    href: "/?v=a-scroll",
     glyph: "∿",
     label: "Scroll",
     branch: "version/a-scroll",
@@ -24,6 +26,7 @@ export const VERSIONS: readonly VersionDef[] = [
   },
   {
     name: "b-card",
+    href: "/?v=b-card",
     glyph: "▣",
     label: "Card",
     branch: "version/b-card",
@@ -33,6 +36,7 @@ export const VERSIONS: readonly VersionDef[] = [
   },
   {
     name: "c-terminal",
+    href: "/?v=c-terminal",
     glyph: "❯",
     label: "Terminal",
     branch: "version/c-terminal",
@@ -42,6 +46,7 @@ export const VERSIONS: readonly VersionDef[] = [
   },
   {
     name: "d-3d-game",
+    href: "/?v=d-3d-game",
     glyph: "⌣",
     label: "Halfpipe",
     branch: "version/d-3d-game",
@@ -51,11 +56,22 @@ export const VERSIONS: readonly VersionDef[] = [
   },
   {
     name: "e-2d-game",
+    href: "/?v=e-2d-game",
     glyph: "◇",
     label: "Counter",
     branch: "version/e-2d-game",
     blurb: "a title fight",
     color: "#f7768e",
     interior: "ring",
+  },
+  {
+    name: "f-blueprint",
+    href: "/systems/",
+    glyph: "⌗",
+    label: "Blueprint",
+    branch: "version/f-blueprint",
+    blurb: "a living system map",
+    color: "#7ee6c2",
+    interior: "blueprint",
   },
 ];
