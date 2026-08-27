@@ -1,0 +1,63 @@
+---
+// 404: the same card, with nothing printed on it. Mirrors CardContent's
+// layout beat for beat — portrait slot, name, title, tagline, action — so the
+// missing page reads as a blank card rather than a different page.
+//
+// The requested path is filled in at runtime: this page is served for every
+// unknown URL, so the build cannot know it.
+import CardLayout from "../layouts/CardLayout.astro";
+---
+
+<CardLayout
+  title="404 — Not on file"
+  description="There's no card at this address."
+>
+  <div class="relative z-10 flex min-h-dvh items-center justify-center px-6 py-24">
+    <div class="animate-fade-in flex flex-col items-center gap-6 text-center">
+      <!-- Where the headshot sits on the real card: an empty slot. -->
+      <div
+        class="flex h-40 w-40 items-center justify-center rounded-full border-2 border-dashed border-neutral-300 dark:border-neutral-700"
+        aria-hidden="true"
+      >
+        <span class="font-mono text-3xl text-neutral-400 dark:text-neutral-600">
+          404
+        </span>
+      </div>
+
+      <div class="space-y-2">
+        <h1
+          class="text-3xl font-bold tracking-tight text-neutral-900 dark:text-neutral-100 sm:text-4xl"
+        >
+          Not on file
+        </h1>
+        <p class="text-lg font-medium text-accent">No card at this address</p>
+        <p class="max-w-sm text-neutral-500 dark:text-neutral-400">
+          Nothing is printed here. The card you're after is back at the front.
+        </p>
+      </div>
+
+      <div class="pt-2">
+        <a
+          href="/"
+          class="inline-block rounded-lg bg-accent px-6 py-3 text-sm font-medium text-white transition-all hover:bg-accent-light hover:shadow-lg hover:shadow-accent/25"
+        >
+          Get the real card
+        </a>
+      </div>
+
+      <p
+        class="hidden pt-6 font-mono text-xs text-neutral-400 dark:text-neutral-600"
+        data-requested
+      >
+      </p>
+    </div>
+  </div>
+
+  <script>
+    const readout = document.querySelector<HTMLElement>("[data-requested]");
+    if (readout) {
+      readout.textContent = window.location.pathname;
+      readout.classList.remove("hidden");
+    }
+  </script>
+</CardLayout>
