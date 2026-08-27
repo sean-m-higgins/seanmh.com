@@ -30,3 +30,23 @@ The `main` branch owns the front routing Worker and local multi-version proxy.
 Use Node 22.12 or newer (see `.nvmrc`), then run `npm test` and
 `npm run check:shared`. Validate a deployment bundle with
 `npx wrangler deploy --dry-run` before deploying.
+
+### Stable paths
+
+Some paths the Worker owns outright, resolved before `?v=`/cookie version
+selection so they never vary with a visitor's preference:
+
+| Path | Behaviour |
+|------|-----------|
+| `/card` | 302 to `/?v=b-card`. The short URL printed on stickers and business cards. |
+| `/systems/` | Proxies the Blueprint Pages project, prefix stripped. |
+| `/api/*` | Answered by the Worker directly: `/api/ask`, `/api/score`, `/api/score/boxing`. |
+| `/robots.txt`, `/sitemap-index.xml`, `/sitemap-0.xml` | Served at the edge. |
+
+`/card` exists because print is unforgiving: it encodes into a 29x29 QR symbol
+where `/?v=b-card` needed 33x33, a 12% larger module at the same physical size.
+It carries any query string across, so a tracking param printed on one run of
+stickers survives the redirect, and it is deliberately a 302 — printed codes
+outlive routing decisions, and a permanent redirect would be cached by every
+browser that ever scanned an old sticker. The artwork and print files live in
+`qr-codes/` on `version/b-card`.
