@@ -4,7 +4,13 @@ import { feature } from "topojson-client";
 import countriesTopology from "world-atlas/countries-110m.json";
 
 import type { CountryRecord, TripRecord } from "../content/trips.ts";
-import { fitVerticalFov, greatCirclePoints, latLonToCartesian } from "./globe-utils.mjs";
+import {
+  fitVerticalFov,
+  greatCirclePoints,
+  latLonToCartesian,
+  projectRing,
+  ringWrapOffsets,
+} from "./globe-utils.mjs";
 
 interface GlobeData {
   countries: CountryRecord[];
@@ -36,19 +42,14 @@ function traceRing(
   width: number,
   height: number,
 ) {
-  let previousX: number | undefined;
-  ring.forEach(([longitude, latitude], index) => {
-    // Three's SphereGeometry puts longitude 0 on the visible +Z meridian at
-    // texture u=.25, so the equirectangular atlas needs a quarter-turn offset.
-    const x = ((((longitude + 90) % 360) + 360) % 360) / 360 * width;
-    const y = ((90 - latitude) / 180) * height;
-    if (index === 0 || (previousX !== undefined && Math.abs(x - previousX) > width / 2)) {
-      context.moveTo(x, y);
-    } else {
-      context.lineTo(x, y);
-    }
-    previousX = x;
-  });
+  const points = projectRing(ring, width, height);
+  for (const offset of ringWrapOffsets(points, width)) {
+    points.forEach(([x, y], index) => {
+      if (index === 0) context.moveTo(x + offset, y);
+      else context.lineTo(x + offset, y);
+    });
+    context.closePath();
+  }
 }
 
 function makeAtlasTexture(visitedAtlasIds: Set<string>) {

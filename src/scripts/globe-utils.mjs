@@ -41,6 +41,44 @@ export function greatCirclePoints(start, end, segments = 48, radius = 1) {
   return points;
 }
 
+export function projectRing(ring, width, height) {
+  // Unwrap longitudes so a ring that crosses the texture seam stays one
+  // continuous outline. Cutting it into separate subpaths lets the canvas fill
+  // close each fragment straight across the map instead of around the country.
+  const points = [];
+  let previous;
+  for (const [longitude, latitude] of ring) {
+    let lon = longitude;
+    if (previous !== undefined) {
+      while (lon - previous > 180) lon -= 360;
+      while (previous - lon > 180) lon += 360;
+    }
+    previous = lon;
+    // Three's SphereGeometry puts longitude 0 on the visible +Z meridian at
+    // texture u=.25, so the equirectangular atlas needs a quarter-turn offset.
+    points.push([((lon + 90) / 360) * width, ((90 - latitude) / 180) * height]);
+  }
+  return points;
+}
+
+export function ringWrapOffsets(points, width) {
+  if (points.length === 0) return [];
+  let min = Infinity;
+  let max = -Infinity;
+  for (const [x] of points) {
+    if (x < min) min = x;
+    if (x > max) max = x;
+  }
+  // Slide the unwrapped ring onto the first repeat that reaches the canvas,
+  // then add the neighbouring repeat when it runs off the right edge, so a
+  // seam-crossing country is drawn whole on both sides. Antarctica spans
+  // exactly one width, so its two copies abut rather than overlap.
+  const base = -Math.floor(min / width) * width;
+  const offsets = [base];
+  if (min + base + (max - min) > width) offsets.push(base - width);
+  return offsets;
+}
+
 export function fitVerticalFov(aspect, distance, fitRadius, baseFov) {
   // A perspective camera frames only its vertical field of view, so a canvas
   // taller than it is wide crops the globe's left and right limbs. Widen the
