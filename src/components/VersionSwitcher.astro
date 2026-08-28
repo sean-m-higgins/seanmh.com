@@ -9,18 +9,20 @@ interface Props {
   current: "a-scroll" | "b-card" | "c-terminal" | "g-travel";
 }
 
-// Travel leads its own dial because that is where the visitor is standing;
-// the three portfolio versions follow. The games stay out, as everywhere else
-// — opt-in via the Nexus or an explicit ?v=, never offered unprompted.
+// The dial offers the three portfolio versions, exactly as it does everywhere
+// else. Travel is a path namespace rather than a selectable version, so it is
+// never a pill — the core just shows where the visitor is standing. The games
+// stay out too: opt-in via the Nexus or an explicit ?v=, never offered here.
 const versions = [
-  { name: "g-travel", label: "Travel", glyph: "⊕" },
   { name: "a-scroll", label: "Scroll", glyph: "∿" },
   { name: "b-card", label: "Card", glyph: "▣" },
   { name: "c-terminal", label: "Terminal", glyph: "❯" },
 ] as const;
 
+const HERE_GLYPH = "⊕";
 const { current } = Astro.props;
-const active = versions.find((v) => v.name === current) ?? versions[0];
+const active = versions.find((v) => v.name === current);
+const coreGlyph = active ? active.glyph : HERE_GLYPH;
 ---
 
 {/* Attention nudge — expanding rings behind the dial, fired by the script a
@@ -43,7 +45,7 @@ const active = versions.find((v) => v.name === current) ?? versions[0];
       class="dial-ring"
       aria-hidden="true"></span>
     <span class="dial-shine" aria-hidden="true"></span>
-    <span class="dial-glyph" aria-hidden="true">{active.glyph}</span>
+    <span class="dial-glyph" aria-hidden="true">{coreGlyph}</span>
   </button>
   <div id="version-options" class="dial-options">
     {
@@ -248,8 +250,8 @@ const active = versions.find((v) => v.name === current) ?? versions[0];
   .universe-dial:hover .dial-options,
   .universe-dial:focus-within .dial-options,
   .universe-dial.open .dial-options {
-    /* Four pills: Travel plus the three portfolio versions. */
-    max-width: 26rem;
+    /* Three pills at travel's mono type scale. */
+    max-width: 22rem;
     opacity: 1;
     padding-right: 0.5rem;
   }
