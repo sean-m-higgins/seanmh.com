@@ -11,6 +11,7 @@ Multi-version portfolio site. Scroll is the canonical default; visitors can expl
 | `version/d-3d-game` | Halfpipe arcade game | seanmh-3d-game.pages.dev |
 | `version/e-2d-game` | Counter boxing game | seanmh-2d-game.pages.dev |
 | `version/f-blueprint` | Living systems map at `/systems/` | seanmh-blueprint.pages.dev |
+| `version/g-travel` | Interactive travel atlas at `/travel/` | seanmh-travel.pages.dev |
 
 ## Quick Start
 
@@ -27,6 +28,8 @@ See the **[Wiki](https://github.com/sean-m-higgins/seanmh.com/wiki)** for full d
 ## Router Worker
 
 The `main` branch owns the front routing Worker and local multi-version proxy.
+Blueprint and G Travel use stable `/systems/*` and `/travel/*` namespaces;
+`/?v=g-travel` is a convenience redirect to the canonical Travel path.
 Use Node 22.12 or newer (see `.nvmrc`), then run `npm test` and
 `npm run check:shared`. Validate a deployment bundle with
 `npx wrangler deploy --dry-run` before deploying.

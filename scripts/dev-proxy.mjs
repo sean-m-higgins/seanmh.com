@@ -12,6 +12,7 @@
 //        nexus:      npm run preview -- --port 4325
 //        e-2d-game:  npm run preview -- --port 4326
 //        f-blueprint: npm run preview -- --port 4327
+//        g-travel:   npm run preview -- --port 4328
 //   2. node scripts/dev-proxy.mjs
 //   3. Open http://localhost:8787 in Chrome/Edge and use the dial.
 import http from "node:http";
@@ -35,8 +36,11 @@ const ROUTABLE = [
   { name: "nexus", origin: "http://localhost:4325" },
   { name: "e-2d-game", origin: "http://localhost:4326" },
 ];
-const BLUEPRINT = { name: "f-blueprint", origin: "http://localhost:4327" };
-const BLUEPRINT_PREFIX = "/systems";
+const PATH_APPS = [
+  { name: "f-blueprint", origin: "http://localhost:4327", prefix: "/systems" },
+  { name: "g-travel", origin: "http://localhost:4328", prefix: "/travel" },
+];
+const TRAVEL_VERSION_ALIAS = "g-travel";
 
 // Mirror worker.js: the short path printed on stickers and business cards.
 const CARD_PATH = "/card";
@@ -75,6 +79,10 @@ function getCookieValue(cookieHeader, name) {
 
 function findVersion(name) {
   return ROUTABLE.find((v) => v.name === name);
+}
+
+function findPathApp(pathname) {
+  return PATH_APPS.find((app) => pathname === app.prefix || pathname.startsWith(`${app.prefix}/`));
 }
 
 function cookieFor(version) {
@@ -187,8 +195,20 @@ function pipeUpstreamBody(upstream, res) {
 const server = http.createServer(async (req, res) => {
   const url = new URL(req.url, `http://${req.headers.host || `localhost:${PORT}`}`);
 
-  if (url.pathname === BLUEPRINT_PREFIX) {
-    url.pathname = `${BLUEPRINT_PREFIX}/`;
+  if (url.pathname === "/" && url.searchParams.get("v") === TRAVEL_VERSION_ALIAS) {
+    url.searchParams.delete("v");
+    url.pathname = "/travel/";
+    res.writeHead(302, {
+      location: url.toString(),
+      "cache-control": "no-store",
+    });
+    res.end();
+    return;
+  }
+
+  const pathApp = findPathApp(url.pathname);
+  if (pathApp && url.pathname === pathApp.prefix) {
+    url.pathname = `${pathApp.prefix}/`;
     res.writeHead(308, {
       location: url.toString(),
       "cache-control": "public, max-age=3600",
@@ -210,26 +230,24 @@ const server = http.createServer(async (req, res) => {
     return;
   }
 
-  const isBlueprint = url.pathname.startsWith(`${BLUEPRINT_PREFIX}/`);
-
   // Mirror worker.js: ?v= override, then pv cookie, then the default.
-  const force = isBlueprint ? null : url.searchParams.get("v");
-  if (!isBlueprint) url.searchParams.delete("v");
-  const forced = isBlueprint ? undefined : findVersion(force);
-  const cookieVersion = isBlueprint
+  const force = pathApp ? null : url.searchParams.get("v");
+  if (!pathApp) url.searchParams.delete("v");
+  const forced = pathApp ? undefined : findVersion(force);
+  const cookieVersion = pathApp
     ? undefined
     : findVersion(getCookieValue(req.headers.cookie || "", COOKIE_NAME));
-  const chosen = isBlueprint ? BLUEPRINT : forced || cookieVersion || DEFAULT_VERSION;
+  const chosen = pathApp || forced || cookieVersion || DEFAULT_VERSION;
 
   try {
-    const upstreamPath = isBlueprint
-      ? url.pathname.slice(BLUEPRINT_PREFIX.length) || "/"
+    const upstreamPath = pathApp
+      ? url.pathname.slice(pathApp.prefix.length) || "/"
       : url.pathname;
     const upstreamUrl = chosen.origin + upstreamPath + url.search;
     const upstream = await fetch(upstreamUrl, upstreamRequestInit(req));
     const headers = responseHeadersFrom(upstream);
-    rewriteLocationHeader(headers, url, upstreamUrl, isBlueprint ? BLUEPRINT_PREFIX : "");
-    if (isBlueprint) {
+    rewriteLocationHeader(headers, url, upstreamUrl, pathApp ? pathApp.prefix : "");
+    if (pathApp) {
       delete headers["x-robots-tag"];
       delete headers["set-cookie"];
     }
@@ -237,11 +255,11 @@ const server = http.createServer(async (req, res) => {
     // in-flight asset request from the previous version can't overwrite a
     // just-switched cookie. A manual ?v= selection also updates the cookie.
     const isDocument = isDocumentRequest(req);
-    if (!isBlueprint && (forced || isDocument)) {
+    if (!pathApp && (forced || isDocument)) {
       appendSetCookie(headers, cookieFor(chosen));
     }
     if (isDocument) {
-      headers["cache-control"] = isBlueprint
+      headers["cache-control"] = pathApp
         ? "public, max-age=0, must-revalidate"
         : DOCUMENT_CACHE_CONTROL;
     }
@@ -277,5 +295,5 @@ server.on("error", (err) => {
 server.listen(PORT, () => {
   console.log(`Dev proxy on http://localhost:${PORT}`);
   for (const v of ROUTABLE) console.log(`  ${v.name} ← ${v.origin}`);
-  console.log(`  ${BLUEPRINT.name} ← ${BLUEPRINT.origin}${BLUEPRINT_PREFIX}/*`);
+  for (const app of PATH_APPS) console.log(`  ${app.name} ← ${app.origin}${app.prefix}/*`);
 });

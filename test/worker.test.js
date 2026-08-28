@@ -241,7 +241,80 @@ test('Blueprint canonicalizes its root and rewrites origin redirects under /syst
   assert.equal(redirected.headers.get('Location'), 'https://seanmh.com/systems/next?from=blueprint');
 });
 
-test('SEO control routes are stable across version cookies and include Blueprint', async (t) => {
+test('g-travel query alias redirects to the canonical path without changing preference', async (t) => {
+  const restore = mockFetch(async () => {
+    throw new Error('travel alias must not reach an origin');
+  });
+  t.after(restore);
+
+  const response = await worker.fetch(request('/?keep=1&v=g-travel', {
+    headers: { Accept: 'text/html', Cookie: 'pv=c-terminal' },
+  }));
+
+  assert.equal(response.status, 302);
+  assert.equal(response.headers.get('Location'), 'https://seanmh.com/travel/?keep=1');
+  assert.equal(response.headers.get('Cache-Control'), 'no-store');
+  assert.equal(response.headers.get('Set-Cookie'), null);
+});
+
+test('G Travel owns /travel and its assets independently of version selection', async (t) => {
+  const upstreamUrls = [];
+  const restore = mockFetch(async (url) => {
+    upstreamUrls.push(String(url));
+    return new Response('travel', {
+      headers: {
+        'X-Robots-Tag': 'noindex',
+        'Set-Cookie': 'origin=value; Path=/',
+      },
+    });
+  });
+  t.after(restore);
+
+  const document = await worker.fetch(request('/travel/norway-2026/?view=route', {
+    headers: { Accept: 'text/html', Cookie: 'pv=b-card' },
+  }));
+  const asset = await worker.fetch(request('/travel/_astro/globe.js', {
+    headers: { Cookie: 'pv=nexus' },
+  }));
+
+  assert.deepEqual(upstreamUrls, [
+    'https://seanmh-travel.pages.dev/norway-2026/?view=route',
+    'https://seanmh-travel.pages.dev/_astro/globe.js',
+  ]);
+  assert.equal(document.headers.get('X-Portfolio-Version'), 'g-travel');
+  assert.equal(document.headers.get('Cache-Control'), 'public, max-age=0, must-revalidate');
+  assert.equal(document.headers.get('Set-Cookie'), null);
+  assert.equal(document.headers.get('X-Robots-Tag'), null);
+  assert.equal(asset.headers.get('X-Portfolio-Version'), 'g-travel');
+  assert.equal(asset.headers.get('Set-Cookie'), null);
+});
+
+test('G Travel canonicalizes its root and rewrites origin redirects under /travel', async (t) => {
+  let calls = 0;
+  const restore = mockFetch(async () => {
+    calls += 1;
+    return new Response(null, {
+      status: 302,
+      headers: { Location: '../?from=trip' },
+    });
+  });
+  t.after(restore);
+
+  const canonical = await worker.fetch(request('/travel?keep=1', {
+    headers: { Accept: 'text/html', Cookie: 'pv=a-scroll' },
+  }));
+  assert.equal(canonical.status, 308);
+  assert.equal(canonical.headers.get('Location'), 'https://seanmh.com/travel/?keep=1');
+  assert.equal(canonical.headers.get('Set-Cookie'), null);
+  assert.equal(calls, 0);
+
+  const redirected = await worker.fetch(request('/travel/norway-2026/photos/', {
+    headers: { Accept: 'text/html' },
+  }));
+  assert.equal(redirected.headers.get('Location'), 'https://seanmh.com/travel/norway-2026/?from=trip');
+});
+
+test('SEO control routes are stable across version cookies and include path apps', async (t) => {
   const restore = mockFetch(async () => {
     throw new Error('control routes must not reach an origin');
   });
@@ -256,6 +329,9 @@ test('SEO control routes are stable across version cookies and include Blueprint
   const body = await sitemap.text();
   assert.match(body, /https:\/\/seanmh\.com\/<\/loc>/);
   assert.match(body, /https:\/\/seanmh\.com\/systems\/<\/loc>/);
+  assert.match(body, /https:\/\/seanmh\.com\/travel\/<\/loc>/);
+  assert.match(body, /https:\/\/seanmh\.com\/travel\/norway-2026\/photos\/<\/loc>/);
+  assert.doesNotMatch(body, /itinerary/);
 
   const robots = await worker.fetch(request('/robots.txt', {
     headers: { Cookie: 'pv=e-2d-game' },

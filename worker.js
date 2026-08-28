@@ -32,12 +32,15 @@ const GAME = { name: 'd-3d-game', origin: 'https://seanmh-3d-game.pages.dev' };
 // never served by default.
 const GAME_2D = { name: 'e-2d-game', origin: 'https://seanmh-2d-game.pages.dev' };
 
-// Version F is a public architectural case study, not a preference-selected
-// homepage. The Worker owns its stable path before ?v=/cookie resolution and
-// strips /systems when proxying to the dedicated Pages project. Keeping it out
-// of ROUTABLE means visiting Blueprint never changes the visitor's portfolio.
-const BLUEPRINT = { name: 'f-blueprint', origin: 'https://seanmh-blueprint.pages.dev' };
-const BLUEPRINT_PREFIX = '/systems';
+// Path apps are public, durable bodies of content rather than preference-
+// selected homepages. The Worker owns each namespace before ?v=/cookie
+// resolution, strips the prefix at the dedicated Pages origin, and never lets
+// a visit alter the selected portfolio version.
+const PATH_APPS = [
+  { name: 'f-blueprint', origin: 'https://seanmh-blueprint.pages.dev', prefix: '/systems' },
+  { name: 'g-travel', origin: 'https://seanmh-travel.pages.dev', prefix: '/travel' },
+];
+const TRAVEL_VERSION_ALIAS = 'g-travel';
 
 // Short path for print: stickers, business cards and the QR codes on them
 // point at /card, which redirects into the ?v= system rather than proxying.
@@ -66,7 +69,7 @@ const CONTROL_ROUTES = new Map([
   }],
   ['/sitemap-0.xml', {
     type: 'application/xml; charset=utf-8',
-    body: '<?xml version="1.0" encoding="UTF-8"?>\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9"><url><loc>https://seanmh.com/</loc></url><url><loc>https://seanmh.com/systems/</loc></url></urlset>\n',
+    body: '<?xml version="1.0" encoding="UTF-8"?>\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9"><url><loc>https://seanmh.com/</loc></url><url><loc>https://seanmh.com/systems/</loc></url><url><loc>https://seanmh.com/travel/</loc></url><url><loc>https://seanmh.com/travel/norway-2026/</loc></url><url><loc>https://seanmh.com/travel/norway-2026/photos/</loc></url></urlset>\n',
   }],
 ]);
 
@@ -500,6 +503,10 @@ function findVersion(name) {
   return ROUTABLE.find((v) => v.name === name);
 }
 
+function findPathApp(pathname) {
+  return PATH_APPS.find((app) => pathname === app.prefix || pathname.startsWith(`${app.prefix}/`));
+}
+
 function cookieFor(version) {
   return `${COOKIE_NAME}=${version.name}; ${COOKIE_OPTIONS}`;
 }
@@ -578,12 +585,27 @@ export default {
     const controlResponse = controlRouteResponse(request, url.pathname);
     if (controlResponse) return controlResponse;
 
-    // Blueprint is durable, indexable content. Resolve the complete path
-    // namespace—including its /systems/_astro assets—before a pv cookie can
-    // select a different origin. /systems itself normalizes to the canonical
-    // trailing-slash URL without setting or refreshing a preference cookie.
-    if (url.pathname === BLUEPRINT_PREFIX) {
-      url.pathname = `${BLUEPRINT_PREFIX}/`;
+    // G Travel is a version in the repository/Nexus sense, but durable child
+    // pages make a path namespace the only canonical public shape. Retain the
+    // familiar ?v= entry point as a non-sticky convenience redirect.
+    if (url.pathname === '/' && url.searchParams.get('v') === TRAVEL_VERSION_ALIAS) {
+      url.searchParams.delete('v');
+      url.pathname = '/travel/';
+      return new Response(null, {
+        status: 302,
+        headers: {
+          Location: url.toString(),
+          'Cache-Control': 'no-store',
+        },
+      });
+    }
+
+    // Resolve complete path namespaces—including their /_astro assets—before
+    // a pv cookie can select a portfolio origin. Bare prefixes normalize to a
+    // trailing slash without setting or refreshing a preference cookie.
+    const pathApp = findPathApp(url.pathname);
+    if (pathApp && url.pathname === pathApp.prefix) {
+      url.pathname = `${pathApp.prefix}/`;
       return new Response(null, {
         status: 308,
         headers: {
@@ -593,36 +615,36 @@ export default {
       });
     }
 
-    if (url.pathname.startsWith(`${BLUEPRINT_PREFIX}/`)) {
-      const originPath = url.pathname.slice(BLUEPRINT_PREFIX.length) || '/';
-      const proxyUrl = BLUEPRINT.origin + originPath + url.search;
+    if (pathApp) {
+      const originPath = url.pathname.slice(pathApp.prefix.length) || '/';
+      const proxyUrl = pathApp.origin + originPath + url.search;
       let resp;
       try {
         resp = await fetch(proxyUrl, proxiedRequestInit(request));
       } catch (err) {
         const message = err instanceof Error ? err.message : String(err);
         return new Response(
-          `Upstream ${BLUEPRINT.origin} not reachable.\n${message}`,
+          `Upstream ${pathApp.origin} not reachable.\n${message}`,
           {
             status: 502,
             headers: {
               'Content-Type': 'text/plain; charset=utf-8',
               'Cache-Control': 'no-store',
               'X-Content-Type-Options': 'nosniff',
-              'X-Portfolio-Version': BLUEPRINT.name,
+              'X-Portfolio-Version': pathApp.name,
             },
           },
         );
       }
 
       const headers = new Headers(resp.headers);
-      rewriteLocationHeader(headers, url, proxyUrl, BLUEPRINT_PREFIX);
-      // The Pages origin deliberately returns noindex so its production and
+      rewriteLocationHeader(headers, url, proxyUrl, pathApp.prefix);
+      // Pages origins deliberately return noindex so their production and
       // preview hostnames cannot compete with the apex. That origin-only rule
-      // must never leak through the public, self-canonical /systems/ path.
+      // must never leak through a public, self-canonical path namespace.
       headers.delete('X-Robots-Tag');
       headers.delete('Set-Cookie');
-      headers.set('X-Portfolio-Version', BLUEPRINT.name);
+      headers.set('X-Portfolio-Version', pathApp.name);
       if (isDocumentRequest(request)) {
         headers.set('Cache-Control', 'public, max-age=0, must-revalidate');
       }
