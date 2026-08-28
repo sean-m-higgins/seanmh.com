@@ -1,0 +1,701 @@
+---
+// Universe dial — version switcher with cross-document view transitions.
+// Ported from the shared kit on `content`, which is written in Tailwind. G
+// Travel has no Tailwind, so the markup's utility classes are replaced by
+// rules in this component's style block and the palette is travel's own. The
+// markup structure and the script are untouched, so a fix on `content` still
+// ports here by hand. This copy is not covered by scripts/check-shared.mjs.
+interface Props {
+  current: "a-scroll" | "b-card" | "c-terminal" | "g-travel";
+}
+
+// Travel leads its own dial because that is where the visitor is standing;
+// the three portfolio versions follow. The games stay out, as everywhere else
+// — opt-in via the Nexus or an explicit ?v=, never offered unprompted.
+const versions = [
+  { name: "g-travel", label: "Travel", glyph: "⊕" },
+  { name: "a-scroll", label: "Scroll", glyph: "∿" },
+  { name: "b-card", label: "Card", glyph: "▣" },
+  { name: "c-terminal", label: "Terminal", glyph: "❯" },
+] as const;
+
+const { current } = Astro.props;
+const active = versions.find((v) => v.name === current) ?? versions[0];
+---
+
+{/* Attention nudge — expanding rings behind the dial, fired by the script a
+    few seconds in if the visitor hasn't found the switcher yet. */}
+<span class="dial-ping" aria-hidden="true"></span>
+
+<nav
+  id="version-switcher"
+  class="universe-dial"
+  aria-label="Portfolio versions"
+>
+  <button
+    type="button"
+    class="dial-core"
+    aria-label="Choose a portfolio version"
+    aria-controls="version-options"
+    aria-expanded="false"
+  >
+    <span
+      class="dial-ring"
+      aria-hidden="true"></span>
+    <span class="dial-shine" aria-hidden="true"></span>
+    <span class="dial-glyph" aria-hidden="true">{active.glyph}</span>
+  </button>
+  <div id="version-options" class="dial-options">
+    {
+      versions.map((v) =>
+        v.name === current ? (
+          <span
+            class="dial-pill dial-pill-current"
+            aria-current="page"
+          >
+            <span class="dial-pill-glyph" aria-hidden="true">{v.glyph}</span>
+            {v.label}
+          </span>
+        ) : (
+          <a
+            href={`/?v=${v.name}`}
+            data-astro-reload
+            class="dial-pill dial-pill-link"
+          >
+            <span class="dial-pill-glyph" aria-hidden="true">{v.glyph}</span>
+            {v.label}
+          </a>
+        )
+      )
+    }
+  </div>
+</nav>
+
+{/* Nexus launcher — a liquid droplet pulls up off the dial and blooms open
+    into a small portal (glowing rim + swirling energy) that leads to the 3D
+    portal world. Kept outside the overflow-hidden dial so it can escape up. */}
+<a
+  href="/?v=nexus"
+  data-astro-reload
+  class="nexus-launcher"
+  title="Enter the Nexus"
+  aria-label="Enter the Nexus — a 3D portal to every version"
+>
+  <span class="nexus-goo" aria-hidden="true">
+    <span class="nexus-blob nexus-blob-base"></span>
+    <span class="nexus-blob nexus-blob-drop"></span>
+  </span>
+  <span class="nexus-portal" aria-hidden="true">
+    <span class="nexus-portal-swirl"></span>
+    <span class="nexus-portal-core"></span>
+  </span>
+</a>
+
+<svg width="0" height="0" class="nexus-defs" aria-hidden="true" focusable="false">
+  <defs>
+    <filter id="nexus-goo">
+      <feGaussianBlur in="SourceGraphic" stdDeviation="6" result="blur" />
+      <feColorMatrix
+        in="blur"
+        mode="matrix"
+        values="1 0 0 0 0  0 1 0 0 0  0 0 1 0 0  0 0 0 22 -10"
+        result="goo"
+      />
+      <feBlend in="SourceGraphic" in2="goo" />
+    </filter>
+  </defs>
+</svg>
+
+<style>
+  /* The shared kit gets these from Tailwind utilities; travel has none, so the
+     dial's own chrome is declared here against travel's tokens. */
+  .universe-dial {
+    position: fixed;
+    bottom: 1rem;
+    left: 1rem;
+    z-index: 50;
+    display: flex;
+    align-items: center;
+    overflow: hidden;
+    border: 1px solid var(--line-bright);
+    border-radius: 999px;
+    background: rgba(6, 17, 25, 0.82);
+    box-shadow: 0 0.75rem 2rem rgba(0, 0, 0, 0.45);
+    backdrop-filter: blur(12px);
+    view-transition-name: universe-dial;
+    animation: dial-glow 3s ease-in-out infinite;
+  }
+
+  .dial-core {
+    position: relative;
+    display: flex;
+    width: 2.5rem;
+    height: 2.5rem;
+    flex-shrink: 0;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden;
+    border: 0;
+    border-radius: 50%;
+    background: transparent;
+    cursor: pointer;
+  }
+
+  .dial-glyph {
+    color: var(--amber);
+    font-family: var(--font-mono);
+    font-size: 0.85rem;
+  }
+
+  .dial-ring {
+    position: absolute;
+    inset: 0.375rem;
+    border: 1px dashed rgba(255, 180, 91, 0.5);
+    border-radius: 50%;
+    animation: dial-spin 16s linear infinite;
+  }
+
+  .dial-pill {
+    padding: 0.25rem 0.6rem;
+    border-radius: 999px;
+    font-family: var(--font-mono);
+    font-size: 0.6rem;
+    letter-spacing: 0.06em;
+    text-decoration: none;
+    text-transform: uppercase;
+    white-space: nowrap;
+  }
+  .dial-pill-glyph { margin-right: 0.3rem; }
+  /* Amber on travel's ink, matching .button-primary rather than the shared
+     kit's white-on-indigo, which is unreadable against this accent. */
+  .dial-pill-current {
+    color: #1a1108;
+    background: var(--amber);
+    cursor: default;
+  }
+  .dial-pill-link {
+    color: var(--mist);
+    transition: color 160ms ease, background 160ms ease;
+  }
+  .dial-pill-link:hover {
+    color: var(--ice);
+    background: rgba(131, 228, 227, 0.1);
+  }
+
+  /* Shine sweep across the core so the switcher reads as a glossy, live
+     control worth clicking. Clipped to the core's circle (overflow-hidden). */
+  .dial-shine {
+    position: absolute;
+    top: -30%;
+    left: -70%;
+    width: 42%;
+    height: 160%;
+    background: linear-gradient(
+      100deg,
+      transparent,
+      rgb(255 255 255 / 0.75),
+      transparent
+    );
+    transform: skewX(-18deg);
+    pointer-events: none;
+    animation: dial-shine 4s ease-in-out 1s infinite;
+  }
+  /* The shared kit tints the gleam for its light theme here. Travel commits to
+     a single dark theme and carries no `.dark` class, so that override would
+     match every page and dull the shine; it is dropped rather than inverted. */
+
+  /* Radar-ping nudge: two rings expand out from behind the dial a few times. */
+  .dial-ping {
+    position: fixed;
+    left: 1rem;
+    bottom: 1rem;
+    width: 2.5rem;
+    height: 2.5rem;
+    border-radius: 50%;
+    z-index: 40;
+    pointer-events: none;
+  }
+  .dial-ping::before,
+  .dial-ping::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    border-radius: 50%;
+    border: 2.5px solid var(--color-accent, #6366f1);
+    opacity: 0;
+  }
+  .dial-ping.nudge::before {
+    animation: dial-ping 1.9s ease-out 3;
+  }
+  .dial-ping.nudge::after {
+    animation: dial-ping 1.9s ease-out 0.95s 3;
+  }
+  /* A gentle press-me pulse on the core, in time with the pings. */
+  .universe-dial.nudge .dial-core {
+    animation: dial-nudge 1.9s ease-in-out 3;
+  }
+
+  .dial-options {
+    max-width: 0;
+    opacity: 0;
+    padding-right: 0;
+    transition:
+      max-width 0.35s cubic-bezier(0.2, 0, 0, 1),
+      padding-right 0.35s cubic-bezier(0.2, 0, 0, 1),
+      opacity 0.25s ease;
+  }
+
+  .universe-dial:hover .dial-options,
+  .universe-dial:focus-within .dial-options,
+  .universe-dial.open .dial-options {
+    /* Four pills: Travel plus the three portfolio versions. */
+    max-width: 26rem;
+    opacity: 1;
+    padding-right: 0.5rem;
+  }
+
+  @keyframes dial-spin {
+    to {
+      transform: rotate(360deg);
+    }
+  }
+
+  /* Livelier glow — always faintly lit, pulsing brighter, so the control
+     never fully recedes into the corner. */
+  @keyframes dial-glow {
+    0%,
+    100% {
+      box-shadow: 0 0 8px 0 rgb(99 102 241 / 0.28);
+    }
+    50% {
+      box-shadow: 0 0 22px 3px rgb(99 102 241 / 0.6);
+    }
+  }
+
+  @keyframes dial-shine {
+    0% {
+      left: -70%;
+    }
+    14% {
+      left: 130%;
+    }
+    100% {
+      left: 130%; /* long rest between sweeps */
+    }
+  }
+
+  @keyframes dial-ping {
+    0% {
+      transform: scale(0.8);
+      opacity: 0.85;
+    }
+    100% {
+      transform: scale(2.3);
+      opacity: 0;
+    }
+  }
+
+  @keyframes dial-nudge {
+    0%,
+    100% {
+      transform: scale(1);
+    }
+    30% {
+      transform: scale(1.14);
+    }
+    60% {
+      transform: scale(0.98);
+    }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .universe-dial,
+    .dial-ring,
+    .dial-shine,
+    .dial-ping.nudge::before,
+    .dial-ping.nudge::after,
+    .universe-dial.nudge .dial-core {
+      animation: none;
+    }
+    .dial-options {
+      transition: none;
+    }
+  }
+
+  /* ---- Nexus launcher: liquid pull-away off the dial ---------------- */
+
+  .nexus-defs {
+    position: absolute;
+    width: 0;
+    height: 0;
+    pointer-events: none;
+  }
+
+  .nexus-launcher {
+    position: fixed;
+    left: 1rem; /* aligns with the dial's bottom-4 left-4 anchor */
+    bottom: 1rem;
+    width: 2.5rem; /* = dial-core footprint (h-10 w-10) */
+    height: 2.5rem;
+    z-index: 50;
+    pointer-events: none; /* only the settled pill is interactive */
+    -webkit-tap-highlight-color: transparent;
+  }
+
+  /* The gooey liquid: two accent blobs merged by the SVG filter. Its job is
+     only the pull-away + neck-snap; it fades out once the pill has arrived. */
+  .nexus-goo {
+    position: absolute;
+    left: 50%;
+    bottom: 0.5rem; /* base sits on the top of the dial core */
+    width: 4.5rem;
+    height: 7rem;
+    margin-left: -2.25rem;
+    filter: url(#nexus-goo);
+    opacity: 0; /* dormant until the dial is hovered/opened */
+  }
+
+  .nexus-blob {
+    position: absolute;
+    left: 50%;
+    bottom: 0;
+    border-radius: 50%;
+    background: #818cf8; /* accent-light — reads as energy off the accent dial */
+    will-change: transform;
+  }
+
+  .nexus-blob-base {
+    width: 1.9rem;
+    height: 1.5rem;
+    margin-left: -0.95rem;
+  }
+
+  .nexus-blob-drop {
+    width: 1.55rem;
+    height: 1.55rem;
+    margin-left: -0.775rem;
+    transform-origin: 50% 100%; /* stretch upward from the base */
+  }
+
+  /* The portal the liquid blooms open into: a glowing rim over swirling
+     energy with a bright convergent center for depth. */
+  .nexus-portal {
+    position: absolute;
+    left: 50%; /* round, so it centers over the core without clipping the edge */
+    bottom: 100%; /* anchored to the launcher (core) top */
+    width: 2.5rem;
+    height: 2.5rem;
+    border-radius: 50%;
+    overflow: hidden;
+    pointer-events: auto;
+    opacity: 0;
+    transform: translateX(-50%) translateY(-0.5rem) scale(0.85);
+    transition:
+      opacity 0.3s ease,
+      transform 0.3s ease; /* graceful fade-out when the dial is left */
+    box-shadow:
+      0 0 0 1.5px rgb(199 186 253 / 0.85), /* crisp rim */
+      0 0 16px 2px rgb(124 131 255 / 0.55), /* outer bloom */
+      inset 0 0 12px 2px rgb(3 3 12 / 0.6); /* inner depth */
+  }
+
+  /* Swirling energy — the three portal colors (scroll indigo, card orange,
+     terminal green) cycling, so the meta-portal hints at all of them. */
+  .nexus-portal-swirl {
+    position: absolute;
+    inset: -35%;
+    background: conic-gradient(
+      from 0deg,
+      #7c83ff,
+      #a855f7,
+      #ff9e64,
+      #3ddc84,
+      #6366f1,
+      #7c83ff
+    );
+    filter: blur(1px);
+  }
+
+  /* Tunnel depth: hot white core fading out to a dark vignette. */
+  .nexus-portal-core {
+    position: absolute;
+    inset: 0;
+    border-radius: 50%;
+    background: radial-gradient(
+      circle at 50% 47%,
+      rgb(255 255 255 / 0.95) 0%,
+      rgb(214 222 255 / 0.35) 13%,
+      rgb(10 10 26 / 0.12) 40%,
+      rgb(5 5 15 / 0.6) 74%
+    );
+  }
+
+  .nexus-launcher:hover .nexus-portal,
+  .nexus-launcher:focus-visible .nexus-portal {
+    box-shadow:
+      0 0 0 1.5px rgb(255 255 255 / 0.95),
+      0 0 24px 4px rgb(124 131 255 / 0.8),
+      inset 0 0 12px 2px rgb(3 3 12 / 0.5);
+  }
+  .nexus-launcher:hover .nexus-portal-swirl {
+    animation-duration: 2.4s; /* spins up on hover */
+  }
+
+  .nexus-launcher:focus-visible {
+    outline: none;
+  }
+
+  .nexus-launcher:focus-visible .nexus-portal {
+    outline: 2px solid #c4b5fd;
+    outline-offset: 3px;
+  }
+
+  /* Active state — JS adds .nexus-active to the launcher while the dial (or the
+     portal itself) is hovered, focused, or tapped open. The liquid pull-away
+     plays, then the portal blooms open and its energy swirls. Removing the
+     class lets the portal fade back out via its transition. */
+  .nexus-active .nexus-goo {
+    animation: nexus-goo-fade 0.72s linear forwards;
+  }
+  .nexus-active .nexus-blob-base {
+    animation: nexus-base 0.72s cubic-bezier(0.5, 0, 0.2, 1) forwards;
+  }
+  .nexus-active .nexus-blob-drop {
+    animation: nexus-drop 0.72s cubic-bezier(0.45, 0, 0.2, 1) forwards;
+  }
+  .nexus-active .nexus-portal {
+    animation:
+      nexus-portal-in 0.5s cubic-bezier(0.3, 0, 0.2, 1) 0.18s forwards,
+      nexus-portal-bob 4s ease-in-out 0.75s infinite;
+  }
+  .nexus-active .nexus-portal-swirl {
+    animation: nexus-portal-spin 5s linear infinite;
+  }
+  .nexus-active .nexus-portal-core {
+    animation: nexus-portal-pulse 3s ease-in-out infinite;
+  }
+
+  @keyframes nexus-drop {
+    0% {
+      transform: translateY(0.1rem) scale(0.6);
+    }
+    18% {
+      transform: translateY(-0.3rem) scaleX(0.72) scaleY(1.55); /* liquid climbs, still fused to base */
+    }
+    38% {
+      transform: translateY(-1.1rem) scaleX(0.55) scaleY(2.1); /* tall thin neck, goo still bridges */
+    }
+    58% {
+      transform: translateY(-2.7rem) scaleX(0.9) scaleY(1.12); /* pinched off, rounding as it flies up */
+    }
+    80% {
+      transform: translateY(-4.6rem) scale(1.07); /* free, slight overshoot */
+    }
+    100% {
+      transform: translateY(-4.2rem) scale(1); /* settle */
+    }
+  }
+
+  @keyframes nexus-base {
+    0% {
+      transform: scale(1);
+      opacity: 1;
+    }
+    28% {
+      transform: scaleX(1.15) scaleY(0.82); /* held taut, feeding the rising neck */
+      opacity: 1;
+    }
+    46% {
+      transform: scaleX(1) scaleY(0.6); /* neck snaps */
+      opacity: 0.9;
+    }
+    100% {
+      transform: scale(0.3);
+      opacity: 0; /* recedes back into the dial */
+    }
+  }
+
+  @keyframes nexus-goo-fade {
+    0%,
+    66% {
+      opacity: 1;
+    }
+    100% {
+      opacity: 0;
+    }
+  }
+
+  /* The portal blooms open as the liquid arrives — scales up from a point
+     with a slight spin, like a rift opening. */
+  @keyframes nexus-portal-in {
+    0% {
+      opacity: 0;
+      transform: translateX(-50%) translateY(-0.05rem) scale(0.25) rotate(-45deg);
+    }
+    60% {
+      opacity: 1;
+      transform: translateX(-50%) translateY(-0.6rem) scale(1.1) rotate(8deg);
+    }
+    100% {
+      opacity: 1;
+      transform: translateX(-50%) translateY(-0.5rem) scale(1) rotate(0deg);
+    }
+  }
+
+  @keyframes nexus-portal-bob {
+    0%,
+    100% {
+      transform: translateX(-50%) translateY(-0.5rem) scale(1);
+    }
+    50% {
+      transform: translateX(-50%) translateY(-0.8rem) scale(1);
+    }
+  }
+
+  @keyframes nexus-portal-spin {
+    to {
+      transform: rotate(360deg);
+    }
+  }
+
+  /* The convergent center breathes — reads as energy pulling inward. */
+  @keyframes nexus-portal-pulse {
+    0%,
+    100% {
+      opacity: 0.82;
+      transform: scale(1);
+    }
+    50% {
+      opacity: 1;
+      transform: scale(1.07);
+    }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    /* No liquid or motion; the portal simply appears above the dial (its
+       swirl/rim are static color, which is fine). */
+    .nexus-active .nexus-goo,
+    .nexus-active .nexus-blob-base,
+    .nexus-active .nexus-blob-drop {
+      animation: none;
+      opacity: 0;
+    }
+    .nexus-active .nexus-portal {
+      animation: none;
+      opacity: 1;
+      transform: translateX(-50%) translateY(-0.5rem) scale(1);
+    }
+    .nexus-active .nexus-portal-swirl,
+    .nexus-active .nexus-portal-core {
+      animation: none;
+    }
+  }
+</style>
+
+<script is:inline>
+  (function () {
+    var meta = document.querySelector('meta[name="portfolio-version"]');
+    var current = meta ? meta.getAttribute("content") : "";
+
+    // Cross-document view transitions: remember which version we left so the
+    // destination page can style the transition per direction (transitions.css).
+    window.addEventListener("pageswap", function (e) {
+      if (!e.viewTransition) return;
+      try {
+        sessionStorage.setItem("vt-from", current);
+      } catch (_) {}
+    });
+
+    window.addEventListener("pagereveal", function (e) {
+      var from = "";
+      try {
+        from = sessionStorage.getItem("vt-from") || "";
+        sessionStorage.removeItem("vt-from");
+      } catch (_) {}
+      if (!e.viewTransition || !from || from === current) return;
+      // Before first paint: lets CSS skip intro animations on arrival.
+      document.documentElement.classList.add("vt-arrived");
+      if (e.viewTransition.types) {
+        e.viewTransition.types.add("from-" + from);
+        e.viewTransition.types.add("to-" + current);
+      }
+    });
+
+    // Touch devices have no hover: tapping the core toggles the dial open.
+    var dial = document.getElementById("version-switcher");
+    var core = dial && dial.querySelector(".dial-core");
+    var launcher = document.querySelector(".nexus-launcher");
+
+    // Reveal + play the liquid Nexus animation while the dial (or the pill
+    // itself) is hovered, focused, or tapped open. A short grace period lets
+    // the pointer travel the gap from the dial up to the pill without the
+    // animation dropping and restarting.
+    var nexusTimer;
+    function setNexusActive(on) {
+      if (!launcher) return;
+      clearTimeout(nexusTimer);
+      if (on) {
+        launcher.classList.add("nexus-active");
+      } else {
+        nexusTimer = setTimeout(function () {
+          if (dial && dial.classList.contains("open")) return;
+          launcher.classList.remove("nexus-active");
+        }, 220);
+      }
+    }
+
+    if (dial && core) {
+      function setOpen(open) {
+        dial.classList.toggle("open", open);
+        core.setAttribute("aria-expanded", String(open));
+        setNexusActive(open);
+      }
+      core.addEventListener("click", function () {
+        setOpen(!dial.classList.contains("open"));
+      });
+      document.addEventListener("click", function (e) {
+        if (!dial.contains(e.target)) setOpen(false);
+      });
+      document.addEventListener("keydown", function (e) {
+        if (e.key === "Escape" && dial.classList.contains("open")) {
+          setOpen(false);
+          core.focus();
+        }
+      });
+
+      // Pointer/keyboard reveal: entering or focusing either the dial or the
+      // pill activates; leaving both (past the grace period) deactivates.
+      [dial, launcher].forEach(function (el) {
+        if (!el) return;
+        el.addEventListener("mouseenter", function () { setNexusActive(true); });
+        el.addEventListener("mouseleave", function () { setNexusActive(false); });
+        el.addEventListener("focusin", function () { setNexusActive(true); });
+        el.addEventListener("focusout", function () { setNexusActive(false); });
+      });
+
+      // Attention nudge: if the visitor hasn't touched the switcher within a
+      // few seconds, ping it a few times to help them find it. Any interaction
+      // cancels it, and it never fires more than once.
+      var ping = document.querySelector(".dial-ping");
+      var nudgeDone = false;
+      var nudgeTimer = setTimeout(function () {
+        if (nudgeDone) return;
+        nudgeDone = true;
+        dial.classList.add("nudge");
+        if (ping) ping.classList.add("nudge");
+      }, 7000);
+      function cancelNudge() {
+        clearTimeout(nudgeTimer);
+        nudgeDone = true;
+        dial.classList.remove("nudge");
+        if (ping) ping.classList.remove("nudge");
+      }
+      [dial, launcher].forEach(function (el) {
+        if (!el) return;
+        el.addEventListener("mouseenter", cancelNudge);
+        el.addEventListener("focusin", cancelNudge);
+        el.addEventListener("click", cancelNudge);
+      });
+    }
+  })();
+</script>
