@@ -1,0 +1,22 @@
+---
+interface Props {
+  compact?: boolean;
+}
+
+const { compact = false } = Astro.props;
+---
+
+<header class:list={["site-header", { compact }]}>
+  <a class="brand" href="/travel/" aria-label="G Travel home">
+    <span class="brand-orbit" aria-hidden="true"><i></i></span>
+    <span>
+      <strong>G Travel</strong>
+      <small>version / g</small>
+    </span>
+  </a>
+  <nav aria-label="Travel navigation">
+    <a href="/travel/#atlas">Atlas</a>
+    <a href="/travel/norway-2026/">Norway</a>
+    <a class="portfolio-link" href="/?v=a-scroll">Portfolio <span aria-hidden="true">↗</span></a>
+  </nav>
+</header>

@@ -1,7 +1,7 @@
 {
-  // Blueprint is fully static. The front Worker on main owns /systems/* and
+  // G Travel is fully static. The front Worker on main owns /travel/* and
   // proxies this project's assets after stripping the public path prefix.
-  "name": "seanmh-blueprint",
+  "name": "seanmh-travel",
   "compatibility_date": "2025-09-27",
   "assets": {
     "directory": "dist"

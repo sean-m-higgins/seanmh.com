@@ -1,0 +1,118 @@
+---
+import { countries, trips, tripsForCountry } from "../content/trips.ts";
+import { validateTravelData } from "../scripts/globe-utils.mjs";
+
+const globeData = { countries, trips };
+const contentErrors = validateTravelData(countries, trips);
+if (contentErrors.length > 0) throw new Error(`Invalid travel content:\n${contentErrors.join("\n")}`);
+---
+
+<section id="atlas" class="atlas" aria-labelledby="atlas-title">
+  <div class="atlas-copy">
+    <p class="eyebrow">01 / Interactive atlas</p>
+    <h1 id="atlas-title">A world of<br /><em>lived routes.</em></h1>
+    <p class="atlas-lede">
+      Spin the globe. Visited countries hold the stories; each route remembers a different way through.
+    </p>
+    <div class="atlas-stats" aria-label="Travel archive summary">
+      <div><strong>{countries.length.toString().padStart(2, "0")}</strong><span>country</span></div>
+      <div><strong>{trips.length.toString().padStart(2, "0")}</strong><span>journey</span></div>
+      <div><strong>01</strong><span>story developing</span></div>
+    </div>
+  </div>
+
+  <div class="globe-stage" data-globe-stage data-state="loading">
+    <div id="globe-canvas" class="globe-canvas" aria-hidden="true"></div>
+    <svg class="globe-poster" viewBox="0 0 720 720" role="img" aria-labelledby="poster-title poster-desc">
+      <title id="poster-title">Travel atlas focused on Norway</title>
+      <desc id="poster-desc">A static globe fallback with Norway highlighted.</desc>
+      <defs>
+        <radialGradient id="ocean" cx="35%" cy="28%">
+          <stop offset="0" stop-color="#23495b" />
+          <stop offset="0.58" stop-color="#102b39" />
+          <stop offset="1" stop-color="#071720" />
+        </radialGradient>
+        <filter id="glow"><feGaussianBlur stdDeviation="10" /></filter>
+        <clipPath id="planet-clip"><circle cx="360" cy="360" r="244" /></clipPath>
+      </defs>
+      <circle cx="360" cy="360" r="260" fill="none" stroke="#77d9e6" stroke-opacity=".16" stroke-width="2" />
+      <circle cx="360" cy="360" r="244" fill="url(#ocean)" stroke="#8ae7ef" stroke-opacity=".42" />
+      <g clip-path="url(#planet-clip)" fill="#315266" stroke="#84a8b5" stroke-opacity=".25" stroke-width="2">
+        <path d="M149 208l58-58 79-19 55 30 2 57-45 28-24 62-54 5-53-41z" />
+        <path d="M284 330l37 26 20 63-16 93-42 71-28-66 11-72-30-50z" />
+        <path d="M371 167l48-37 72 13 37 42 85 13 49 74-35 48-70-4-37 40-66-22-34-63-44-25z" />
+        <path d="M431 342l56 20 37 69-17 93-45 65-43-68-19-91z" />
+        <path d="M574 467l57 4 31 35-27 41-61-16-22-34z" />
+        <path d="M399 135l20-30 32 16-7 43z" />
+      </g>
+      <path d="M419 142l9-17 8 19-7 26-12-5z" fill="#ffb45b" filter="url(#glow)" opacity=".9" />
+      <path d="M419 142l9-17 8 19-7 26-12-5z" fill="#ffd19a" />
+      <circle cx="429" cy="145" r="7" fill="#fff4dc" />
+      <circle cx="429" cy="145" r="18" fill="none" stroke="#ffb45b" stroke-width="2" />
+    </svg>
+
+    <div class="globe-loading" aria-hidden="true"><span></span> charting the world</div>
+    <p class="globe-hint" aria-hidden="true">drag to turn · scroll to approach · select a light</p>
+    <p id="globe-status" class="sr-only" aria-live="polite">Loading the interactive travel atlas.</p>
+
+    {countries.map((country, countryIndex) => {
+      const countryTrips = tripsForCountry(country.iso2);
+      return (
+        <aside
+          class="journey-card"
+          data-country-card={country.iso2}
+          aria-label={`${country.name} journeys`}
+          hidden={countryIndex > 0}
+        >
+          <button class="journey-close" type="button" data-close-country aria-label={`Close ${country.name} details`}>×</button>
+          <p class="eyebrow"><span class="country-dot"></span> Visited / {country.name}</p>
+          {countryTrips.map((trip, tripIndex) => (
+            <article data-trip={trip.slug} data-active={tripIndex === 0 ? "" : undefined} style={`--trip-accent:${trip.accent}`}>
+              <p class="journey-date">{trip.dateLabel}</p>
+              <h2>{trip.title}</h2>
+              <p>{trip.summary}</p>
+              {!trip.route.published && <p class="route-note"><span></span> Actual route awaiting final field notes</p>}
+              {countryTrips.length > 1 && trip.route.published && <button class="route-select" type="button" data-select-trip={trip.slug}>Show this route</button>}
+              <div class="journey-actions">
+                <a class="button button-primary" href={trip.links.overview}>Open the journey</a>
+                <a class="text-link" href={trip.links.photos}>View photos <span aria-hidden="true">↗</span></a>
+              </div>
+            </article>
+          ))}
+        </aside>
+      );
+    })}
+  </div>
+
+  <div class="country-index">
+    <p class="eyebrow">Visited countries</p>
+    {countries.map((country, index) => {
+      const countryTrips = tripsForCountry(country.iso2);
+      return (
+        <button type="button" data-country={country.iso2} aria-controls="globe-canvas">
+          <span class="country-number">{String(index + 1).padStart(2, "0")}</span>
+          <span><strong>{country.name}</strong><small>{countryTrips.length} {countryTrips.length === 1 ? "journey" : "journeys"} · {countryTrips[0]?.dateLabel}</small></span>
+          <i aria-hidden="true">↗</i>
+        </button>
+      );
+    })}
+  </div>
+</section>
+
+<script is:inline id="globe-data" type="application/json" set:html={JSON.stringify(globeData)}></script>
+
+<script>
+  const stage = document.querySelector<HTMLElement>("[data-globe-stage]");
+  const boot = () => import("../scripts/globe.ts")
+    .then(({ startGlobe }) => startGlobe())
+    .catch(() => {
+      if (stage) stage.dataset.state = "fallback";
+      const status = document.querySelector("#globe-status");
+      if (status) status.textContent = "The interactive globe is unavailable. Norway links remain below.";
+    });
+  const idle = (window as Window & {
+    requestIdleCallback?: (callback: () => void, options?: { timeout: number }) => number;
+  }).requestIdleCallback;
+  if (idle) idle(boot, { timeout: 900 });
+  else globalThis.setTimeout(boot, 120);
+</script>

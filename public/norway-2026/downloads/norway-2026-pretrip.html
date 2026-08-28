@@ -1,0 +1,974 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Oslo → Lofoten — Sanitized Pre-trip Route Log</title>
+<style>
+  :root {
+    --bg:        #0b1a23;
+    --bg-2:      #0e2029;
+    --panel:     #122a37;
+    --panel-2:   #16323f;
+    --line:      #234657;
+    --line-soft: rgba(120,160,178,0.16);
+    --ice:       #eaf2f5;
+    --mist:      #93aab6;
+    --mist-dim:  #6d8895;
+    --rorbu:     #d1402f;
+    --rorbu-dim: #a8382c;
+    --sun:       #e7b357;
+    --sun-dim:   #b98c3e;
+    --teal:      #4fb0ab;
+    --font-body: ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+    --font-mono: ui-monospace, "SF Mono", "SFMono-Regular", Menlo, Consolas, "Liberation Mono", monospace;
+    --shadow: 0 10px 30px rgba(0,0,0,0.35);
+    --radius: 14px;
+  }
+
+  * { box-sizing: border-box; }
+  html { scroll-behavior: smooth; }
+  body {
+    margin: 0;
+    font-family: var(--font-body);
+    color: var(--ice);
+    background: var(--bg);
+    line-height: 1.6;
+    -webkit-font-smoothing: antialiased;
+    min-height: 100vh;
+  }
+  /* Fixed Norwegian-flag watermark — an off-center Scandinavian cross,
+     flag colors at low opacity, shared behind every slide. Text stays readable
+     because every band composites to a still-dark slate over the fjord base. */
+  body::before {
+    content: "";
+    position: fixed;
+    inset: 0;
+    z-index: -1;
+    pointer-events: none;
+    background:
+      radial-gradient(1200px 620px at 50% -12%, rgba(231,179,87,0.05), transparent 60%),
+      /* navy cross — vertical bar (aligned over the Route Log column) */
+      linear-gradient(90deg, transparent 12.8%, rgba(0,32,91,0.32) 14.0%, rgba(0,32,91,0.32) 26.0%, transparent 27.2%),
+      /* navy cross — horizontal bar */
+      linear-gradient(0deg, transparent 39.6%, rgba(0,32,91,0.32) 40.8%, rgba(0,32,91,0.32) 59.2%, transparent 60.4%),
+      /* white border — vertical bar */
+      linear-gradient(90deg, transparent 10.2%, rgba(235,243,247,0.13) 11.5%, rgba(235,243,247,0.13) 28.5%, transparent 29.8%),
+      /* white border — horizontal bar */
+      linear-gradient(0deg, transparent 36.3%, rgba(235,243,247,0.13) 37.6%, rgba(235,243,247,0.13) 62.3%, transparent 63.6%),
+      /* red field */
+      linear-gradient(rgba(200,54,42,0.13), rgba(200,54,42,0.13));
+  }
+  a { color: var(--teal); text-decoration: none; }
+  a:hover { text-decoration: underline; }
+
+  /* ---------- header ---------- */
+  header.top {
+    position: sticky; top: 0; z-index: 40;
+    display: flex; align-items: center; gap: 1.25rem;
+    padding: 0.85rem clamp(1rem, 3vw, 2.25rem);
+    background: rgba(9,22,29,0.86);
+    backdrop-filter: blur(10px);
+    border-bottom: 1px solid var(--line-soft);
+  }
+  .brand { display: flex; align-items: center; gap: 0.7rem; min-width: 0; }
+  .brand .glyph { color: var(--rorbu); flex: none; }
+  .brand .titles { min-width: 0; }
+  .brand .route {
+    font-weight: 800; letter-spacing: 0.02em; font-size: clamp(1rem, 2.2vw, 1.28rem);
+    line-height: 1.1; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+  }
+  .brand .route em { color: var(--rorbu); font-style: normal; }
+  .brand .sub {
+    font-family: var(--font-mono); font-size: 0.68rem; letter-spacing: 0.14em;
+    text-transform: uppercase; color: var(--mist); margin-top: 0.15rem;
+  }
+  .meter { margin-left: auto; display: flex; align-items: center; gap: 0.7rem; flex: none; }
+  .meter .label {
+    font-family: var(--font-mono); font-size: 0.66rem; letter-spacing: 0.12em;
+    text-transform: uppercase; color: var(--mist); text-align: right; line-height: 1.25;
+  }
+  .meter .label b { color: var(--sun); font-size: 0.92rem; }
+  .meter .ring { --p: 0; position: relative; width: 42px; height: 42px; flex: none; }
+  .meter .ring svg { transform: rotate(-90deg); display: block; }
+  .meter .ring .bg { stroke: var(--line); }
+  .meter .ring .fg { stroke: var(--sun); stroke-linecap: round; transition: stroke-dashoffset 0.5s ease; }
+
+  /* ---------- shell ---------- */
+  .shell {
+    display: grid;
+    grid-template-columns: 268px minmax(0, 1fr);
+    gap: clamp(1rem, 3vw, 2.75rem);
+    max-width: 1180px;
+    margin: 0 auto;
+    padding: clamp(1.25rem, 3vw, 2.5rem) clamp(1rem, 3vw, 2.25rem) 4rem;
+  }
+
+  /* ---------- route nav (signature) ---------- */
+  nav.route-nav { position: sticky; top: 82px; align-self: start; }
+  nav.route-nav .kicker {
+    font-family: var(--font-mono); font-size: 0.64rem; letter-spacing: 0.2em;
+    text-transform: uppercase; color: var(--mist-dim); margin: 0 0 1rem 0.2rem;
+  }
+  .waypoints { list-style: none; margin: 0; padding: 0; position: relative; }
+  .waypoints::before {
+    content: ""; position: absolute; left: 11px; top: 12px; bottom: 12px;
+    width: 2px; background: var(--line);
+  }
+  .waypoints .fill {
+    position: absolute; left: 11px; top: 12px; width: 2px;
+    background: linear-gradient(var(--sun), var(--sun-dim));
+    height: 0; transition: height 0.45s ease;
+  }
+  .wp { position: relative; }
+  .wp button {
+    all: unset; box-sizing: border-box; cursor: pointer;
+    display: flex; align-items: center; gap: 0.85rem;
+    width: 100%; padding: 0.5rem 0.6rem 0.5rem 0; border-radius: 10px;
+    color: var(--mist); transition: color 0.2s, background 0.2s;
+  }
+  .wp button:hover { color: var(--ice); }
+  .wp button:focus-visible { outline: 2px solid var(--teal); outline-offset: 2px; }
+  .wp .node {
+    position: relative; z-index: 2; flex: none;
+    width: 24px; height: 24px; border-radius: 50%;
+    background: var(--bg-2); border: 2px solid var(--line);
+    display: grid; place-items: center;
+    font-family: var(--font-mono); font-size: 0.6rem; color: var(--mist-dim);
+    transition: all 0.25s ease;
+  }
+  .wp .txt { display: flex; flex-direction: column; line-height: 1.15; }
+  .wp .txt .n {
+    font-family: var(--font-mono); font-size: 0.58rem; letter-spacing: 0.16em;
+    text-transform: uppercase; color: var(--mist-dim);
+  }
+  .wp .txt .l { font-weight: 650; font-size: 0.95rem; letter-spacing: 0.01em; }
+  .wp.visited .node { border-color: var(--sun-dim); color: var(--sun); }
+  .wp.active button { color: var(--ice); }
+  .wp.active .node {
+    background: var(--rorbu); border-color: var(--rorbu);
+    color: #fff; box-shadow: 0 0 0 5px rgba(209,64,47,0.18);
+  }
+  .wp.active .txt .l { color: var(--ice); }
+  .wp.active .txt .n { color: var(--rorbu); }
+
+  /* ---------- pages ---------- */
+  main { min-width: 0; }
+  .page { display: none; }
+  .page.active { display: block; animation: rise 0.4s ease both; }
+  @keyframes rise { from { opacity: 0; transform: translateY(12px); } to { opacity: 1; transform: none; } }
+
+  .eyebrow {
+    font-family: var(--font-mono); font-size: 0.66rem; letter-spacing: 0.2em;
+    text-transform: uppercase; color: var(--rorbu); margin: 0 0 0.6rem;
+  }
+  .page h1 {
+    font-size: clamp(1.7rem, 4.4vw, 2.5rem); font-weight: 800; letter-spacing: -0.01em;
+    line-height: 1.05; margin: 0 0 0.5rem;
+  }
+  .lede { color: var(--mist); font-size: 1.02rem; max-width: 62ch; margin: 0 0 1.9rem; }
+  h2.sec {
+    font-size: 1.16rem; font-weight: 750; letter-spacing: 0.01em;
+    margin: 2.4rem 0 1rem; padding-bottom: 0.5rem;
+    border-bottom: 1px solid var(--line-soft);
+    display: flex; align-items: baseline; gap: 0.6rem;
+  }
+  h2.sec .idx { font-family: var(--font-mono); font-size: 0.7rem; color: var(--rorbu); letter-spacing: 0.1em; }
+  h3.mini { font-size: 1rem; font-weight: 700; margin: 1.5rem 0 0.5rem; }
+
+  /* ---------- cards ---------- */
+  .card {
+    background: linear-gradient(180deg, var(--panel), var(--bg-2));
+    border: 1px solid var(--line-soft); border-radius: var(--radius);
+    padding: 1.15rem 1.25rem; box-shadow: var(--shadow);
+  }
+  .grid { display: grid; gap: 1rem; }
+  .grid.two { grid-template-columns: repeat(2, 1fr); }
+  .grid.three { grid-template-columns: repeat(3, 1fr); }
+  .card h3 { margin: 0 0 0.5rem; font-size: 1rem; font-weight: 700; }
+  .card p:last-child, .card ul:last-child { margin-bottom: 0; }
+  .card.accent { border-left: 3px solid var(--rorbu); }
+  .card.accent-sun { border-left: 3px solid var(--sun); }
+  .card { overflow: hidden; }
+  .card-img {
+    display: block;
+    width: calc(100% + 2.5rem);
+    margin: -1.15rem -1.25rem 0.95rem;
+    height: 190px;
+    object-fit: cover;
+    border-bottom: 1px solid var(--line-soft);
+    background: var(--bg-2);
+    transition: transform 0.45s ease;
+  }
+  .card-img.tall { height: 280px; }
+  .card:hover .card-img { transform: scale(1.045); }
+
+  .data { font-family: var(--font-mono); color: var(--sun); font-size: 0.92em; letter-spacing: 0.01em; }
+  .muted { color: var(--mist); }
+  strong { color: #fff; font-weight: 700; }
+
+  ul.clean { list-style: none; padding: 0; margin: 0.5rem 0; }
+  ul.clean li { position: relative; padding-left: 1.2rem; margin: 0.35rem 0; }
+  ul.clean li::before { content: "▸"; position: absolute; left: 0; color: var(--rorbu); }
+
+  /* ---------- hero route strip ---------- */
+  .hero {
+    background: linear-gradient(135deg, var(--panel-2), var(--bg-2));
+    border: 1px solid var(--line-soft); border-radius: var(--radius);
+    padding: 1.5rem clamp(1rem, 3vw, 2rem); margin-bottom: 1.9rem; box-shadow: var(--shadow);
+  }
+  .legs { display: flex; align-items: stretch; gap: 0; overflow-x: auto; padding-bottom: 0.4rem; }
+  .leg { display: flex; align-items: center; flex: none; }
+  .stop { display: flex; flex-direction: column; align-items: center; gap: 0.4rem; padding: 0 0.15rem; }
+  .stop .dot {
+    width: 13px; height: 13px; border-radius: 50%; background: var(--rorbu);
+    box-shadow: 0 0 0 4px rgba(209,64,47,0.16);
+  }
+  .stop .code { font-family: var(--font-mono); font-weight: 700; font-size: 0.9rem; letter-spacing: 0.04em; }
+  .stop .place { font-size: 0.64rem; text-transform: uppercase; letter-spacing: 0.1em; color: var(--mist-dim); }
+  .hop { display: flex; flex-direction: column; align-items: center; gap: 0.25rem; padding: 0 clamp(0.4rem, 1.6vw, 1.1rem); }
+  .hop .track { width: clamp(28px, 6vw, 74px); height: 2px; background: linear-gradient(90deg, var(--rorbu-dim), var(--sun-dim)); }
+  .hop svg { color: var(--sun); }
+  .hop .mode { font-size: 0.58rem; text-transform: uppercase; letter-spacing: 0.12em; color: var(--mist-dim); }
+
+  /* ---------- tables ---------- */
+  .tbl-wrap { overflow-x: auto; border-radius: var(--radius); border: 1px solid var(--line-soft); margin: 1rem 0; }
+  table { border-collapse: collapse; width: 100%; min-width: 460px; }
+  th, td { text-align: left; padding: 0.7rem 0.9rem; vertical-align: top; border-bottom: 1px solid var(--line-soft); }
+  th {
+    background: var(--bg-2); font-family: var(--font-mono); font-size: 0.64rem;
+    letter-spacing: 0.14em; text-transform: uppercase; color: var(--mist); font-weight: 600;
+  }
+  tr:last-child td { border-bottom: none; }
+  td.day { font-family: var(--font-mono); color: var(--sun); white-space: nowrap; font-size: 0.85rem; }
+  tr.total td { background: rgba(231,179,87,0.07); }
+  tr.total td strong { color: var(--sun); }
+
+  .badge {
+    display: inline-block; font-family: var(--font-mono); font-size: 0.62rem;
+    letter-spacing: 0.08em; text-transform: uppercase; padding: 0.15rem 0.5rem;
+    border-radius: 20px; font-weight: 600; white-space: nowrap;
+  }
+  .badge.yes { background: rgba(79,176,171,0.16); color: var(--teal); }
+  .badge.no  { background: rgba(209,64,47,0.16); color: #f0846f; }
+  .badge.maybe { background: rgba(231,179,87,0.15); color: var(--sun); }
+
+  .callout {
+    border-left: 3px solid var(--sun); background: rgba(231,179,87,0.06);
+    padding: 0.8rem 1rem; border-radius: 0 10px 10px 0; margin: 1.2rem 0; color: var(--mist);
+  }
+  .callout strong { color: var(--sun); }
+
+  .star { color: var(--sun); }
+
+  /* ---------- checkboxes ---------- */
+  .checklist { list-style: none; padding: 0; margin: 0.5rem 0; }
+  .checklist li { margin: 0; }
+  .check {
+    display: flex; align-items: flex-start; gap: 0.8rem; cursor: pointer;
+    padding: 0.7rem 0.9rem; border-radius: 10px; transition: background 0.15s;
+    border: 1px solid transparent;
+  }
+  .check:hover { background: var(--panel); border-color: var(--line-soft); }
+  .check input { position: absolute; opacity: 0; width: 0; height: 0; }
+  .check .box {
+    flex: none; width: 22px; height: 22px; border-radius: 6px; margin-top: 1px;
+    border: 2px solid var(--line); background: var(--bg-2);
+    display: grid; place-items: center; transition: all 0.2s ease;
+  }
+  .check .box svg { width: 13px; height: 13px; stroke: #1a1206; stroke-width: 3.5;
+    fill: none; stroke-linecap: round; stroke-linejoin: round;
+    stroke-dasharray: 20; stroke-dashoffset: 20; transition: stroke-dashoffset 0.25s ease; }
+  .check .ctext { transition: color 0.2s; }
+  .check .ctext .sub { display: block; font-size: 0.82rem; color: var(--mist-dim); margin-top: 0.1rem; }
+  .check input:checked ~ .box { background: var(--sun); border-color: var(--sun); }
+  .check input:checked ~ .box svg { stroke-dashoffset: 0; }
+  .check input:checked ~ .ctext { color: var(--mist-dim); }
+  .check input:checked ~ .ctext .main { text-decoration: line-through; text-decoration-color: var(--sun-dim); }
+  .check input:focus-visible ~ .box { outline: 2px solid var(--teal); outline-offset: 2px; }
+
+  ol.steps { counter-reset: step; list-style: none; padding: 0; margin: 0.5rem 0; }
+  ol.steps li {
+    position: relative; padding: 0.55rem 0 0.55rem 2.6rem; margin: 0.2rem 0;
+    border-bottom: 1px solid var(--line-soft);
+  }
+  ol.steps li:last-child { border-bottom: none; }
+  ol.steps li::before {
+    counter-increment: step; content: counter(step, decimal-leading-zero);
+    position: absolute; left: 0; top: 0.5rem;
+    font-family: var(--font-mono); font-size: 0.78rem; color: var(--rorbu); font-weight: 700;
+  }
+  ol.steps li.done { color: var(--mist-dim); }
+  ol.steps li.done::before { color: var(--sun); content: "✓"; font-size: 0.95rem; }
+
+  footer.foot {
+    max-width: 1180px; margin: 0 auto; padding: 1.5rem clamp(1rem,3vw,2.25rem) 3rem;
+    color: var(--mist-dim); font-size: 0.8rem; font-family: var(--font-mono); letter-spacing: 0.03em;
+  }
+
+  /* ---------- responsive ---------- */
+  @media (max-width: 820px) {
+    .shell { grid-template-columns: 1fr; padding-top: 1rem; }
+    nav.route-nav { position: static; margin-bottom: 0.5rem; }
+    nav.route-nav .kicker { display: none; }
+    .waypoints { display: flex; gap: 0.5rem; overflow-x: auto; padding: 0.3rem 0.1rem 0.7rem; }
+    .waypoints::before, .waypoints .fill { display: none; }
+    .wp button { flex-direction: column; gap: 0.4rem; padding: 0.5rem 0.7rem; white-space: nowrap;
+      border: 1px solid var(--line-soft); border-radius: 10px; }
+    .wp .txt { align-items: center; }
+    .wp .txt .l { font-size: 0.8rem; }
+    .wp.active button { background: var(--panel); border-color: var(--rorbu-dim); }
+    .grid.two, .grid.three { grid-template-columns: 1fr; }
+    .meter .label span.words { display: none; }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    * { animation: none !important; transition: none !important; scroll-behavior: auto !important; }
+  }
+
+  .archive-notice { padding: .8rem 1rem; background: #e7b357; color: #10202a; font-family: var(--font-mono); font-size: .72rem; text-align: center; }
+  .archive-notice strong { color: #10202a; }
+  @media print {
+    header.top, nav.route-nav, .meter { display: none !important; }
+    .shell { display: block; max-width: none; }
+    .page { display: block !important; break-before: page; animation: none !important; }
+    .page:first-child { break-before: auto; }
+    body { background: #fff; color: #15242d; }
+    body::before { display: none; }
+    .card, .hero, .tbl-wrap { box-shadow: none; break-inside: avoid; }
+    strong { color: #10202a; }
+    .muted { color: #4a626d; }
+    .foot { color: #4a626d; }
+  }
+</style>
+</head>
+<body>
+<div class="archive-notice"><strong>Sanitized archive · August 2026.</strong> This pre-trip plan is historical; re-check every price, schedule, requirement, and safety condition before reuse.</div>
+
+<header class="top">
+  <div class="brand">
+    <svg class="glyph" width="30" height="30" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+      <circle cx="5.5" cy="17" r="3.2" fill="none" stroke="currentColor" stroke-width="1.8"/>
+      <circle cx="18.5" cy="17" r="3.2" fill="none" stroke="currentColor" stroke-width="1.8"/>
+      <path d="M5.5 17l3.5-6h4l2.5 3.5M9 11l-1.5-3H5m8 3h4.5l1 5.5" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
+    </svg>
+    <div class="titles">
+      <div class="route">Oslo <em>→</em> Lofoten</div>
+      <div class="sub">Solo Moto · Aug 2026</div>
+    </div>
+  </div>
+  <div class="meter" title="Booking tasks checked off">
+    <div class="label"><b id="m-count">0</b> / <span id="m-total">0</span><br><span class="words">booked</span></div>
+    <div class="ring" id="ring">
+      <svg width="42" height="42" viewBox="0 0 42 42">
+        <circle class="bg" cx="21" cy="21" r="17" fill="none" stroke-width="4"/>
+        <circle class="fg" id="ring-fg" cx="21" cy="21" r="17" fill="none" stroke-width="4"
+          stroke-dasharray="106.8" stroke-dashoffset="106.8"/>
+      </svg>
+    </div>
+  </div>
+</header>
+
+<div class="shell">
+  <nav class="route-nav" aria-label="Trip sections">
+    <p class="kicker">Route Log</p>
+    <ul class="waypoints" id="waypoints">
+      <span class="fill" id="nav-fill"></span>
+      <!-- populated by JS from data -->
+    </ul>
+  </nav>
+
+  <main>
+    <!-- ===== 01 OVERVIEW ===== -->
+    <section class="page" data-page="overview">
+      <p class="eyebrow">Leg 01 · The Plan</p>
+      <h1>Fly north, ride the E10, ferry home</h1>
+      <p class="lede">IAD to Oslo for two design-capital days, then a short hop to Bodø, a bike picked up 7 minutes from the airport, and the car ferry straight into the scenic heart of Lofoten. Newer rider — paved roads, short days, a manageable bike.</p>
+
+      <div class="hero">
+        <div class="legs">
+          <div class="stop"><span class="dot"></span><span class="code">IAD</span><span class="place">Washington</span></div>
+          <div class="hop"><svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M21 16v-2l-8-5V3.5a1.5 1.5 0 0 0-3 0V9l-8 5v2l8-2.5V19l-2 1.5V22l3.5-1 3.5 1v-1.5L13 19v-5.5z"/></svg><div class="track"></div><span class="mode">Air</span></div>
+          <div class="stop"><span class="dot"></span><span class="code">OSL</span><span class="place">Oslo</span></div>
+          <div class="hop"><svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M21 16v-2l-8-5V3.5a1.5 1.5 0 0 0-3 0V9l-8 5v2l8-2.5V19l-2 1.5V22l3.5-1 3.5 1v-1.5L13 19v-5.5z"/></svg><div class="track"></div><span class="mode">Air</span></div>
+          <div class="stop"><span class="dot"></span><span class="code">BOO</span><span class="place">Bodø</span></div>
+          <div class="hop"><svg width="22" height="22" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M3 18c1.2 0 1.2 1 2.5 1s1.3-1 2.5-1 1.2 1 2.5 1 1.3-1 2.5-1 1.2 1 2.5 1 1.3-1 2.5-1M4 17l1-5h11l2 5M6 12V9h6l3 3M9 9V6h2"/><path d="M3 18c1.2 0 1.2 1 2.5 1s1.3-1 2.5-1 1.2 1 2.5 1 1.3-1 2.5-1 1.2 1 2.5 1 1.3-1 2.5-1M4.5 17l1-5.5h10.5l2 5.5M7 11.5V8.5h6l2.5 3" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg><div class="track"></div><span class="mode">Ferry 3h15</span></div>
+          <div class="stop"><span class="dot"></span><span class="code">MOSKENES</span><span class="place">Lofoten</span></div>
+          <div class="hop"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="5.5" cy="17" r="3"/><circle cx="18.5" cy="17" r="3"/><path d="M5.5 17l3.5-6h4l2.5 3.5M9 11l-1.5-3H5m8 3h4.5l1 5.5"/></svg><div class="track"></div><span class="mode">Ride E10</span></div>
+          <div class="stop"><span class="dot"></span><span class="code">REINE</span><span class="place">Base</span></div>
+        </div>
+      </div>
+      <p class="muted" style="margin-top:-0.6rem;font-size:0.86rem">…and back the same way. The Aug 21–24 northern block is the fixed anchor; Oslo bookend dates flex to match the transatlantic fare.</p>
+
+      <h2 class="sec"><span class="idx">A</span> The route decision — why Bodø beat Evenes</h2>
+      <div class="tbl-wrap">
+        <table>
+          <thead><tr><th>Option</th><th>Verdict</th></tr></thead>
+          <tbody>
+            <tr><td><strong>Ride Oslo → Lofoten</strong> <span class="muted">(~870 mi each way)</span></td><td><span class="badge no">Reject</span> &nbsp;Eats the whole trip in transit.</td></tr>
+            <tr><td><strong>Fly to Evenes (EVE)</strong>, rent near Narvik</td><td><span class="badge maybe">Demoted</span> &nbsp;Rentals are 40–60 min from the airport; you enter Lofoten from the dull east end.</td></tr>
+            <tr><td><strong>Fly to Bodø (BOO)</strong>, ferry to Moskenes</td><td><span class="badge yes">Chosen</span> &nbsp;Bike &lt;10 min from BOO, official BMW rental, ferry lands 10 min from Reine. The crossing <em>is</em> the experience.</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <h2 class="sec"><span class="idx">B</span> Getting home from Lofoten <span class="badge yes">Settled</span></h2>
+      <p class="muted" style="margin-top:-0.4rem">Booked the ferry both ways, which retires the old debate: <strong>Moskenes → Bodø, Mon Aug 24 at 06:00</strong> (see below — the operator pushed the original booking to 11:00, so a second, earlier ticket was bought as the real plan), bike back before the afternoon flight. Weather-resilient with real margin now. The Svolvær–Skutvik loop and the Narvik land loop are off the table — you need to be at Moskenes for the early sailing.</p>
+    </section>
+
+    <!-- ===== 02 FLIGHTS & FERRY ===== -->
+    <section class="page" data-page="transit">
+      <p class="eyebrow">Leg 02 · Getting There</p>
+      <h1>Flights &amp; the Moskenes ferry</h1>
+      <p class="lede">Two flights each way plus the car ferry. The whole northern block hangs off one tight connection: land in Bodø, grab the bike, make the afternoon sailing.</p>
+
+      <h2 class="sec"><span class="idx">A</span> Flights</h2>
+      <div class="grid two">
+        <div class="card accent-sun"><h3>IAD ↔ OSL <span class="badge yes">Booked · via Dublin</span></h3>
+          <ul class="clean">
+            <li><strong>Out</strong> Aug 19 — IAD <span class="data">20:55</span> → DUB <span class="data">08:55</span>, connect → OSL <span class="data">Aug 20, 13:40</span>. 1h35 in Dublin.</li>
+            <li><strong>Back</strong> Aug 25 — OSL <span class="data">13:35</span> → DUB <span class="data">14:55</span>, connect → IAD <span class="data">19:35</span> same day. 1h40 in Dublin.</li>
+          </ul></div>
+        <div class="card accent-sun"><h3>OSL ↔ BOO <span class="badge yes">Booked · SAS</span></h3>
+          <ul class="clean">
+            <li>Out Fri Aug 21 — <span class="data">09:50 → 11:15</span>. Lands in time for a ~noon bike pickup and an afternoon around Bodø.</li>
+            <li>Back Mon Aug 24 — <span class="data">14:55 → 16:25</span>. The afternoon slot the old plan wished for — no dawn scramble, and the morning ferry feeds it with hours to spare.</li>
+          </ul></div>
+      </div>
+
+      <div class="callout"><strong>The Dublin connections are the watch-item.</strong> Both layovers are tight — <span class="data">1h35</span> outbound, and <span class="data">1h40</span> on the return <em>through US preclearance</em> (US immigration + security done in Dublin before you fly), which eats the layover. It's the connection most likely to bite if the Oslo flight runs late. A missed connection is Aer Lingus's problem to rebook, but don't linger in Dublin on the way home.</div>
+
+      <h2 class="sec"><span class="idx">B</span> Ferry — Bodø ↔ Moskenes <span class="muted" style="font-family:var(--font-mono);font-size:0.66rem;letter-spacing:0.1em">TORGHATTEN NORD</span></h2>
+      <div class="grid two">
+        <div class="card">
+          <ul class="clean">
+            <li><strong>Crossing</strong> ~<span class="data">3h15</span> direct (avoid the ~7h Værøy/Røst sailings).</li>
+            <li><strong>Frequency</strong> up to 7–9/day in summer.</li>
+            <li><strong>Fare</strong> ~<span class="data">177 NOK</span> + <span class="data">65 NOK</span> reservation, per direction, rider included — roughly <span class="data">$45–50</span> round trip.</li>
+          </ul>
+        </div>
+        <div class="card">
+          <h3>Booking discipline</h3>
+          <p class="muted">Only <strong>50% of capacity is pre-sold</strong> and peak-August slots go up to <strong>2 weeks ahead</strong>. Book both directions the moment the bike is confirmed. Reserve before 20:00 the day prior; be in the "Reserved/Prepaid" queue <span class="data">45 min</span> before departure.</p>
+        </div>
+      </div>
+      <h3 class="mini">Booked sailings</h3>
+      <div class="grid two">
+        <div class="card accent-sun"><h3>Fri Aug 21 · Bodø → Moskenes <span class="badge yes">Booked</span></h3>
+          <p class="muted">DEP <span class="data">18:30</span> → ARR <span class="data">21:45</span>. In the Reserved/Prepaid queue by <span class="data">17:45</span>. Arrive Moskenes at dusk, ride 10 min to the rorbu.</p></div>
+        <div class="card accent-sun"><h3>Mon Aug 24 · Moskenes → Bodø <span class="badge yes">Booked · 06:00</span></h3>
+          <p class="muted">DEP <span class="data">06:00</span> → ARR <span class="data">~09:15</span> (est., ~3h15 crossing). Feeds the <span class="data">14:55</span> flight with <strong>~5.5h</strong> to return the bike — a real buffer, not a tight one.</p></div>
+      </div>
+      <div class="callout"><strong>Why there are two tickets.</strong> The original booking (08:00 → 11:30) got pushed by the operator to an <strong>11:00 departure</strong> — arriving ~14:15, which would have left almost no time to return the bike before the 14:55 flight. Rather than risk it, a second ticket was bought on the <strong>06:00</strong> sailing, which is now the real plan. <strong>Action:</strong> contact Torghatten about a refund/credit for the displaced 08:00→11:00 ticket — schedule changes initiated by the operator are usually refundable. A full weather cancellation of the 06:00 sailing is still the trip's one real point of failure; travel insurance and a forecast check the night before are worth it.</div>
+    </section>
+
+    <!-- ===== 03 STAYS ===== -->
+    <section class="page" data-page="stays">
+      <p class="eyebrow">Leg 03 · Where You Sleep</p>
+      <h1>Stays</h1>
+      <p class="lede">Every night is now booked. Two Oslo nights bookend the trip — the Aug 20 arrival night near the airport, the Aug 24 return night in Grünerløkka — with three nights on the water at Hamnøy in between.</p>
+
+      <h2 class="sec"><span class="idx">A</span> Lofoten — Hamnøy <span class="badge yes">Booked</span></h2>
+      <div class="card accent-sun" style="margin-bottom:1rem; padding:0">
+        <div class="grid three" style="gap:0; margin:0">
+          
+          
+          
+        </div>
+        <div style="padding:1.15rem 1.25rem">
+          <h3>Eliassen Rorbuer — Type 01, Waterfront Superior One-Bedroom Cottage</h3>
+          <ul class="clean">
+            <li><strong>Check-in</strong> Fri Aug 21, after <span class="data">15:00</span> — lands well before your ~22:00 arrival off the ferry.</li>
+            <li><strong>Check-out</strong> Mon Aug 24, before <span class="data">11:00</span> — no conflict at all, since the 06:00 ferry has you off the island hours earlier.</li>
+            <li><strong>3 nights</strong> · sleeps 2 · kitchenette, private bathroom, waterfront.</li>
+            <li>Site: <a href="https://rorbuer.no" target="_blank" rel="noopener">rorbuer.no</a> — direct rate listed for this cottage type is <span class="data">3,290 NOK/night</span> (reference only; confirm against what you actually paid).</li>
+          </ul>
+          <p class="muted" style="font-size:0.86rem">This is <strong>Hamnøy, on Moskenesøya in Lofoten</strong> — not Bodø city. You only pass through Bodø by air/ferry same-day on Aug 21 and Aug 24, so no separate Bodø overnight is needed.</p>
+        </div>
+      </div>
+
+      <h2 class="sec"><span class="idx">B</span> Oslo — two separate nights</h2>
+      <p class="muted" style="margin-top:-0.4rem">The itinerary only puts you in Oslo on <strong>Thu Aug 20</strong> (arrival night) and <strong>Mon Aug 24</strong> (return night), with the 3 Lofoten nights in between — so these were always going to be two separate bookings, not one block.</p>
+
+      <div class="card accent-sun" style="margin-bottom:1rem">
+        <h3>Aug 20 → 21 <span class="badge yes">Booked</span></h3>
+        <p class="muted"><strong>Quality Airport Hotel Gardermoen</strong>, near Oslo Airport — <strong>~5 km / 7–8 min</strong> from OSL via the hotel's own airport shuttle (bus S-22, platform 36), <strong>not central Oslo</strong> (~40 min by train/car to Sentrum).</p>
+        <p class="muted">This is a smart pick for the connection it protects: your <strong>09:50 flight to Bodø the next morning</strong> now has almost zero travel risk — shuttle to the terminal in under 10 minutes.</p>
+        <div class="callout" style="margin:0.9rem 0 0"><strong>Trade-off worth naming.</strong> The itinerary's original Thursday plan — Opera House roof, Aker Brygge, Barcode walk — assumed a central hotel. From Jessheim, central Oslo is a real trip: shuttle to the airport + Flytoget in, ~35–45 min each way, so a proper visit is a ~1.5–2h round trip on top of time in the city. Two reasonable options: (1) still go in for a few hours if the jet lag allows — Flytoget is fast and frequent, or (2) treat Thursday as a low-key arrival evening near the hotel and lean harder into Oslo on the <strong>Aug 24 return night</strong> instead — that one's now booked in Grünerløkka, walking distance to the Munch/Opera waterfront (see below). No wrong answer — just don't plan a packed Thursday evening assuming you're already downtown.</div>
+      </div>
+
+      <div class="card accent-sun" style="padding:0">
+        <div class="grid three" style="gap:0; margin:0">
+          
+          
+          
+        </div>
+        <div style="padding:1.15rem 1.25rem">
+          <h3>Aug 24 → 25 · Grünerløkka apartment <span class="badge yes">Booked</span></h3>
+          <ul class="clean">
+            <li><strong>Check-in</strong> Mon Aug 24 — you land OSL <span class="data">16:25</span>, so Flytoget + tram puts you at the door around <span class="data">17:30–18:00</span>. Confirm the self-check-in / key instructions before you lose signal in Lofoten.</li>
+            <li><strong>Check-out</strong> Tue Aug 25 — leave by ~<span class="data">10:15</span> for the <span class="data">13:35</span> flight.</li>
+            <li><strong>Where</strong> Grünerløkka, ~2 km north-east of Sentrum along the Akerselva — the old working-class mill district, now the café / vintage / bakery quarter. Walkable, quiet at night, not a hotel corridor.</li>
+          </ul>
+          <p class="muted" style="font-size:0.86rem">Right call over another airport hotel: with a <span class="data">13:35</span> departure there's no early-flight argument, and you get one real Oslo evening instead of a shuttle and a chain lobby.</p>
+        </div>
+      </div>
+
+      <div class="callout" style="margin-top:1.2rem"><strong>Getting around from Grünerløkka.</strong> Trams <span class="data">11 · 12 · 13</span> run through the neighborhood. Oslo S is ~<span class="data">15 min</span> by tram or a ~25 min walk down the river, and <strong>Flytoget from Oslo S to OSL is ~20 min</strong> — so budget <span class="data">~45–50 min</span> door-to-terminal on Tuesday and you're still there with margin. The <strong>Munch Museum and Opera House</strong> are a ~20–25 min walk south along the water, which makes the Monday evening plan genuinely walkable. And <strong>Tim Wendelboe</strong> — already on the Tuesday list — is <em>in</em> Grünerløkka, a few minutes from the flat.</div>
+    </section>
+
+    <!-- ===== 04 MOTORCYCLE ===== -->
+    <section class="page" data-page="moto">
+      <p class="eyebrow">Leg 04 · The Machine</p>
+      <h1>Motorcycle &amp; luggage</h1>
+      <p class="lede">One shop does everything: pick up minutes from the airport, ride for three days, drop the duffel there while you're gone. No suitcase makes the whole trip.</p>
+
+      <h2 class="sec"><span class="idx">A</span> Jakhelln MC AS / Arctic Motor AS <span class="muted">— Bodø</span></h2>
+      <div class="callout"><strong>These are the same company.</strong> Jakhelln MC is part of Arctic Motor AS — Northern Norway's only BMW Motorrad dealer, also a Honda dealer, and an official BMW Rent A Ride location.</div>
+      <div class="grid two">
+        <div class="card">
+          <ul class="clean">
+            <li><strong>Where</strong> Nordstrandveien 63, 8012 Bodø — <span class="data">~7 min</span> from BOO</li>
+            <li><strong>Season</strong> May 2 – Oct 15 ✓</li>
+            <li><strong>Hours</strong> wkdy <span class="data">09:00–15:30</span>, wknd <span class="data">08:00–16:00</span></li>
+            <li><strong>Contact</strong> the public rental desk contact listed on the company’s current website — the online search shows no live inventory, so email directly</li>
+          </ul>
+        </div>
+        <div class="card accent">
+          <h3>Ask in the booking email</h3>
+          <ul class="clean">
+            <li>Availability Fri Aug 21 (~12:00 pickup) → <strong>Mon Aug 24 return</strong> — ferry now lands ~09:15, so a ~10:00 or ~12:00 drop-off both work; confirm what suits their hours</li>
+            <li>A manageable bike: BMW G 310 GS, F 750/800 GS, or Honda CB500X / NX500</li>
+            <li>Top case and/or panniers included</li>
+            <li>Can they store a duffel during the rental</li>
+            <li>All-in price: insurance, included km, deposit, gear</li>
+          </ul>
+        </div>
+      </div>
+
+      <h3 class="mini">Required documents</h3>
+      <div class="grid three">
+        <div class="card"><h3>US endorsement ✓</h3><p class="muted">Confirmed current — the IDP only mirrors what your license already carries.</p></div>
+        <div class="card accent-sun"><h3>IDP + license</h3><p class="muted">Applied Jul 15. It's only a translation — carry the booklet <em>and</em> your US license together.</p></div>
+        <div class="card"><h3>Passport + card</h3><p class="muted">Credit card for the security deposit.</p></div>
+      </div>
+      <p class="muted" style="font-size:0.86rem;margin-top:1rem"><strong>Fallback:</strong> Narvik Rent A Car (Beisfjord, ~40 min from EVE) rents bikes from ~1,000 NOK/day — the EVE Plan C if Bodø falls through.</p>
+
+      <h2 class="sec"><span class="idx">B</span> Luggage — no suitcase, staged storage</h2>
+      <div class="grid three">
+        <div class="card"><h3>① Oslo</h3><p class="muted">Leave Oslo-only items at the hotel luggage room. Fly north with just a carry-on duffel + packable daypack.</p></div>
+        <div class="card"><h3>② Bodø</h3><p class="muted">Arctic Motor holds the duffel during the ride. Fallbacks: BOO airport storage (~100 NOK/item) or train-station lockers.</p></div>
+        <div class="card"><h3>③ On the bike</h3><p class="muted">Top case carries the daypack contents. Nothing on your back.</p></div>
+      </div>
+
+      <p class="muted" style="font-size:0.86rem;margin-top:1rem">The full checkable pack list — riding gear, photography kit, documents — lives on the <strong>Packing</strong> leg.</p>
+    </section>
+
+    <!-- ===== 05 PACKING ===== -->
+    <section class="page" data-page="packing">
+      <p class="eyebrow">Leg 05 · Pack Light</p>
+      <h1>What to pack</h1>
+      <p class="lede">Everything here fits a carry-on duffel plus the bike's top case — no suitcase. Minimal, but the Arctic weather is the one place not to cut corners. Tap to check items off; it saves in this browser.</p>
+
+      <h2 class="sec"><span class="idx">A</span> Riding &amp; layers <span class="muted" style="font-family:var(--font-mono);font-size:0.66rem;letter-spacing:0.1em">HELMET · JACKET · GLOVES RENTED</span></h2>
+      <ul class="checklist" data-group="pack">
+        <li><label class="check"><input type="checkbox" data-id="pk-rain"><span class="box"><svg viewBox="0 0 20 20"><path d="M4 10l4 4 8-9"/></svg></span><span class="ctext"><span class="main">Rain gear — waterproof shell, top + bottom</span><span class="sub">Non-negotiable. Arctic August highs ~55°F, rain likely at least one day. Goes over the rented jacket.</span></span></label></li>
+        <li><label class="check"><input type="checkbox" data-id="pk-boots"><span class="box"><svg viewBox="0 0 20 20"><path d="M4 10l4 4 8-9"/></svg></span><span class="ctext"><span class="main">Own riding boots</span><span class="sub">Bulky — wear them on the plane to save duffel space.</span></span></label></li>
+        <li><label class="check"><input type="checkbox" data-id="pk-base"><span class="box"><svg viewBox="0 0 20 20"><path d="M4 10l4 4 8-9"/></svg></span><span class="ctext"><span class="main">2 merino base layers</span></span></label></li>
+        <li><label class="check"><input type="checkbox" data-id="pk-mid"><span class="box"><svg viewBox="0 0 20 20"><path d="M4 10l4 4 8-9"/></svg></span><span class="ctext"><span class="main">Warm mid-layer</span><span class="sub">Light fleece or packable puffy.</span></span></label></li>
+        <li><label class="check"><input type="checkbox" data-id="pk-buff"><span class="box"><svg viewBox="0 0 20 20"><path d="M4 10l4 4 8-9"/></svg></span><span class="ctext"><span class="main">Buff / neck gaiter + thin glove liners</span><span class="sub">Windchill at speed is the real cold, not the air temp.</span></span></label></li>
+        <li><label class="check"><input type="checkbox" data-id="pk-handwarm"><span class="box"><svg viewBox="0 0 20 20"><path d="M4 10l4 4 8-9"/></svg></span><span class="ctext"><span class="main">Chemical hand warmers</span><span class="sub">A few pairs. Slip them into gloves at a fuel stop or boots on the ferry deck — the cheapest fix for the windchill above.</span></span></label></li>
+        <li><label class="check"><input type="checkbox" data-id="pk-packcover"><span class="box"><svg viewBox="0 0 20 20"><path d="M4 10l4 4 8-9"/></svg></span><span class="ctext"><span class="main">Waterproof daypack cover</span><span class="sub">Goes over the daypack on the bike and on the hikes. The dry bag protects what is inside the top case; this protects what is not.</span></span></label></li>
+        <li><label class="check"><input type="checkbox" data-id="pk-plugs"><span class="box"><svg viewBox="0 0 20 20"><path d="M4 10l4 4 8-9"/></svg></span><span class="ctext"><span class="main">Earplugs</span></span></label></li>
+      </ul>
+
+      <h2 class="sec"><span class="idx">B</span> Clothing — minimal</h2>
+      <ul class="checklist" data-group="pack">
+        <li><label class="check"><input type="checkbox" data-id="pk-pants"><span class="box"><svg viewBox="0 0 20 20"><path d="M4 10l4 4 8-9"/></svg></span><span class="ctext"><span class="main">1 change of pants</span><span class="sub">Quick-dry; doubles for Oslo and off-bike.</span></span></label></li>
+        <li><label class="check"><input type="checkbox" data-id="pk-socks"><span class="box"><svg viewBox="0 0 20 20"><path d="M4 10l4 4 8-9"/></svg></span><span class="ctext"><span class="main">3× socks &amp; underwear (merino)</span><span class="sub">Rinse-and-dry in the rorbu; three sets covers seven days.</span></span></label></li>
+        <li><label class="check"><input type="checkbox" data-id="pk-undershirt"><span class="box"><svg viewBox="0 0 20 20"><path d="M4 10l4 4 8-9"/></svg></span><span class="ctext"><span class="main">Undershirts</span><span class="sub">Worn under the base layers on the bike and on their own in Oslo. Rinse-and-dry the same as the socks.</span></span></label></li>
+        <li><label class="check"><input type="checkbox" data-id="pk-casual"><span class="box"><svg viewBox="0 0 20 20"><path d="M4 10l4 4 8-9"/></svg></span><span class="ctext"><span class="main">1 casual layer for Oslo dinners</span></span></label></li>
+        <li><label class="check"><input type="checkbox" data-id="pk-sweatpants"><span class="box"><svg viewBox="0 0 20 20"><path d="M4 10l4 4 8-9"/></svg></span><span class="ctext"><span class="main">Sweatpants</span><span class="sub">Rorbu evenings, the overnight flight, and something to change into the moment the riding gear comes off.</span></span></label></li>
+        <li><label class="check"><input type="checkbox" data-id="pk-beanie"><span class="box"><svg viewBox="0 0 20 20"><path d="M4 10l4 4 8-9"/></svg></span><span class="ctext"><span class="main">Beanie + swimwear</span><span class="sub">Swimwear packs to nothing — the Arctic beaches (and any sauna) are worth it.</span></span></label></li>
+      </ul>
+
+      <h2 class="sec"><span class="idx">C</span> Photography &amp; tech</h2>
+      <ul class="checklist" data-group="pack">
+        <li><label class="check"><input type="checkbox" data-id="pk-phone"><span class="box"><svg viewBox="0 0 20 20"><path d="M4 10l4 4 8-9"/></svg></span><span class="ctext"><span class="main">iPhone + offline maps downloaded</span><span class="sub">Download Lofoten &amp; the E10 before you leave cell range.</span></span></label></li>
+        <li><label class="check"><input type="checkbox" data-id="pk-watch"><span class="box"><svg viewBox="0 0 20 20"><path d="M4 10l4 4 8-9"/></svg></span><span class="ctext"><span class="main">Apple Watch + charger</span></span></label></li>
+        <li><label class="check"><input type="checkbox" data-id="pk-laptop"><span class="box"><svg viewBox="0 0 20 20"><path d="M4 10l4 4 8-9"/></svg></span><span class="ctext"><span class="main">Laptop + charger</span><span class="sub">Note where it sleeps: the duffel sits at Arctic Motor for three days while you ride, so carry the laptop in the daypack or leave it in Oslo rather than in a bag you are not with.</span></span></label></li>
+        <li><label class="check"><input type="checkbox" data-id="pk-tripod"><span class="box"><svg viewBox="0 0 20 20"><path d="M4 10l4 4 8-9"/></svg></span><span class="ctext"><span class="main">Small iPhone tripod</span><span class="sub">Flexible/travel type — for long exposures and self-portraits at the rorbuer.</span></span></label></li>
+        <li><label class="check"><input type="checkbox" data-id="pk-drone"><span class="box"><svg viewBox="0 0 20 20"><path d="M4 10l4 4 8-9"/></svg></span><span class="ctext"><span class="main">Drone + controller + spare battery</span><span class="sub">Register as operator (flydrone.no) + camera/sensor use with NSM (geodataonline.no) before you go. 5 km clear of Bodø/Leknes airports; no-fly over most of northern Moskenesøy (Lofotodden National Park).</span></span></label></li>
+        <li><label class="check"><input type="checkbox" data-id="pk-bank"><span class="box"><svg viewBox="0 0 20 20"><path d="M4 10l4 4 8-9"/></svg></span><span class="ctext"><span class="main">Power bank (~10k mAh)</span></span></label></li>
+        <li><label class="check"><input type="checkbox" data-id="pk-adapter"><span class="box"><svg viewBox="0 0 20 20"><path d="M4 10l4 4 8-9"/></svg></span><span class="ctext"><span class="main">Cables + EU Type-C/F plug adapter</span></span></label></li>
+      </ul>
+
+      <h2 class="sec"><span class="idx">D</span> Hiking &amp; wildlife</h2>
+      <ul class="checklist" data-group="pack">
+        <li><label class="check"><input type="checkbox" data-id="pk-bladder"><span class="box"><svg viewBox="0 0 20 20"><path d="M4 10l4 4 8-9"/></svg></span><span class="ctext"><span class="main">Water bladder</span><span class="sub">For the ferry-side hikes (Reinebringen, beach walks) — fits in the daypack.</span></span></label></li>
+        <li><label class="check"><input type="checkbox" data-id="pk-binoculars"><span class="box"><svg viewBox="0 0 20 20"><path d="M4 10l4 4 8-9"/></svg></span><span class="ctext"><span class="main">Binoculars</span><span class="sub">Sea eagles and puffins along the coast.</span></span></label></li>
+      </ul>
+
+      <h2 class="sec"><span class="idx">E</span> Documents, money &amp; health</h2>
+      <ul class="checklist" data-group="pack">
+        <li><label class="check"><input type="checkbox" data-id="pk-passport" checked><span class="box"><svg viewBox="0 0 20 20"><path d="M4 10l4 4 8-9"/></svg></span><span class="ctext"><span class="main">Passport</span></span></label></li>
+        <li><label class="check"><input type="checkbox" data-id="pk-idp"><span class="box"><svg viewBox="0 0 20 20"><path d="M4 10l4 4 8-9"/></svg></span><span class="ctext"><span class="main">IDP + US driver's license</span><span class="sub">Together — the IDP is invalid without the license beside it.</span></span></label></li>
+        <li><label class="check"><input type="checkbox" data-id="pk-cards" checked><span class="box"><svg viewBox="0 0 20 20"><path d="M4 10l4 4 8-9"/></svg></span><span class="ctext"><span class="main">Credit cards</span><span class="sub">+ grab some NOK cash at an airport ATM on arrival.</span></span></label></li>
+        <li><label class="check"><input type="checkbox" data-id="pk-confirm"><span class="box"><svg viewBox="0 0 20 20"><path d="M4 10l4 4 8-9"/></svg></span><span class="ctext"><span class="main">Offline booking confirmations + travel insurance</span><span class="sub">Ferry, flights, rorbu, rental — saved for no-signal moments.</span></span></label></li>
+        <li><label class="check"><input type="checkbox" data-id="pk-meds"><span class="box"><svg viewBox="0 0 20 20"><path d="M4 10l4 4 8-9"/></svg></span><span class="ctext"><span class="main">Meds + first aid / blister care</span></span></label></li>
+        <li><label class="check"><input type="checkbox" data-id="pk-advil"><span class="box"><svg viewBox="0 0 20 20"><path d="M4 10l4 4 8-9"/></svg></span><span class="ctext"><span class="main">Advil / ibuprofen</span><span class="sub">Reinebringen&rsquo;s stairs and three days on an unfamiliar bike both cash this in.</span></span></label></li>
+        <li><label class="check"><input type="checkbox" data-id="pk-tums"><span class="box"><svg viewBox="0 0 20 20"><path d="M4 10l4 4 8-9"/></svg></span><span class="ctext"><span class="main">Tums</span><span class="sub">Unfamiliar food, odd meal times, and a 06:00 ferry breakfast.</span></span></label></li>
+        <li><label class="check"><input type="checkbox" data-id="pk-drama"><span class="box"><svg viewBox="0 0 20 20"><path d="M4 10l4 4 8-9"/></svg></span><span class="ctext"><span class="main">Dramamine</span><span class="sub">The Moskenes crossing is <span class="data">3h15</span> of open Vestfjord. Take it <em>before</em> boarding, not once you feel it — but mind the drowsiness, because on Mon Aug 24 you ride straight off the boat.</span></span></label></li>
+        <li><label class="check"><input type="checkbox" data-id="pk-ginger"><span class="box"><svg viewBox="0 0 20 20"><path d="M4 10l4 4 8-9"/></svg></span><span class="ctext"><span class="main">Ginger chews or capsules</span><span class="sub">The non-drowsy backup, and the one to lean on for the Monday sailing when you have a bike to return afterwards.</span></span></label></li>
+        <li><label class="check"><input type="checkbox" data-id="pk-sun"><span class="box"><svg viewBox="0 0 20 20"><path d="M4 10l4 4 8-9"/></svg></span><span class="ctext"><span class="main">Sunscreen, lip balm, reusable bottle</span><span class="sub">Long northern daylight burns you even at 55°F.</span></span></label></li>
+      </ul>
+
+      <h2 class="sec"><span class="idx">F</span> Toiletries</h2>
+      <ul class="checklist" data-group="pack">
+        <li><label class="check"><input type="checkbox" data-id="pk-teeth"><span class="box"><svg viewBox="0 0 20 20"><path d="M4 10l4 4 8-9"/></svg></span><span class="ctext"><span class="main">Toothbrush + toothpaste</span><span class="sub">Travel-size tube keeps it under the liquids limit.</span></span></label></li>
+        <li><label class="check"><input type="checkbox" data-id="pk-wash"><span class="box"><svg viewBox="0 0 20 20"><path d="M4 10l4 4 8-9"/></svg></span><span class="ctext"><span class="main">Shampoo + body wash</span><span class="sub">Decant into 100 ml bottles. The rorbu and both Oslo stays will likely have some — bring enough to not care either way.</span></span></label></li>
+        <li><label class="check"><input type="checkbox" data-id="pk-brush"><span class="box"><svg viewBox="0 0 20 20"><path d="M4 10l4 4 8-9"/></svg></span><span class="ctext"><span class="main">Hairbrush / comb</span></span></label></li>
+        <li><label class="check"><input type="checkbox" data-id="pk-cologne"><span class="box"><svg viewBox="0 0 20 20"><path d="M4 10l4 4 8-9"/></svg></span><span class="ctext"><span class="main">Cologne</span><span class="sub">Decant into a small atomiser rather than carrying the bottle — glass and 100 ml rules both argue against the original.</span></span></label></li>
+        <li><label class="check"><input type="checkbox" data-id="pk-deo"><span class="box"><svg viewBox="0 0 20 20"><path d="M4 10l4 4 8-9"/></svg></span><span class="ctext"><span class="main">Deodorant</span><span class="sub">Solid stick, not a spray or gel — it stays out of the liquids bag entirely.</span></span></label></li>
+        <li><label class="check"><input type="checkbox" data-id="pk-sanitizer"><span class="box"><svg viewBox="0 0 20 20"><path d="M4 10l4 4 8-9"/></svg></span><span class="ctext"><span class="main">Hand sanitizer</span><span class="sub">Ferry queues, fuel pumps, trailhead car parks. Counts toward the 1 L liquids bag — keep it small.</span></span></label></li>
+      </ul>
+      <div class="callout"><strong>You are carry-on only.</strong> No checked bag on any of the four flights, so every liquid, gel, cream and paste has to be <span class="data">≤100 ml</span> and fit one clear <span class="data">1 L</span> bag. Buying full-size shampoo in Oslo and binning it before the Bodø hop is the usual trap — decant before you leave home.</div>
+
+      <h2 class="sec"><span class="idx">G</span> Sleep &amp; the long flight</h2>
+      <ul class="checklist" data-group="pack">
+        <li><label class="check"><input type="checkbox" data-id="pk-eyemask"><span class="box"><svg viewBox="0 0 20 20"><path d="M4 10l4 4 8-9"/></svg></span><span class="ctext"><span class="main">Eye mask</span><span class="sub">Earns its place twice: the overnight IAD→DUB leg, and Lofoten in late August — sunrise ~<span class="data">05:30</span>, sunset ~<span class="data">21:00</span>, and it never gets properly dark between. Rorbu curtains are thin.</span></span></label></li>
+        <li><label class="check"><input type="checkbox" data-id="pk-pillow"><span class="box"><svg viewBox="0 0 20 20"><path d="M4 10l4 4 8-9"/></svg></span><span class="ctext"><span class="main">Inflatable pillow</span><span class="sub">Head or lower-back support on the transatlantic legs — and useful again on the <span class="data">3h15</span> ferry. Packs to nothing and deflates into a duffel corner.</span></span></label></li>
+        <li><label class="check"><input type="checkbox" data-id="pk-neck"><span class="box"><svg viewBox="0 0 20 20"><path d="M4 10l4 4 8-9"/></svg></span><span class="ctext"><span class="main">Neck pillow</span><span class="sub">The other one, for actually sleeping upright on the overnight leg to Dublin.</span></span></label></li>
+      </ul>
+
+      <h2 class="sec"><span class="idx">H</span> The bags themselves</h2>
+      <div class="grid two">
+        <div class="card accent-sun"><h3>Crossbody bag <span class="badge yes">Essential</span></h3><p class="muted">Passport, phone, cards and cash stay <strong>on your body</strong> — through four flights, both ferry crossings, and every time the bike is parked with the duffel out of sight. Wears under the rain shell and never gets left in a top case.</p></div>
+        <div class="card"><h3>Carry-on duffel</h3><p class="muted">Soft, packs down. Stored at Arctic Motor while you ride.</p></div>
+        <div class="card"><h3>Packable daypack</h3><p class="muted">Folds flat in the duffel; your day bag off the bike.</p></div>
+        <div class="card"><h3>Small dry bag</h3><p class="muted">Lives in the top case — keeps the ride essentials dry.</p></div>
+      </div>
+    </section>
+
+    <!-- ===== 06 ITINERARY ===== -->
+    <section class="page" data-page="itinerary">
+      <p class="eyebrow">Leg 06 · Day by Day</p>
+      <h1>The itinerary</h1>
+      <p class="lede">Every flight and ferry is booked — the whole Aug 19–25 spine is fixed. Note the Oslo time is front-loaded: a jet-lagged Thursday afternoon and a Monday evening, with only a short Tuesday morning before the early-afternoon flight home.</p>
+      <div class="tbl-wrap">
+        <table>
+          <thead><tr><th>Day</th><th>Plan</th><th>Sleep</th></tr></thead>
+          <tbody>
+            <tr><td class="day">Aug 19<br>Wed</td><td>Depart IAD <span class="data">20:55</span> (8:55 pm) → Dublin, overnight transatlantic.</td><td class="muted">Plane</td></tr>
+            <tr><td class="day">Aug 20<br>Thu</td><td>Connect in Dublin, arrive <strong>OSL 13:40</strong>. Hotel is near the airport (Jessheim), not central — either shuttle+Flytoget into Sentrum for a few hours (Opera House, Aker Brygge) if jet lag allows, or keep it low-key near the hotel. Easy jet-lag day either way.</td><td class="muted">Quality Airport Hotel Gardermoen</td></tr>
+            <tr><td class="day">Aug 21<br>Fri</td><td>Flight <span class="data">09:50→11:15</span> — <strong>7–8 min shuttle</strong> from the hotel to the terminal, minimal morning risk. Taxi to Jakhelln MC, bike ~12:00, store duffel. <strong>Shakedown afternoon around Bodø</strong> — build to <strong>Saltstraumen</strong> as the late stop (current strengthens through the afternoon). Leave by ~17:00, ferjekai queue by <span class="data">17:45</span>. <strong>Ferry 18:30→21:45</strong>, ride 10 min to base.</td><td class="muted">Eliassen Rorbuer · Hamnøy</td></tr>
+            <tr><td class="day">Aug 22<br>Sat</td><td>Big west-Lofoten day from Reine: <strong>Å</strong> → Reine → <strong>Nusfjord</strong> → <strong>Haukland &amp; Uttakleiv beaches</strong> → <strong>Lofotr Viking Museum</strong> at Borg. ~160 km, unhurried.</td><td class="muted">Eliassen Rorbuer · Hamnøy</td></tr>
+            <tr><td class="day">Aug 23<br>Sun</td><td><strong>Bonus day</strong> (the old plan didn't have this). Ride further east — <strong>Henningsvær</strong>, Svolvær, or a <strong>Trollfjord boat cruise</strong> — or slow down and re-hit favorites. Back to base at Hamnøy — <strong>~10 min from the Moskenes ferry</strong> for tomorrow's early sailing.</td><td class="muted">Eliassen Rorbuer · Hamnøy</td></tr>
+            <tr><td class="day">Aug 24<br>Mon</td><td><strong>Ferry 06:00→~09:15</strong> Moskenes→Bodø (early ticket — the original booking got pushed to 11:00 by the operator). Fuel up, return bike at Arctic Motor, retrieve duffel — ~5.5h of slack now. <strong>Optional:</strong> if Friday's Saltstraumen fell flat, the morning tide turn makes a ~09:50 second attempt viable — see Sights, leg 07. Flight <span class="data">14:55→16:25</span> to Oslo. Flytoget + tram to <strong>Grünerløkka</strong>, in by ~18:00. <strong>Oslo evening</strong> — dinner on Thorvald Meyers gate, or walk the river down to the Munch Museum (open late some nights) and the lit-up Opera House.</td><td class="muted">Grünerløkka apartment</td></tr>
+            <tr><td class="day">Aug 25<br>Tue</td><td><strong>Short morning</strong> — OSL departs <span class="data">13:35</span>, so be at the airport by ~<span class="data">11:15</span>. Squeeze in <strong>Tim Wendelboe</strong> coffee (a few minutes' walk in Grünerløkka) and either a slow Akerselva/Mathallen wander or <strong>Vigeland Park</strong> (free, always open — tram 12 direct, ~25 min each way), then Flytoget to the airport. DUB connection → land IAD <span class="data">19:35</span>.</td><td class="muted">Plane</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <div class="callout"><strong>Weather buffer, now built in.</strong> Three Lofoten days means Sunday is a natural backup — if Saturday's a washout, shift the big ride to Sunday and keep Saturday for the ferry-side hikes, village walking, or a rorbu day. Short Reine↔Å hops (~20 km) stay fun in light rain. Don't force a long day in bad weather.</div>
+    </section>
+
+    <!-- ===== 07 SIGHTS & HISTORY ===== -->
+    <section class="page" data-page="sights">
+      <p class="eyebrow">Leg 07 · What to See</p>
+      <h1>Sights &amp; history</h1>
+      <p class="lede">The Viking answer is emphatic — and it sits right on Saturday's route. The hikes are the other half of the case for three days here: short, steep, and mostly reachable straight off the E10.</p>
+
+      <div class="card accent-sun" style="margin-bottom:1.4rem">
+        
+        <h3><span class="star">★</span> Lofotr Viking Museum — Borg, Vestvågøy</h3>
+        <p class="muted">A farmer plowing in the 1980s uncovered the <strong>largest Viking building ever found</strong>: an 83 m chieftain's longhouse, excavated and rebuilt full-scale on the spot — the <strong>world's longest reconstructed longhouse</strong>. Smoky tar-scented great hall, costumed craftspeople, a reconstructed ship, the real dig site. It's <strong>directly on the E10 at Borg</strong>, midway to Svolvær — a stop on the ride, not a detour.</p>
+        <p class="muted"><span class="data">Adult 265 NOK</span> · open daily May 1 – Sep 15 · budget <span class="data">1.5–2 hrs</span>. Optional evening Viking feast (~18:30, lamb + mead, book ahead).</p>
+      </div>
+
+      <h2 class="sec"><span class="idx">A</span> Lofoten highlights</h2>
+      <div class="grid two">
+        <div class="card"><h3>Reine / Hamnøy</h3><p class="muted">The iconic red rorbuer — now your home base, not a drive-by.</p></div>
+        <div class="card"><h3>Å &amp; Nusfjord</h3><p class="muted">Southern terminus of the E10 (15 min from Reine) and a preserved fishing village just off it.</p></div>
+        <div class="card"><h3>Uttakleiv &amp; Haukland</h3><p class="muted">Arctic white-sand beaches that look Caribbean until you touch the water.</p></div>
+        <div class="card"><h3>Henningsvær</h3><p class="muted">Artist village + the famous offshore soccer field. Saturday stretch goal.</p></div>
+      </div>
+
+      <h2 class="sec"><span class="idx">B</span> Hikes — Reine to Henningsvær</h2>
+      <p class="muted" style="margin-top:-0.4rem">Lofoten's best hikes are short and absurdly steep — you gain the whole view in 1–3 hours. Every trailhead below is <strong>on or within a few minutes of the E10</strong>, which is the whole reason they work on a bike trip: park, climb, ride on. Nothing here needs a full day, and none of it is technical — it's stairs, boulder-hopping and bog, not scrambling.</p>
+
+      <div class="card accent-sun" style="margin:1.2rem 0">
+        
+        <h3><span class="star">★</span> Reinebringen — the one you'd regret skipping</h3>
+        <p class="muted">The postcard of Lofoten, and it's <strong>~10 minutes from the rorbu</strong>. A Nepali sherpa crew built <strong>~1,500 stone steps</strong> straight up the shoulder; you're at the <span class="data">~440 m</span> viewpoint over Reine, Hamnøy and Kjerkfjorden in <span class="data">45–75 min</span> of honest stair-climbing. <span class="data">1.5–2.5 h</span> round trip.</p>
+        <ul class="clean">
+          <li><strong>Trailhead</strong> at the lot just east of Reine, by the tunnel mouth on the E10 — trivially easy on a bike.</li>
+          <li><strong>When</strong> Go <strong>early morning or after dinner</strong>. Late-August sunset is ~<span class="data">21:00</span>, so a post-ride evening climb is very doable and you dodge both the day-tripper crowds and the cruise buses.</li>
+          <li><strong>Caveat</strong> The stairs close periodically for maintenance, rockfall or weather. <strong>Ask your Eliassen host</strong> when you check in — that's the most reliable status you'll get.</li>
+        </ul>
+        <p class="muted" style="font-size:0.86rem">Wet stone is genuinely slick and the drop-offs are real. In steady rain, skip it — the view is cloud anyway.</p>
+      </div>
+
+      <h3 class="mini">The rest, west → east</h3>
+      <div class="tbl-wrap">
+        <table>
+          <thead><tr><th>Hike</th><th>Where</th><th>Round trip</th><th>Fits</th></tr></thead>
+          <tbody>
+            <tr>
+              <td><strong>Reinebringen</strong> <span class="muted">~440 m</span></td>
+              <td>Reine — 10 min from base</td>
+              <td class="data">1.5–2.5 h<br><span class="muted" style="color:var(--mist-dim);font-family:var(--font-body)">Steep, all stairs</span></td>
+              <td>Any evening, or Sat morning before the ride</td>
+            </tr>
+            <tr>
+              <td><strong>Ryten &amp; Kvalvika beach</strong> <span class="muted">~540 m</span></td>
+              <td>Fredvang — ~30 min ride from Reine, signed off the E10</td>
+              <td class="data">3–4 h<br><span class="muted" style="color:var(--mist-dim);font-family:var(--font-body)">Moderate, boggy</span></td>
+              <td>The big one — Sunday, if weather's good</td>
+            </tr>
+            <tr>
+              <td><strong>Mannen</strong> <span class="muted">~400 m</span></td>
+              <td>Haukland beach car park</td>
+              <td class="data">1.5–2 h<br><span class="muted" style="color:var(--mist-dim);font-family:var(--font-body)">Moderate, grassy</span></td>
+              <td><strong>Directly on Saturday's route</strong></td>
+            </tr>
+            <tr>
+              <td><strong>Offersøykammen</strong> <span class="muted">~435 m</span></td>
+              <td>Right off the E10 near Leknes</td>
+              <td class="data">1.5–2 h<br><span class="muted" style="color:var(--mist-dim);font-family:var(--font-body)">Moderate</span></td>
+              <td><strong>Literally roadside</strong> on Saturday's ride</td>
+            </tr>
+            <tr>
+              <td><strong>Festvågtind</strong> <span class="muted">~540 m</span></td>
+              <td>On the Henningsvær access road</td>
+              <td class="data">2–3 h<br><span class="muted" style="color:var(--mist-dim);font-family:var(--font-body)">Steep, rocky</span></td>
+              <td><strong>Sunday, paired with Henningsvær</strong></td>
+            </tr>
+            <tr>
+              <td><strong>Djevelporten &amp; Fløya</strong> <span class="muted">~590 m</span></td>
+              <td>Svolvær</td>
+              <td class="data">2–3 h<br><span class="muted" style="color:var(--mist-dim);font-family:var(--font-body)">Sherpa steps, then rock</span></td>
+              <td>Sunday alternative if you push to Svolvær</td>
+            </tr>
+            <tr>
+              <td><strong>Tjeldbergtind</strong> <span class="muted">~370 m</span></td>
+              <td>Near Kabelvåg / Svolvær</td>
+              <td class="data">1.5 h<br><span class="muted" style="color:var(--mist-dim);font-family:var(--font-body)">Easy</span></td>
+              <td>The low-effort east option</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <h3 class="mini">What you're climbing for</h3>
+      <div class="grid two">
+        <div class="card">
+          
+          <h3>Ryten → Kvalvika</h3>
+          <p class="muted">The beach is only reachable on foot, which is the whole point — you look down on an empty Arctic cove. <span class="data">3–4 h</span> · Fredvang.</p>
+        </div>
+        <div class="card">
+          
+          <h3>Mannen, above Haukland</h3>
+          <p class="muted">Ninety minutes for both beaches from above — the best view-per-effort on the island, and Saturday already goes past the trailhead. <span class="data">1.5–2 h</span>.</p>
+        </div>
+        <div class="card">
+          
+          <h3>Offersøykammen</h3>
+          <p class="muted">The roadside one — trailhead is right off the E10, and you're looking down over Nappstraumen inside an hour. <span class="data">1.5–2 h</span>.</p>
+        </div>
+        <div class="card">
+          
+          <h3>Festvågtind</h3>
+          <p class="muted">Straight up off the Henningsvær road, looking down on the islets the village is built across. <span class="data">2–3 h</span> · Sunday's pairing.</p>
+        </div>
+      </div>
+
+      <div class="grid two" style="margin-top:1.2rem">
+        <div class="card accent"><h3>If you only do two</h3><p class="muted"><strong>Reinebringen</strong> (an evening from base) and <strong>Mannen</strong> at Haukland — Mannen costs you 90 minutes on a route you're already riding and gives you both beaches from above. That's the best view-per-effort on the whole island.</p></div>
+        <div class="card"><h3>Slot them into the ride days</h3><p class="muted">Saturday already passes Offersøykammen and Haukland — pick <em>one</em>, not both, or the Lofotr museum gets squeezed. Sunday is the open day: Ryten if you stay west, Festvågtind if you commit to Henningsvær.</p></div>
+      </div>
+
+      <div class="callout"><strong>Footwear — a real gap in the pack list.</strong> Right now you're carrying <em>riding boots and nothing else</em>. Reinebringen's stone steps and Ryten's bog are both miserable in moto boots, and unsafe when wet. Add <strong>lightweight trail runners or low hikers</strong> — they compress into the duffel, double as your Oslo walking shoes, and are the difference between doing these hikes and looking at them. See the note on the Packing leg.</div>
+
+      <div class="callout"><strong>Solo-hiking discipline.</strong> Weather turns fast and fog can erase a summit trail in minutes. Download the offline map before you ride out, tell someone your plan (you're already sharing live location), and set a hard turnaround time. Lofoten's trails are short but the exposure is real — <strong>every one of these is fine to abandon halfway</strong>, and late August means wet rock more often than not.</div>
+
+      <h2 class="sec"><span class="idx">C</span> Bodø — Friday afternoon on the bike</h2>
+      <p class="muted" style="margin-top:-0.4rem">Pickup ~noon gives you ~5 hours before the ferry — a low-pressure shakedown on the new bike. No Viking sites here (Bodø was bombed flat in 1940 and rebuilt as a Cold-War airbase — its draw is aviation), so this window is about Saltstraumen and getting comfortable.</p>
+      <div class="card accent-sun" style="margin-bottom:1rem">
+        
+        <h3>Saltstraumen <span class="badge yes">Plan A</span></h3><p class="muted">World's strongest tidal current, ~30 min south — 400 million m³ of water forced through a narrow strait, spinning whirlpools like these. <strong>Make it the last stop, not the first</strong> — see the timing note below.</p>
+      </div>
+      <div class="grid two">
+        <div class="card accent"><h3>Aviation Museum <span class="badge maybe">Rain plan</span></h3><p class="muted">Largest in Scandinavia, propeller-shaped building in town, ~2 hrs indoors. The fallback if Friday's wet or the current's flat.</p></div>
+        <div class="card"><h3>Shakedown loop</h3><p class="muted">Just getting used to an unfamiliar bike on quiet roads is a fine use of the afternoon. Stormen Library, the harbor, or a coastal spin.</p></div>
+      </div>
+      <div class="callout"><strong>Saltstraumen timing, Fri Aug 21.</strong> Bodø tides that day: low <span class="data">13:27</span>, high <span class="data">19:50</span> <span class="muted" style="font-size:0.85em">(Kartverket prediction)</span> — so right after pickup the current is near slack (weakest), and it <strong>builds through the afternoon</strong>, strongest roughly <span class="data">16:00–17:30</span>. That's the opposite of intuitive: go do the shakedown loop first, arrive at Saltstraumen ~<span class="data">15:30–16:30</span> to catch it strengthening, then leave by ~17:00 for the ferry. Confirm the exact strong-current window on the official table (saltstraumen.info) — it's the difference between a maelstrom and a calm channel.</div>
+
+      <div class="card accent" style="margin-top:1.2rem">
+        <h3>Monday Aug 24 — the second bite at Saltstraumen <span class="badge maybe">Fallback</span></h3>
+        <p class="muted">If Friday is rained out, the current is flat, or you simply run out of afternoon, the <strong>06:00 ferry hands you a second chance</strong> — and Monday's tides fall in your favour rather than against you.</p>
+        <div class="tbl-wrap" style="margin:0.9rem 0">
+          <table>
+            <thead><tr><th>Mon Aug 24</th><th>Bodø</th><th>Naurstad <span class="muted" style="font-family:var(--font-body);text-transform:none;letter-spacing:0">(inside the strait)</span></th></tr></thead>
+            <tbody>
+              <tr><td>Low</td><td class="data">05:08</td><td class="data">06:51</td></tr>
+              <tr><td>High</td><td class="data">11:15</td><td class="data">12:43</td></tr>
+              <tr><td>Low</td><td class="data">17:16</td><td class="data">18:45</td></tr>
+            </tbody>
+          </table>
+        </div>
+        <p class="muted">Either way <strong>the turn happens mid-morning</strong>, so the strong window lands somewhere in roughly <span class="data">08:00–11:00</span> — overlapping the exact hours you're free. That's a far better draw than a random morning.</p>
+        <ul class="clean">
+          <li><strong>~09:15</strong> ferry docks in Bodø · <strong>~09:50</strong> at Saltstraumen (~30 min south)</li>
+          <li><strong>~10:45</strong> leave · <strong>~11:30</strong> back in Bodø, fuel up</li>
+          <li><strong>~12:15</strong> bike returned at Arctic Motor (weekday hours 09:00–15:30 ✓), duffel retrieved</li>
+          <li><strong>~12:45</strong> at BOO — still <span class="data">2h</span> before the <span class="data">14:55</span> flight</li>
+        </ul>
+        <p class="muted" style="font-size:0.86rem"><strong>The hard rule:</strong> this spends the buffer that protects your flight home. If the ferry docks <strong>more than an hour late</strong>, or the weather's foul, drop it without hesitation and go straight to the bike return. Friday stays Plan A precisely because Monday's version has no slack behind it.</p>
+      </div>
+
+      <div class="callout"><strong>Caveat on both windows.</strong> Saltstraumen's current is driven by the level <em>difference</em> between the open Saltfjorden and Skjerstadfjorden inside, and the two Kartverket stations above run about <span class="data">90 minutes</span> apart — so any strong-current time derived from a plain tide table carries roughly that much uncertainty. The tide <em>times</em> here are solid; the peak-current time is inferred. <strong>Check saltstraumen.info's own current table before you commit either day</strong> — it's the only source that answers the question directly.</div>
+      <p class="muted" style="font-size:0.86rem;margin-top:0.9rem"><strong>Sunday's bonus Lofoten day</strong> is where the eastern sights live now — Henningsvær, Svolvær, or a Trollfjord boat cruise — since Saturday stays west of Reine.</p>
+    </section>
+
+    <!-- ===== 08 BUDGET ===== -->
+    <section class="page" data-page="budget">
+      <p class="eyebrow">Leg 08 · The Numbers</p>
+      <h1>Budget</h1>
+      <p class="lede">Beyond the AA credit, plan on roughly <span class="data" style="color:var(--sun)">$2,750–$4,000</span>. The waterfront rorbu is the single biggest line — the premium cottage at Eliassen is the splurge that anchors the trip.</p>
+      <div class="tbl-wrap">
+        <table>
+          <thead><tr><th>Item</th><th>Cost (USD)</th></tr></thead>
+          <tbody>
+            <tr><td>IAD ↔ OSL round trip — booked</td><td class="data">~$800 <span class="muted" style="color:var(--mist-dim)">(against an airline credit)</span></td></tr>
+            <tr><td>OSL ↔ BOO round trip (SAS)</td><td class="data">$200–280</td></tr>
+            <tr><td>Motorcycle rental (3 days)</td><td class="data">$450–650</td></tr>
+            <tr><td>Ferry round trip w/ moto + reservations</td><td class="data">~$50</td></tr>
+            <tr><td>Gear add-ons</td><td class="data">$0–150</td></tr>
+            <tr><td>Lodging — Oslo, Aug 20 (Quality Airport Hotel, Jessheim) — booked</td><td class="data">~$120–160 <span class="muted" style="color:var(--mist-dim)">(est. — set actual)</span></td></tr>
+            <tr><td>Lodging — Oslo, Aug 24 (Grünerløkka apartment) — booked</td><td class="data">$150–225 <span class="muted" style="color:var(--mist-dim)">(est. — set actual)</span></td></tr>
+            <tr><td>Lodging — Eliassen Rorbuer, waterfront (3 nights) — booked</td><td class="data">~$1,050–1,450 <span class="muted" style="color:var(--mist-dim)">(est. — set actual)</span></td></tr>
+            <tr><td>Food (7 days)</td><td class="data">$350–500</td></tr>
+            <tr><td>Fuel</td><td class="data">~$40</td></tr>
+            <tr><td>Luggage storage + Bodø taxis</td><td class="data">~$40</td></tr>
+            <tr><td>Activities / buffer</td><td class="data">$100–200</td></tr>
+            <tr class="total"><td><strong>Total beyond credit</strong></td><td><strong class="data">~$2,600–$3,800</strong></td></tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <!-- ===== 09 PUBLIC CHECKLIST ===== -->
+    <section class="page" data-page="checklist">
+      <p class="eyebrow">Leg 09 · Reuse It Safely</p>
+      <h1>Fresh-check checklist</h1>
+      <p class="lede">This archive preserves a 2026 plan, not current travel advice. Rebuild the fragile links before borrowing the route.</p>
+      <h2 class="sec"><span class="idx">A</span> Verify before booking</h2>
+      <ul class="checklist" data-group="book">
+        <li><label class="check"><input type="checkbox" data-id="public-ferry"><span class="box"><svg viewBox="0 0 20 20"><path d="M4 10l4 4 8-9"/></svg></span><span class="ctext"><span class="main">Current ferry timetable, vehicle reservation rules, and check-in cutoff</span></span></label></li>
+        <li><label class="check"><input type="checkbox" data-id="public-moto"><span class="box"><svg viewBox="0 0 20 20"><path d="M4 10l4 4 8-9"/></svg></span><span class="ctext"><span class="main">Motorcycle availability, gear, insurance, roadside support, and return hours</span></span></label></li>
+        <li><label class="check"><input type="checkbox" data-id="public-docs"><span class="box"><svg viewBox="0 0 20 20"><path d="M4 10l4 4 8-9"/></svg></span><span class="ctext"><span class="main">Current license, IDP, entry, and insurance requirements</span></span></label></li>
+        <li><label class="check"><input type="checkbox" data-id="public-weather"><span class="box"><svg viewBox="0 0 20 20"><path d="M4 10l4 4 8-9"/></svg></span><span class="ctext"><span class="main">Forecast, daylight, trail status, road closures, and tide/current tables</span></span></label></li>
+        <li><label class="check"><input type="checkbox" data-id="public-margin"><span class="box"><svg viewBox="0 0 20 20"><path d="M4 10l4 4 8-9"/></svg></span><span class="ctext"><span class="main">Independent schedule margin behind the return ferry</span></span></label></li>
+      </ul>
+      <h2 class="sec"><span class="idx">B</span> Keep the plan flexible</h2>
+      <div class="grid two">
+        <div class="card accent"><h3>Protect the hard connection</h3><p class="muted">Treat a ferry, rental return, and flight as separate failure points. Leave enough time for one of them to move.</p></div>
+        <div class="card accent-sun"><h3>Let weather choose the day</h3><p class="muted">Keep one island day open and abandon exposed hikes or long rides when visibility, wind, or wet rock says no.</p></div>
+      </div>
+    </section>
+  </main>
+</div>
+
+<footer class="foot">
+  Sanitized archival snapshot of a plan prepared in July and August 2026. Private booking and account details were removed, and third-party planning images were omitted because redistribution rights were not uniform. Prices, timetables, trail conditions, entry rules, rental terms, and safety guidance are historical and must be independently verified.
+</footer>
+
+<script>
+(function () {
+  var PAGES = [
+    { id: "overview",  n: "01", label: "Overview" },
+    { id: "transit",   n: "02", label: "Flights & Ferry" },
+    { id: "stays",     n: "03", label: "Stays" },
+    { id: "moto",      n: "04", label: "Motorcycle" },
+    { id: "packing",   n: "05", label: "Packing" },
+    { id: "itinerary", n: "06", label: "Itinerary" },
+    { id: "sights",    n: "07", label: "Sights & History" },
+    { id: "budget",    n: "08", label: "Budget" },
+    { id: "checklist", n: "09", label: "Checklist" }
+  ];
+
+  var wpList = document.getElementById("waypoints");
+  var navFill = document.getElementById("nav-fill");
+  var buttons = [];
+
+  PAGES.forEach(function (p, i) {
+    var li = document.createElement("li");
+    li.className = "wp";
+    li.dataset.target = p.id;
+    var btn = document.createElement("button");
+    btn.type = "button";
+    btn.innerHTML =
+      '<span class="node">' + (i + 1) + '</span>' +
+      '<span class="txt"><span class="n">Leg ' + p.n + '</span><span class="l">' + p.label + '</span></span>';
+    btn.addEventListener("click", function () { show(p.id, true); });
+    li.appendChild(btn);
+    wpList.appendChild(li);
+    buttons.push(li);
+  });
+
+  function show(id, push) {
+    var idx = PAGES.findIndex(function (p) { return p.id === id; });
+    if (idx < 0) idx = 0;
+    document.querySelectorAll(".page").forEach(function (s) {
+      s.classList.toggle("active", s.dataset.page === PAGES[idx].id);
+    });
+    buttons.forEach(function (li, i) {
+      li.classList.toggle("active", i === idx);
+      li.classList.toggle("visited", i < idx);
+    });
+    // fill the route line up to the active node (each row ~ its center)
+    var rows = buttons.length;
+    var pct = rows > 1 ? (idx / (rows - 1)) * 100 : 0;
+    navFill.style.height = "calc((100% - 24px) * " + (pct / 100) + " + 12px)";
+    if (push) history.replaceState(null, "", "#" + PAGES[idx].id);
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  }
+
+  // ---- persistent checkboxes ----
+  var boxes = document.querySelectorAll('.check input[type="checkbox"]');
+  boxes.forEach(function (b) {
+    var key = "trip26." + b.dataset.id;
+    var saved = localStorage.getItem(key);
+    if (saved === "1") b.checked = true;
+    else if (saved === "0") b.checked = false;
+    b.addEventListener("change", function () {
+      localStorage.setItem(key, b.checked ? "1" : "0");
+      updateMeter();
+    });
+  });
+
+  var mCount = document.getElementById("m-count");
+  var mTotal = document.getElementById("m-total");
+  var ringFg = document.getElementById("ring-fg");
+  var CIRC = 2 * Math.PI * 17;
+  function updateMeter() {
+    var group = document.querySelectorAll('.checklist[data-group="book"] input[type="checkbox"]');
+    var done = 0;
+    group.forEach(function (b) { if (b.checked) done++; });
+    mCount.textContent = done;
+    mTotal.textContent = group.length;
+    var frac = group.length ? done / group.length : 0;
+    ringFg.style.strokeDashoffset = (CIRC * (1 - frac)).toFixed(1);
+  }
+  ringFg.setAttribute("stroke-dasharray", CIRC.toFixed(1));
+  updateMeter();
+
+  // ---- initial page from hash ----
+  var start = (location.hash || "").replace("#", "");
+  show(PAGES.some(function (p) { return p.id === start; }) ? start : "overview", false);
+})();
+</script>
+
+</body>
+</html>
+

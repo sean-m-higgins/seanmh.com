@@ -1,19 +1,14 @@
 ---
 import BaseLayout from "../layouts/BaseLayout.astro";
+import SiteHeader from "../components/SiteHeader.astro";
 ---
 
-<BaseLayout
-  title="System not found — Blueprint"
-  description="This system coordinate does not exist."
-  error
->
+<BaseLayout title="Off the map — G Travel" description="This coordinate is outside the travel atlas." canonicalPath="/travel/404/" error>
+  <SiteHeader compact />
   <main id="main-content" class="error-page">
-    <p class="eyebrow">ERR / 404</p>
-    <h1>That coordinate is outside the system.</h1>
-    <p>The blueprint is intact. This particular route is not.</p>
-    <div class="error-actions">
-      <a class="button button-primary" href="/systems/">Return to Blueprint</a>
-      <a class="button" href="/?v=a-scroll">Open the portfolio</a>
-    </div>
+    <p class="eyebrow">404 / Off the map</p>
+    <h1>This route fades<br /><em>beyond the chart.</em></h1>
+    <p>The atlas is still here. This particular coordinate is not.</p>
+    <div class="download-actions"><a class="button button-primary" href="/travel/">Return to the atlas</a><a class="button" href="/?v=a-scroll">Open the portfolio</a></div>
   </main>
 </BaseLayout>

@@ -6,7 +6,7 @@ import sitemap from '@astrojs/sitemap';
 // https://astro.build/config
 export default defineConfig({
   site: 'https://seanmh.com',
-  base: '/systems',
+  base: '/travel',
   vite: {
     build: {
       // Preserve classic max-width media queries. Tailwind's optimizer emits
@@ -16,7 +16,5 @@ export default defineConfig({
       cssMinify: false,
     },
   },
-  integrations: [sitemap({
-    filter: (page) => page === 'https://seanmh.com/systems/'
-  })]
+  integrations: [sitemap()]
 });

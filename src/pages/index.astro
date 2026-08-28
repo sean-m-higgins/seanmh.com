@@ -1,12 +1,70 @@
 ---
+import SiteFooter from "../components/SiteFooter.astro";
+import SiteHeader from "../components/SiteHeader.astro";
+import TravelGlobe from "../components/TravelGlobe.astro";
 import BaseLayout from "../layouts/BaseLayout.astro";
-import Blueprint from "../components/Blueprint.astro";
+import { norwayTrip } from "../content/trips.ts";
 
-const title = "Blueprint — The Systems Behind seanmh.com";
-const description =
-  "Explore how Sean Higgins designed and operates a multi-version portfolio across edge routing, shared content, independent deployments, optional services, and accessible fallbacks.";
+const title = "G Travel — Routes, Field Notes, and Photographs";
+const description = "Explore Sean Higgins’s journeys through an interactive globe, beginning with a solo motorcycle trip from Oslo to Lofoten.";
 ---
 
-<BaseLayout title={title} description={description}>
-  <Blueprint />
+<BaseLayout title={title} description={description} canonicalPath="/travel/">
+  <div class="home-sky" aria-hidden="true"><i></i><i></i><i></i></div>
+  <SiteHeader />
+  <main id="main-content">
+    <TravelGlobe />
+
+    <section class="manifesto" aria-labelledby="manifesto-title">
+      <p class="eyebrow">02 / Why keep an atlas?</p>
+      <div>
+        <h2 id="manifesto-title">Not a checklist.<br />A record of <em>how it felt.</em></h2>
+        <p>Plans become routes. Routes become photographs, small discoveries, and useful details worth passing forward. This archive keeps all three together.</p>
+      </div>
+    </section>
+
+    <section class="featured-journey" aria-labelledby="featured-title">
+      <div class="featured-art" aria-hidden="true">
+        <svg viewBox="0 0 900 620">
+          <defs>
+            <linearGradient id="fjord-sky" x1="0" y1="0" x2="0" y2="1">
+              <stop offset="0" stop-color="#133245" />
+              <stop offset="1" stop-color="#e5985f" />
+            </linearGradient>
+            <linearGradient id="fjord-water" x1="0" y1="0" x2="1" y2="1">
+              <stop stop-color="#0d2c3b" />
+              <stop offset="1" stop-color="#19475a" />
+            </linearGradient>
+          </defs>
+          <rect width="900" height="620" fill="url(#fjord-sky)" />
+          <circle cx="680" cy="145" r="68" fill="#ffd5a0" opacity=".8" />
+          <path d="M0 330L125 178l78 104 104-176 114 204 87-112 94 132 110-167 188 190v267H0z" fill="#102c38" />
+          <path d="M0 379l154-82 118 47 112-66 151 72 121-44 244 68v246H0z" fill="url(#fjord-water)" />
+          <path d="M0 430c155-36 287 48 431 0 143-48 279 35 469-6v196H0z" fill="#0a202a" opacity=".65" />
+          <g transform="translate(540 360)">
+            <rect x="0" y="38" width="130" height="74" fill="#a93b31" />
+            <path d="M-12 40L66 0l78 40z" fill="#5e211e" />
+            <rect x="50" y="66" width="28" height="46" fill="#e2b872" />
+            <path d="M-28 112h190l34 30H-52z" fill="#162a2d" />
+          </g>
+          <g fill="none" stroke="#f7bd77" stroke-width="4" stroke-linecap="round" stroke-dasharray="1 15" opacity=".9">
+            <path d="M181 502c119-100 223-75 322-125" />
+          </g>
+        </svg>
+        <span>67.949° N · 13.133° E</span>
+      </div>
+      <div class="featured-copy">
+        <p class="eyebrow">First journey / {norwayTrip.dateLabel}</p>
+        <h2 id="featured-title">{norwayTrip.title}</h2>
+        <p>{norwayTrip.summary}</p>
+        <dl>
+          <div><dt>Anchor</dt><dd>{norwayTrip.anchor.label}</dd></div>
+          <div><dt>Shape</dt><dd>Air · ferry · motorcycle</dd></div>
+          <div><dt>Archive</dt><dd>Plan + photographs</dd></div>
+        </dl>
+        <a class="button button-primary" href={norwayTrip.links.overview}>Enter the Norway journal <span aria-hidden="true">↗</span></a>
+      </div>
+    </section>
+  </main>
+  <SiteFooter />
 </BaseLayout>
