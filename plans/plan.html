@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>seanmh.com — Project Plan</title>
+<title>seanmh.com — Canonical Project Plan</title>
 <style>
   :root {
     color-scheme: dark;
@@ -16,12 +16,14 @@
     --done: #3fb950;
     --next: #d29922;
     --later: #bc8cff;
+    --bad: #f85149;
+    --info: #79c0ff;
   }
 
   * { box-sizing: border-box; }
 
   body {
-    max-width: 980px;
+    max-width: 1080px;
     margin: 0 auto;
     padding: 3rem 1.25rem 5rem;
     background: var(--bg);
@@ -29,11 +31,13 @@
     font: 16px/1.65 ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
   }
 
-  h1, h2 { line-height: 1.2; }
+  h1, h2, h3 { line-height: 1.2; }
   h1 { margin: 0 0 .5rem; font-size: clamp(2rem, 6vw, 3.25rem); }
-  h2 { margin: 2.5rem 0 1rem; font-size: 1.45rem; }
+  h2 { margin: 2.75rem 0 1rem; font-size: 1.5rem; }
+  h3 { margin: 1.5rem 0 .6rem; font-size: 1.08rem; }
   p { margin: .75rem 0; }
   a { color: var(--accent); }
+  ul { margin: .65rem 0; }
   code {
     padding: .12rem .35rem;
     border-radius: .3rem;
@@ -42,6 +46,10 @@
   }
   .muted { color: var(--muted); }
   .stamp { margin-bottom: 2rem; }
+  .done { color: var(--done); }
+  .blocked { color: var(--bad); }
+  .warning { color: var(--next); }
+  .info { color: var(--info); }
 
   .status-grid {
     display: grid;
@@ -49,7 +57,9 @@
     gap: .85rem;
   }
   .status-card,
-  .callout {
+  .callout,
+  .guardrail,
+  details {
     border: 1px solid var(--border);
     border-radius: .75rem;
     background: var(--panel);
@@ -57,7 +67,11 @@
   }
   .status-card h3 { margin: 0 0 .35rem; font-size: 1rem; }
   .status-card p { margin: 0; color: var(--muted); }
-  .done { color: var(--done); }
+  .guardrail {
+    border-color: rgba(248, 81, 73, .45);
+    background: rgba(248, 81, 73, .06);
+  }
+  .guardrail strong { color: var(--bad); }
 
   table {
     width: 100%;
@@ -78,13 +92,20 @@
     border-radius: .75rem;
     background: rgba(210, 153, 34, .07);
   }
-  .todo li { padding: .35rem 0 .85rem .25rem; }
-  .todo li:last-child { padding-bottom: .25rem; }
+  .todo > li { padding: .35rem 0 1.2rem .25rem; }
+  .todo > li:last-child { padding-bottom: .25rem; }
   .todo strong { color: var(--next); }
+  .criteria {
+    margin-top: .55rem;
+    padding-left: .8rem;
+    border-left: 3px solid rgba(63, 185, 80, .65);
+    color: var(--muted);
+  }
   .priority {
     display: inline-block;
     min-width: 2rem;
     margin-right: .35rem;
+    padding: 0 .35rem;
     color: var(--bg);
     background: var(--next);
     border-radius: 999px;
@@ -94,6 +115,10 @@
     line-height: 1.6;
   }
   .priority.later { background: var(--later); }
+  .priority.done { background: var(--done); }
+  .priority.info { background: var(--info); }
+  details { margin: 1rem 0; }
+  summary { cursor: pointer; font-weight: 700; color: var(--info); }
 
   @media (max-width: 640px) {
     body { padding-top: 2rem; }
@@ -104,51 +129,57 @@
 </head>
 <body>
 
-<h1>seanmh.com — Project Plan</h1>
-<p class="muted stamp">Canonical project status and roadmap. Consolidated and verified July 25, 2026.</p>
+<h1>seanmh.com — Canonical Project Plan</h1>
+<p class="muted stamp">The only project plan. Consolidated and repository-audited August 27, 2026.</p>
 
 <div class="callout">
-  <strong>North star:</strong> make the branch-per-version architecture the experience itself. Three portfolio interpretations share one domain and cinematic switching; the Nexus is a deliberately discovered 3D portal world; future experiments make the multiverse feel alive without weakening the portfolio's clarity, accessibility, or speed.
+  <p><strong>Rule:</strong> unfinished work belongs here. A feature-specific plan may exist only while actively executing that item; when the work ships, its durable architecture and operating knowledge must be verified in the wiki before the temporary plan is deleted.</p>
+  <p><strong>North star:</strong> keep the canonical portfolio clear, fast, accessible, and dependable while the alternate presentations, games, Nexus, Blueprint, and Travel make the branch-per-experience architecture visible.</p>
 </div>
 
 <h2>Current state</h2>
 <div class="status-grid">
   <div class="status-card">
-    <h3 class="done">✓ Cinematic switching</h3>
-    <p>The synchronized universe dial, accessibility behavior, per-version View Transitions, and liquid Nexus portal launcher are complete and pushed.</p>
+    <h3 class="done">✓ Canonical portfolio and switching</h3>
+    <p>a-scroll is the source default; b-card and c-terminal remain explicit choices. The shared dial, view transitions, Nexus launcher, and <code>/card</code> short route are implemented.</p>
   </div>
   <div class="status-card">
-    <h3 class="done">✓ Interactive terminal</h3>
-    <p>The command engine and secret-gated, rate-limited, grounded <code>ask</code> service are complete, hardened, and covered by Worker tests.</p>
+    <h3 class="done">✓ Nexus, Halfpipe, Counter, Blueprint</h3>
+    <p>The three opt-in experiences and the path-owned <code>/systems/</code> case study are implemented. Nexus and Counter's completed build specs were checked against their wiki pages during this consolidation.</p>
   </div>
   <div class="status-card">
-    <h3 class="done">✓ a-scroll redesign</h3>
-    <p>The GSAP/Lenis motion system, pinned hero, constellation, section choreography, expanded content, art, testimonials, loader, and responsive polish are shipped. Feature scope is closed.</p>
+    <h3 class="warning">↻ G Travel in progress</h3>
+    <p><code>version/g-travel</code> now has an uncommitted, buildable path app plus local Worker/proxy/Nexus/Blueprint/sitemap integration. The actual route, photo edit, final archive/privacy verification, browser QA, durable wiki documentation, commit, and deployment remain.</p>
   </div>
   <div class="status-card">
-    <h3 class="done">✓ Nexus integration</h3>
-    <p>The Three.js portal world is live, production-routed, linked from all portfolio versions, excluded from random assignment, and enhanced with mobile controls and fallbacks.</p>
+    <h3 class="blocked">! Reliability backlog</h3>
+    <p>Concurrency-safe storage, Halfpipe correctness/tests, Nexus failure handling, API timeout/consolidation, CI, and lifecycle/accessibility work remain open.</p>
   </div>
   <div class="status-card">
-    <h3 class="done">✓ Platform upgrade</h3>
-    <p>The active site branches use Astro 7, Tailwind 4, and Node 22. The router Worker has a deployment configuration, observability, and a hardened test suite.</p>
+    <h3 class="blocked">! Search contract not complete</h3>
+    <p>The August 17 SEO audit is historical evidence, not current production truth. Re-audit live behavior, then implement the response matrix and measured release sequence below.</p>
   </div>
 </div>
 
-<h2>Verified baseline</h2>
+<h2>Completed-plan verification</h2>
 <table>
   <thead>
-    <tr><th>Check</th><th>Result on July 25, 2026</th></tr>
+    <tr><th>Retired plan</th><th>Repository verification</th><th>Durable documentation</th></tr>
   </thead>
   <tbody>
-    <tr><td>Git state</td><td>All six worktrees are clean and each active branch matches its origin.</td></tr>
-    <tr><td>Router Worker</td><td><code>npm test</code>: 10 tests passed, including Nexus routing and exclusion from first-visit rotation.</td></tr>
-    <tr><td>Shared contract</td><td><code>npm run check:shared</code> passes across <code>content</code>, a-scroll, b-card, and c-terminal.</td></tr>
-    <tr><td>Site branches</td><td>a-scroll, b-card, c-terminal, and Nexus all type-check and build successfully under Node 22.12.</td></tr>
-    <tr><td>Production Nexus</td><td><code>seanmh-nexus.pages.dev</code> is live and <code>/?v=nexus</code> is verified end-to-end through the production router.</td></tr>
+    <tr>
+      <td>Nexus glass-orb redesign</td>
+      <td><code>version/nexus</code> has typed destination data, layered fresnel spheres, individual miniature builders, fly-through entry, real-link fallbacks, and an evolved orbital carousel. Its current working tree adds G Travel as the seventh destination.</td>
+      <td><code>wiki/Nexus.md</code> documents the destination catalog, orb construction, carousel controls, ambient field, entry behavior, routing, fallbacks, and local development.</td>
+    </tr>
+    <tr>
+      <td>Version E — Counter</td>
+      <td><code>version/e-2d-game</code> has the Canvas game, pure combat/scoring, warmup and forced run termination, keyboard/touch controls, audio, storage, isolated leaderboard client, and 14 combat/storage tests.</td>
+      <td><code>wiki/Counter-Game.md</code> documents the loop, tuning, architecture, mobile layout, storage, leaderboard, performance, deployment, and remaining QA/discovery gaps without depending on the retired plan file.</td>
+    </tr>
   </tbody>
 </table>
-<p class="muted">Known findings from that verification are intentionally retained in the TODO queue: Nexus has an unused inherited variable and uses deprecated <code>THREE.Clock</code>; b-card and Nexus emit a post-minification chunk-size warning.</p>
+<p class="muted">The old a-scroll hover test override and diagnostic probes reported on August 17 are also gone: the current branch again uses the fine-pointer media query. Multitouch cancellation and storage-denial coverage remain open below.</p>
 
 <h2>Architecture and operating decisions</h2>
 <table>
@@ -156,27 +187,187 @@
     <tr><th>Area</th><th>Decision to preserve</th></tr>
   </thead>
   <tbody>
-    <tr><td>Routing</td><td><code>VERSIONS</code> contains only a-scroll, b-card, and c-terminal. Nexus belongs in the explicit <code>ROUTABLE</code> set and must never be randomly assigned.</td></tr>
-    <tr><td>Shared UI</td><td><code>content</code> is canonical for <code>VersionSwitcher.astro</code> and <code>transitions.css</code>; those files remain byte-identical across the three portfolio branches.</td></tr>
-    <tr><td>Content</td><td>a-scroll intentionally diverges in parts of its content schema and imagery. Port relevant changes manually instead of blindly cherry-picking.</td></tr>
-    <tr><td>Progressive enhancement</td><td>Navigation and content must survive unsupported View Transitions, reduced motion, disabled JavaScript, and unavailable WebGL.</td></tr>
-    <tr><td>Generated versions</td><td>Automation may propose designs, but publishing stays behind a reviewable PR and explicit human approval.</td></tr>
-    <tr><td>Toolchain</td><td>Use Node 22 or newer. Keep Astro, Tailwind, GSAP/Lenis, and Three.js responsibilities isolated to the branches that need them.</td></tr>
+    <tr><td>Homepage routing</td><td><code>VERSIONS</code> contains a-scroll, b-card, and c-terminal; a-scroll is the only anonymous default. Nexus and both games belong in manual-only <code>ROUTABLE</code>.</td></tr>
+    <tr><td>Path-owned content</td><td>Blueprint owns <code>/systems/*</code>. Travel will own <code>/travel/*</code>. Resolve path apps and site-wide control files before version cookies, strip the public prefix upstream, rewrite same-origin redirects, and never let a path app alter <code>pv</code>.</td></tr>
+    <tr><td>Shared content</td><td>The content branch is canonical for shared profile facts and the switcher kit. a-scroll's expanded content schema is a documented manual-port exception.</td></tr>
+    <tr><td>Progressive enhancement</td><td>Navigation and meaningful content must survive unsupported View Transitions, reduced motion, disabled JavaScript, denied storage, and unavailable WebGL.</td></tr>
+    <tr><td>Indexing</td><td>The clean apex profile is the canonical identity. Similar profile presentations may consolidate to it; materially distinct experiences must not claim the résumé homepage as equivalent. Direct Pages origins are secondary and should be noindex without leaking that signal through the Worker.</td></tr>
+    <tr><td>Release evidence</td><td>A commit is not “shipped.” Record checks, deployment identifiers, live smoke results, and rollback targets before marking production work complete.</td></tr>
+    <tr><td>Toolchain</td><td>Use Node 22.12 or newer everywhere. Pin deployment tooling and enforce the same version in CI.</td></tr>
   </tbody>
 </table>
 
-<h2>Next steps — single TODO queue</h2>
+<h2>P0 — correctness, resilience, and release safety</h2>
 <ol class="todo">
-  <li><span class="priority">P0</span><strong>Bring local Nexus routing to parity.</strong> Add Nexus as a manual-only target in <code>scripts/dev-proxy.mjs</code>, reserve its preview port, and update the local preview instructions. Keep it outside the proxy's random-selection array.</li>
-  <li><span class="priority">P0</span><strong>Complete the browser and device QA matrix.</strong> Verify cross-document switching and fallback navigation; dial and launcher keyboard/touch behavior; a-scroll pinning, anchors, Lenis, light/dark themes, and scroll restoration; Nexus focus, tap/tilt, reduced motion, no-JS, and no-WebGL paths. Cover Chrome, Edge, Safari, and Firefox desktop plus iOS Safari and Android Chrome. Record Lighthouse and runtime baselines.</li>
-  <li><span class="priority">P1</span><strong>Clear current maintenance findings.</strong> Replace deprecated <code>THREE.Clock</code>, remove the unused Nexus variable, inspect the b-card/Nexus bundles, and either code-split meaningful payloads or document why their current sizes are accepted. Re-run all checks and builds.</li>
-  <li><span class="priority">P1</span><strong>Design the bidirectional bridge transition.</strong> Give portfolio-to-Nexus and Nexus-to-portfolio navigation a distinct, progressively enhanced warp or iris treatment that remains navigable with reduced motion or unsupported View Transitions.</li>
-  <li><span class="priority later">P2</span><strong>Build the Hall of Versions and self-redesign pipeline.</strong> Store each generation's screenshot, number, date, prompt, preview, and outcome; generate candidates on a cadence; open human-reviewable PRs; and update the Hall only after approval and deployment.</li>
-  <li><span class="priority later">P3</span><strong>Choose one live-data experience.</strong> Compare the public A/B scoreboard, visitor trace/pixel wall, and live “Now” dashboard, then plan only the option with the strongest portfolio value relative to data, privacy, operational cost, and maintenance.</li>
-  <li><span class="priority later">P3</span><strong>Finish launch and operational polish.</strong> Add assignment/switch analytics and per-version social images, complete an accessibility audit, refresh stale wiki pages, and monitor <code>ask</code> secrets, KV behavior, rate limits, availability, and model spend.</li>
+  <li>
+    <span class="priority">P0</span><strong>Replace concurrency-unsafe KV mutation and rate limiting.</strong>
+    Move both leaderboard updates away from shared KV read/modify/write values to a Durable Object or D1 transaction. Move paid-path/API rate limiting to a Durable Object or Cloudflare rate-limiting binding. Until migration, do not silently allow a paid Anthropic request when the limiter write fails. Preserve the Halfpipe and Counter request/response contracts, separate boards/namespaces, ranking, top-ten truncation, validation, and no-KV degradation.
+    <p class="criteria"><strong>Done when:</strong> simultaneous accepted submissions cannot overwrite one another, limiter failure fails safely on the paid path, and concurrency/rate-limit tests pass for both boards and <code>/api/ask</code>.</p>
+  </li>
+
+  <li>
+    <span class="priority">P0</span><strong>Fix Halfpipe state and lifecycle bugs, then establish tests.</strong>
+    Give riding/pumping an explicit render state instead of checking airborne <code>grabbing</code>. Clear held keyboard and touch controls on <code>blur</code>, <code>pagehide</code>, hidden <code>visibilitychange</code>, pointer cancellation, and teardown. Add pure tests for riding/pumping, launch/landing, grab reset, trick chains, scoring, persisted-data recovery, focus loss, and the client/server plausibility contract.
+    <p class="criteria"><strong>Done when:</strong> pumping visibly crouches, stale grab state cannot affect a landing/riding pose, controls never remain held after focus loss, and a repeatable Halfpipe test suite runs in CI.</p>
+  </li>
+
+  <li>
+    <span class="priority">P0</span><strong>Make Nexus fail safely.</strong>
+    Construct the real <code>THREE.WebGLRenderer</code> once inside <code>try/catch</code> instead of relying on a throwaway capability probe. If construction fails, reveal the same accessible fallback used for no WebGL. Handle <code>webglcontextlost</code> by stopping animation and revealing fallback navigation. Pause rendering while hidden; under reduced motion, render on demand rather than running a full continuous loop.
+    <p class="criteria"><strong>Done when:</strong> probe success followed by renderer failure and a simulated context loss both leave usable HTML navigation, and hidden/reduced-motion states do not waste a full animation loop.</p>
+  </li>
+
+  <li>
+    <span class="priority">P0</span><strong>Add end-to-end deadlines and one authoritative <code>/api/ask</code> implementation.</strong>
+    Put an explicit abort deadline around the Worker upstream request and stream, the Terminal Pages function, and the browser client. Cancel abandoned streams and return a consistent retryable error. Then either extract one shared tested handler or make one endpoint authoritative and proxy the other; eliminate drift in validation, model selection, headers, rate limiting, and stream handling. Serialize or deliberately reject concurrent interactive <code>ask</code> commands so output cannot interleave.
+    <p class="criteria"><strong>Done when:</strong> stalled upstreams terminate predictably, client output remains ordered, both deployment paths share the same behavior, and tests cover validation, streaming, timeout, rate limiting, and upstream errors.</p>
+  </li>
+
+  <li>
+    <span class="priority">P0</span><strong>Complete the technical SEO release contract.</strong>
+    Re-audit production first because the August 17 live observations may have changed. Then close the source-to-production gap, normalize HTTP/www to the HTTPS apex with a one-hop method-preserving <code>308</code>, strictly validate <code>v</code>/<code>pv</code>, apply URL-level robots policy, add real b-card/c-terminal 404s and explicit error metadata everywhere, strip origin-only robots headers before deindexing Pages origins, and keep control files deterministic.
+    <p class="criteria"><strong>Done when:</strong> the response matrix below has Worker tests and two independent live smoke passes; twenty anonymous cache-busted homepage requests serve a-scroll; every unknown content path is a real 404; explicit distinct-experience URLs and all API responses are noindex; and the clean apex never inherits origin noindex.</p>
+  </li>
+
+  <li>
+    <span class="priority">P0</span><strong>Establish CI and reproducible tooling.</strong>
+    Add workflows for all Astro checks/builds, main Worker tests, Counter tests, new Halfpipe tests, Terminal TypeScript checks, shared-content verification, and the eventual SEO/route-contract checks. Make the shared check work from Git refs/checkouts rather than assuming sibling worktrees. Set every package engine to <code>&gt;=22.12.0</code>, add the environment's chosen version-manager config, pin Wrangler locally, and commit the lockfile.
+    <p class="criteria"><strong>Done when:</strong> a clean checkout can run the full matrix with pinned Node/deployment tooling and no developer-specific worktree layout.</p>
+  </li>
+
+  <li>
+    <span class="priority">P0</span><strong>Finish release-blocking device and accessibility QA.</strong>
+    Cover Chrome, Edge, Safari, and Firefox desktop plus iOS Safari and Android Chrome. Verify cross-document switching and fallback links; a-scroll pinning, anchors, Lenis, themes, scroll restoration, fine-pointer/coarse-pointer/multitouch behavior; Nexus carousel, focus, drag, tap, tilt, reduced motion, no-JS, no-WebGL; Halfpipe and Counter keyboard/touch/audio/restart/focus loss; and Blueprint path behavior. Counter still needs a real-device playtest.
+    <p class="criteria"><strong>Done when:</strong> the matrix, Lighthouse/runtime baselines, observed devices, failures, and accepted exceptions are recorded in durable documentation.</p>
+  </li>
 </ol>
 
-<p class="muted">This file is the only project plan. Detailed implementation plans should refine the next unfinished item here and update this queue when work ships.</p>
+<h2>Search visibility contract</h2>
+<p class="muted">This section replaces the separate SEO plan. Historical production counts from August 17 are intentionally not treated as current facts; repeat them before implementation and record exact deployment dates.</p>
+
+<table>
+  <thead>
+    <tr><th>Public request</th><th>Status/routing</th><th>Robots and canonical policy</th></tr>
+  </thead>
+  <tbody>
+    <tr><td><code>https://seanmh.com/</code>, no cookie</td><td><code>200</code>, a-scroll</td><td>Indexable and self-canonical.</td></tr>
+    <tr><td><code>/?v=a-scroll</code></td><td><code>200</code> now; optional clean redirect later</td><td>Homepage canonical; no special noindex.</td></tr>
+    <tr><td><code>/?v=b-card</code> or <code>/?v=c-terminal</code></td><td><code>200</code>, explicit presentation</td><td>May consolidate to the homepage because the profile content is substantially similar; monitor Google's selected canonical.</td></tr>
+    <tr><td><code>/?v=nexus</code> or either game</td><td><code>200</code>, explicit experience</td><td>Worker-applied <code>X-Robots-Tag: noindex</code>; no misleading homepage canonical.</td></tr>
+    <tr><td>Clean URL with valid <code>pv</code></td><td><code>200</code>, selected version</td><td>Private response; never derive noindex solely from the cookie.</td></tr>
+    <tr><td>Invalid/empty/ambiguous <code>pv</code></td><td>Serve a-scroll and expire the preference safely</td><td>Homepage policy; clearing response remains private.</td></tr>
+    <tr><td>Empty, unknown, differently cased, or repeated <code>v</code> on GET/HEAD</td><td><code>302</code> to the same URL with all <code>v</code> parameters removed, preserving unrelated parameters</td><td>No version cookie and no duplicate content response.</td></tr>
+    <tr><td>Invalid <code>v</code> on another non-API method</td><td><code>400</code>, <code>no-store</code></td><td>Do not redirect/replay a request body.</td></tr>
+    <tr><td>Unknown content path</td><td>Real <code>404</code> on every selected version</td><td>No canonical profile or ProfilePage markup.</td></tr>
+    <tr><td><code>/api/*</code></td><td>Preserve existing JSON/SSE status and method contracts; <code>v</code> is not routing input</td><td><code>X-Robots-Tag: noindex</code>, <code>no-store</code>, and <code>nosniff</code> on every success/error.</td></tr>
+    <tr><td><code>/systems/*</code>, future <code>/travel/*</code>, and future <code>/projects/*</code></td><td>Resolved before preference routing and invariant across cookies</td><td>Self-canonical public path; strip direct-origin noindex.</td></tr>
+    <tr><td>Direct production/preview <code>*.pages.dev</code></td><td>Normal origin response</td><td>Crawlable but <code>noindex</code>; never block the crawler from seeing that directive.</td></tr>
+    <tr><td>HTTP or <code>www</code></td><td>One-hop <code>308</code> preserving path, query, and method</td><td>Destination is the HTTPS apex equivalent.</td></tr>
+  </tbody>
+</table>
+
+<div class="guardrail">
+  <strong>Origin rollout order:</strong> deploy and test Worker stripping of upstream <code>X-Robots-Tag</code> before adding noindex headers to a Pages origin. Canary one origin, verify direct-origin noindex and clean apex stripping for HTML and assets, then continue. Roll back immediately if any canonical apex response returns noindex.
+</div>
+
+<details open>
+  <summary>SEO implementation and measurement backlog</summary>
+  <ol>
+    <li><strong>Deterministic controls:</strong> Worker-own or pin <code>/robots.txt</code>, both sitemap files, verification files, and the canonical social image before cookie routing; keep Cloudflare managed content signals coherent.</li>
+    <li><strong>Search Console:</strong> confirm whether a Domain property exists; record the earliest defensible dated baseline and its limitations; submit the sitemap, inspect the homepage, request indexing, and track selected canonical, indexed URLs, branded queries, and crawl errors. Bing import is optional.</li>
+    <li><strong>Public identity:</strong> owner chooses “Sean M Higgins,” “Sean M. Higgins,” or “Sean Higgins,” plus the headline role and publishable profile facts. Use the chosen form naturally in title, H1, opening copy, appropriate alt text, and metadata.</li>
+    <li><strong>Shared SEO head contract:</strong> explicit modes for canonical profile, duplicate presentation, nonindex experience, error, and indexable project/path app. Only the canonical profile emits <code>WebSite</code> plus supported <code>ProfilePage</code>/<code>Person</code> data. Use stable IDs and only visible, approved facts and verified <code>sameAs</code> URLs.</li>
+    <li><strong>Off-site identity:</strong> align the chosen name and canonical URL on maintained GitHub/LinkedIn profiles; do not create low-quality directory links.</li>
+    <li><strong>Safe caching:</strong> stop setting <code>pv=a-scroll</code> on an anonymous default document; refresh only after explicit selection or an already-valid cookie. Keep selected/invalid-cookie responses private, classify documents by response status/content type as well as request hints, preserve validators, and test isolation before public revalidation.</li>
+    <li><strong>Automated SEO contract:</strong> validate built metadata, structured-data parseability, origin <code>_headers</code>, sitemap membership, canonical host, route matrix, and new-version compliance. Keep Worker/dev-proxy resolution behavior synchronized.</li>
+    <li><strong>Social card:</strong> ship one stable 1200×630 apex card with absolute Open Graph/Twitter fields, dimensions, alt text, site name, and large-card mode. Distinct experiences get their own cards only with stable public URLs.</li>
+    <li><strong>Project content:</strong> create a cookie-invariant <code>/projects/</code> hub and three to five first-hand case studies (strong candidates: multiverse architecture, version switcher, terminal engine, Halfpipe, Counter). Each needs useful static content, unique metadata, self-canonical URL, sitemap inclusion, and ordinary internal links.</li>
+    <li><strong>Optional query cleanup:</strong> after the indexability matrix is safe, consider a validated state-setting route such as <code>/__version/b-card</code> that sets preference then redirects to the clean URL without breaking no-JS or transitions.</li>
+    <li><strong>AI crawler policy:</strong> document separate allow/block decisions for search retrieval, user-triggered retrieval, and training; keep robots and Cloudflare bot/WAF configuration aligned.</li>
+  </ol>
+  <p class="criteria"><strong>Review cadence:</strong> release day technical gates; T+7 crawl/render checks; T+28 selected canonical and query trend review; T+56–84 rolling performance comparison; quarterly fact, link, structured-data, sitemap, crawler-policy, and freshness audit.</p>
+</details>
+
+<h2>G Travel — active implementation</h2>
+<div class="callout">
+  <p><strong>Worktree state on August 27, 2026:</strong> <code>version/g-travel</code> is an uncommitted work in progress based on Blueprint. It contains a buildable Astro path app, lazy Three.js globe, static SVG fallback, Norway hub/itinerary/gallery shells, typed trip/photo data, sanitized HTML/PDF downloads, photo/PDF scripts, and four utility/schema tests. Local main-Worker, dev-proxy, Nexus, Blueprint-count, README, and sitemap changes are also present. Do not overwrite or discard these concurrent working-tree changes.</p>
+  <p><strong>Known unfinished gates:</strong> Sean must confirm the actual route, including any route implied by the Nexus miniature; the curated photos and metadata-free derivatives are absent; the gallery buttons do not yet open a keyboard-accessible lightbox; the archive still needs sensitive-pattern, self-containment, rights, and attribution review; browser/accessibility/privacy tests, Travel wiki documentation, commit review, deployment, and live smoke checks remain.</p>
+</div>
+
+<details open>
+  <summary>Travel product and content requirements</summary>
+  <ul>
+    <li>Make <code>/travel/</code> the canonical, indexable homepage. Support <code>/?v=g-travel</code> only as a <code>302</code> convenience redirect to <code>/travel/</code>; it must not read, set, or replace the portfolio cookie.</li>
+    <li>Use a custom Three.js cinematic atlas: dark vector globe, country boundaries, atmosphere, stars, restrained background, drag rotation, bounded zoom, idle motion, and an opening North Atlantic/Norway view. No live map/tile dependency.</li>
+    <li>Highlight explicit visited-country declarations and trip anchors. Dublin may appear in a route without marking Ireland visited. Selecting a country/trip reveals dates, summary, cover, and links to overview, itinerary, and photos.</li>
+    <li>The typed trip record must cover slug, dates, summary, visited ISO codes, accent, anchor, ordered waypoints and transport modes, links, cover, and publication state. Support multiple trips per country with distinct route colors.</li>
+    <li>Required pages/files: <code>/travel/</code>, Norway overview, itinerary, photos, sanitized downloadable HTML, and generated downloadable PDF.</li>
+    <li>The itinerary is the historical pre-trip plan; the globe is the confirmed actual route. Never substitute planned stops for observed travel. Keep unpublished route data out until Sean confirms it.</li>
+    <li>Launch the photo page with 12–20 curated images, authored alt/caption/location metadata, responsive output, and keyboard-accessible lightbox navigation.</li>
+    <li>Provide complete server-rendered navigation and a generated static SVG/poster map for JavaScript/WebGL failure. Respect reduced motion, pause while hidden, cap DPR, and load Three.js after the usable HTML shell.</li>
+  </ul>
+</details>
+
+<details open>
+  <summary>Travel privacy, archive, and media requirements</summary>
+  <ul>
+    <li>Copy only a reviewed, sanitized archival version of <code>oslo_lofoten_moto_trip.html</code>. Remove confirmation codes, private addresses/hosts, contact/account data, payment/insurance identifiers, and private booking links.</li>
+    <li>Retain historical dates, public businesses, route guidance, and costs only after review. Label the download as a dated pre-trip snapshot whose schedules and prices may be obsolete.</li>
+    <li>Audit image reuse rights. Keep only compatible attributed material; remove or replace lodging/vendor imagery without clear publication permission.</li>
+    <li>Make the downloadable HTML self-contained and generate a print-ready PDF with a reproducible headless-browser script.</li>
+    <li>Add a gitignored photo-intake directory and a processing script that orientation-corrects derivatives and strips EXIF/GPS. Commit only processed assets. Public location/order/alt/caption/featured state comes from a manifest, never EXIF.</li>
+  </ul>
+</details>
+
+<details open>
+  <summary>Travel routing, integration, tests, and acceptance</summary>
+  <ul>
+    <li><strong>Implemented locally; review and release:</strong> deploy <code>version/g-travel</code> as <code>seanmh-travel.pages.dev</code>, with an origin-only noindex header that the public Worker strips.</li>
+    <li><strong>Implemented locally; keep covered:</strong> the main Worker and dev proxy use a path-app manifest for <code>/systems/*</code> and <code>/travel/*</code>, including namespace precedence, prefix stripping, redirect rewriting, cookie isolation, origin-header stripping, public document caching, and a non-sticky <code>?v=g-travel</code> alias.</li>
+    <li><strong>Implemented locally; review and release:</strong> Travel uses port <code>4328</code>, appears in the main README and Nexus with a miniature globe, remains outside the résumé switcher, and updates Blueprint from seven to eight experiences.</li>
+    <li><strong>Implemented locally; verify at the edge:</strong> the Worker-owned sitemap includes Travel landing, Norway hub, itinerary, and gallery.</li>
+    <li>Test lat/lon conversion, antimeridian interpolation, country aggregation, unique colors, selection state, schema/target/photo validation, and explicit visited-country rules.</li>
+    <li>Add browser coverage for mouse, touch, keyboard selection, popover/bottom sheet, lightbox, reduced motion, WebGL failure, no-JS navigation, and visibility pause.</li>
+    <li>Extend Worker tests for path canonicalization, nested pages/assets, query retention, redirect rewriting, cookies, the <code>?v=g-travel</code> alias, origin noindex stripping, sitemap entries, and unchanged default routing.</li>
+    <li>Verify sanitized HTML self-containment, sensitive-pattern absence, PDF generation, retained-image attribution, and no committed GPS metadata.</li>
+  </ul>
+  <p class="criteria"><strong>Acceptance:</strong> a usable HTML shell precedes Three.js; the route is confirmed rather than inferred; the gallery and downloads are complete; representative phone/desktop interaction is smooth and accessible; privacy checks pass; and Travel tests, Astro check/build, main Worker tests, shared checks, and both Wrangler dry runs are clean.</p>
+</details>
+
+<h2>P1 — branch quality and maintainability</h2>
+<ol class="todo">
+  <li><span class="priority">P1</span><strong>a-scroll interaction hardening.</strong> Track the initiating primary <code>pointerId</code> through tap gestures so a second touch cannot complete the first. Wrap theme storage reads/writes so denied storage cannot break initialization or toggling. Add fine-pointer, coarse-pointer, multitouch-cancel, and storage-denial tests.</li>
+  <li><span class="priority">P1</span><strong>b-card performance and lifecycle.</strong> Defer Three.js until after first content render/idle/intent, profile the 4,000–16,000-particle loop and per-frame randomness, and clear pointer-bowing state on visibility/cancellation paths.</li>
+  <li><span class="priority">P1</span><strong>Game persistence, accessibility, and lifecycle.</strong> Structurally validate Halfpipe and Counter persisted data rather than shallow-merging any parseable JSON. Clear Halfpipe leaderboard timers in <code>finally</code>. Add a canvas label and live score/trick announcements to Halfpipe. Extend Counter coverage to input, leaderboard UI/API, and cleanup.</li>
+  <li><span class="priority">P1</span><strong>Nexus cleanup and bundle work.</strong> Replace deprecated <code>THREE.Clock</code>, remove unused inherited components/variables such as <code>isEducation</code>, dynamically import Three.js after the fallback HTML is usable, and decide/document the accepted bundle budget.</li>
+  <li><span class="priority">P1</span><strong>Version/route single source of truth.</strong> Validate names, origins, public controls, path apps, Nexus destinations, sitemap entries, and dev-proxy mappings from one manifest or one shared table of tests.</li>
+  <li><span class="priority">P1</span><strong>Refresh branch READMEs and operating docs.</strong> Replace the copied Halfpipe README and Astro-starter Nexus README; update the content README for all enforced consumers; keep main README, wiki, ports, Node requirements, and deployment behavior aligned. Remove obsolete Vercel configuration where Cloudflare is the only supported path.</li>
+  <li><span class="priority">P1</span><strong>Baseline security headers.</strong> Inventory external resources and add appropriate routing-layer headers, including a workable Content Security Policy, without breaking fonts, Anthropic streaming, Canvas, WebGL, or path apps.</li>
+  <li><span class="priority">P1</span><strong>Bidirectional bridge transition.</strong> Design a distinct portfolio↔Nexus warp/iris treatment that remains ordinary navigation with reduced motion, unsupported View Transitions, or JavaScript disabled.</li>
+</ol>
+
+<h2>P2/P3 — planned expansion</h2>
+<ol class="todo">
+  <li><span class="priority later">P2</span><strong>Hall of Versions and reviewed self-redesign pipeline.</strong> Store screenshot, generation number, date, prompt, preview, and outcome; generate candidates on a cadence; publish only through reviewable PRs and explicit approval.</li>
+  <li><span class="priority later">P2</span><strong>Choose one live-data experience.</strong> Compare a public A/B scoreboard, visitor trace/pixel wall, and live “Now” dashboard; proceed only if portfolio value justifies privacy, data, cost, and maintenance.</li>
+  <li><span class="priority later">P3</span><strong>Launch and operational polish.</strong> Add privacy-conscious assignment/switch analytics if wanted, complete an accessibility audit, monitor secrets, availability, model spend, rate limits, and data stores, and maintain custom 404 parity.</li>
+</ol>
+
+<h2>Owner decisions still required</h2>
+<table>
+  <thead><tr><th>Decision</th><th>Needed before</th></tr></thead>
+  <tbody>
+    <tr><td>Exact public name, headline role, and publishable profile facts</td><td>SEO identity/structured-data release</td></tr>
+    <tr><td>Approved GitHub, LinkedIn, and any additional <code>sameAs</code> profiles</td><td>Shared SEO head contract</td></tr>
+    <tr><td>Existing Search Console/Bing property status</td><td>Measurement setup</td></tr>
+    <tr><td>Search/retrieval/training crawler policy</td><td>Robots and Cloudflare bot configuration</td></tr>
+    <tr><td>Publishable project/employer detail</td><td>Case-study launch</td></tr>
+    <tr><td>Confirmed Norway route, photo selection/captions, and permitted itinerary assets</td><td>G Travel publication</td></tr>
+    <tr><td>Whether the games need another in-product entry beyond Nexus and their reciprocal links</td><td>Discovery/navigation changes</td></tr>
+  </tbody>
+</table>
+
+<p class="muted">Do not create another standing plan file. Update this document as work changes state, and move durable implementation facts into the wiki before deleting any temporary execution notes.</p>
 
 </body>
 </html>
