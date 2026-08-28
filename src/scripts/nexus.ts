@@ -603,6 +603,82 @@ function buildBlueprint(color: THREE.Color): Interior {
   };
 }
 
+// g-travel: a tiny atlas with latitude/longitude guides, a warm Norway marker,
+// and a route line lifting just off the surface.
+function buildGlobe(color: THREE.Color): Interior {
+  const group = new THREE.Group();
+  const globe = new THREE.Group();
+  const radius = 0.5;
+  const lineMaterial = new THREE.LineBasicMaterial({
+    color,
+    transparent: true,
+    opacity: 0.42,
+    blending: THREE.AdditiveBlending,
+    depthWrite: false,
+  });
+  globe.add(new THREE.Mesh(
+    new THREE.SphereGeometry(radius, 32, 24),
+    new THREE.MeshBasicMaterial({
+      color: color.clone().multiplyScalar(0.24),
+      wireframe: true,
+      transparent: true,
+      opacity: 0.32,
+      depthWrite: false,
+    })
+  ));
+
+  const at = (lat: number, lon: number, r = radius) => {
+    const latitude = THREE.MathUtils.degToRad(lat);
+    const longitude = THREE.MathUtils.degToRad(lon);
+    return new THREE.Vector3(
+      r * Math.cos(latitude) * Math.sin(longitude),
+      r * Math.sin(latitude),
+      r * Math.cos(latitude) * Math.cos(longitude)
+    );
+  };
+
+  for (const lat of [-45, 0, 45]) {
+    const points = Array.from({ length: 49 }, (_, index) => at(lat, (index / 48) * 360 - 180));
+    globe.add(new THREE.Line(new THREE.BufferGeometry().setFromPoints(points), lineMaterial));
+  }
+  for (const lon of [-120, -60, 0, 60, 120]) {
+    const points = Array.from({ length: 33 }, (_, index) => at((index / 32) * 180 - 90, lon));
+    globe.add(new THREE.Line(new THREE.BufferGeometry().setFromPoints(points), lineMaterial));
+  }
+
+  const routePoints = [
+    at(38.9, -77.0, 0.515),
+    at(53.3, -6.2, 0.59),
+    at(59.9, 10.8, 0.56),
+    at(67.3, 14.4, 0.53),
+    at(67.95, 13.13, 0.52),
+  ];
+  const route = new THREE.Line(
+    new THREE.BufferGeometry().setFromPoints(new THREE.CatmullRomCurve3(routePoints).getPoints(42)),
+    new THREE.LineBasicMaterial({ color: 0xffffff, transparent: true, opacity: 0.86 })
+  );
+  globe.add(route);
+
+  const marker = new THREE.Mesh(
+    new THREE.SphereGeometry(0.04, 12, 12),
+    new THREE.MeshBasicMaterial({ color: 0xffffff, blending: THREE.AdditiveBlending })
+  );
+  marker.position.copy(at(67.95, 13.13, 0.54));
+  globe.add(marker);
+  globe.rotation.set(-0.18, -0.45, 0.04);
+  group.add(globe);
+
+  return {
+    object: group,
+    update(time_) {
+      globe.rotation.y = -0.45 + time_ * 0.16;
+      const pulse = 0.8 + Math.sin(time_ * 4) * 0.22;
+      marker.scale.setScalar(pulse);
+      group.rotation.z = Math.sin(time_ * 0.2) * 0.06;
+    },
+  };
+}
+
 const INTERIOR_BUILDERS: Record<VersionDef["interior"], (color: THREE.Color) => Interior> = {
   aurora: buildAurora,
   cards: buildCards,
@@ -610,6 +686,7 @@ const INTERIOR_BUILDERS: Record<VersionDef["interior"], (color: THREE.Color) => 
   halfpipe: buildHalfpipe,
   ring: buildRing,
   blueprint: buildBlueprint,
+  globe: buildGlobe,
 };
 
 // ---------------------------------------------------------------------------

@@ -10,7 +10,7 @@ export interface VersionDef {
   blurb: string;
   color: string;
   /** Which miniature world lives inside this version's orb. */
-  interior: "aurora" | "cards" | "rain" | "halfpipe" | "ring" | "blueprint";
+  interior: "aurora" | "cards" | "rain" | "halfpipe" | "ring" | "blueprint" | "globe";
 }
 
 export const VERSIONS: readonly VersionDef[] = [
@@ -73,5 +73,15 @@ export const VERSIONS: readonly VersionDef[] = [
     blurb: "a living system map",
     color: "#7ee6c2",
     interior: "blueprint",
+  },
+  {
+    name: "g-travel",
+    href: "/travel/",
+    glyph: "◎",
+    label: "G Travel",
+    branch: "version/g-travel",
+    blurb: "a living travel atlas",
+    color: "#ffb45b",
+    interior: "globe",
   },
 ];
