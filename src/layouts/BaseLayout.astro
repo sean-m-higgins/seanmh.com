@@ -1,5 +1,7 @@
 ---
 import "../styles/global.css";
+import "../styles/transitions.css";
+import VersionSwitcher from "../components/VersionSwitcher.astro";
 
 interface Props {
   title: string;
@@ -62,5 +64,6 @@ const structuredData = {
   <body>
     <a class="skip-link" href="#main-content">Skip to the system map</a>
     <slot />
+    <VersionSwitcher current="f-blueprint" />
   </body>
 </html>
