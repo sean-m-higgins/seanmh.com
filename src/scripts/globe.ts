@@ -309,8 +309,13 @@ export function startGlobe() {
       article.toggleAttribute("data-active", article.dataset.trip === slug);
     });
     if (status) {
+      // Announce the shape of the route, not its colour: a hex code told a
+      // screen reader nothing, and now that routes publish it is actually read.
+      const stops = new Set(
+        trip.route.waypoints.map((point) => `${point.latitude},${point.longitude}`),
+      ).size;
       status.textContent = trip.route.published
-        ? `${trip.title} selected. Its route is shown in ${trip.route.color}.`
+        ? `${trip.title} selected. Its route is drawn on the globe through ${stops} stops.`
         : `${trip.title} selected. Its actual route is awaiting confirmation.`;
     }
   };

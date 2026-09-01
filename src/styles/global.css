@@ -365,12 +365,21 @@ em { color: var(--amber-pale); font-family: var(--font-display); font-weight: 40
 }
 .manifesto h2 { max-width: 14ch; margin-bottom: 1.8rem; font-size: clamp(2.7rem, 5vw, 5.5rem); font-weight: 500; letter-spacing: -0.055em; line-height: 0.98; }
 .manifesto div > p { max-width: 46rem; color: var(--mist); font-size: 1.05rem; }
-.featured-journey { display: grid; margin-bottom: clamp(7rem, 11vw, 11rem); grid-template-columns: 1.35fr 0.8fr; background: #0a1c25; }
-.featured-art { position: relative; min-height: 36rem; overflow: hidden; }
+.journeys { padding-bottom: clamp(5rem, 9vw, 9rem); border-top: 1px solid var(--line); }
+.journeys-heading { padding: clamp(5rem, 9vw, 9rem) 0 clamp(2.5rem, 5vw, 4rem); }
+.journeys-heading h2 { margin: 0; font-size: clamp(2.4rem, 4.5vw, 4.4rem); font-weight: 500; letter-spacing: -.055em; line-height: .98; }
+.featured-journey { display: grid; margin-bottom: clamp(3rem, 6vw, 5rem); grid-template-columns: 1.35fr 0.8fr; background: #0a1c25; }
+/* Alternate which side the artwork sits on so a stack of journeys has rhythm.
+   The columns swap with it, so the art keeps the wide half either way. */
+.featured-journey:nth-child(even) { grid-template-columns: 0.8fr 1.35fr; }
+.featured-journey:nth-child(even) .featured-art { order: 2; }
+.featured-journey:last-child { margin-bottom: 0; }
+.featured-art { position: relative; min-height: 32rem; overflow: hidden; }
 .featured-art svg { display: block; width: 100%; height: 100%; object-fit: cover; }
 .featured-art span { position: absolute; bottom: 1rem; left: 1rem; color: rgba(255,255,255,.6); font-family: var(--font-mono); font-size: 0.57rem; letter-spacing: 0.12em; }
 .featured-copy { display: flex; padding: clamp(2rem, 5vw, 5.5rem); flex-direction: column; justify-content: center; }
-.featured-copy h2 { margin-bottom: 1rem; font-size: clamp(2.5rem, 4vw, 4.5rem); font-weight: 500; letter-spacing: -0.06em; line-height: 0.95; }
+.featured-copy h3 { margin-bottom: 1rem; font-size: clamp(2rem, 3.2vw, 3.4rem); font-weight: 500; letter-spacing: -0.055em; line-height: 0.98; }
+.featured-copy .eyebrow { color: var(--trip-accent, var(--aqua)); }
 .featured-copy > p:not(.eyebrow) { color: var(--mist); }
 .featured-copy dl { margin: 1rem 0 2rem; }
 .featured-copy dl div { display: flex; padding: 0.55rem 0; justify-content: space-between; border-top: 1px solid var(--line); gap: 1rem; }
@@ -388,9 +397,11 @@ em { color: var(--amber-pale); font-family: var(--font-display); font-weight: 40
 .journal-meta { display: flex; margin-top: 2rem; gap: 1.4rem; color: var(--faint); font-family: var(--font-mono); font-size: .59rem; letter-spacing: .08em; text-transform: uppercase; }
 .journal-map { align-self: stretch; min-height: 42rem; }
 .journal-map svg { width: 100%; height: 100%; }
-.norway-shape { fill: url(#map-fill); stroke: rgba(145,211,220,.45); stroke-width: 2; }
-.planned-line { fill: none; stroke: var(--amber); stroke-width: 3; stroke-linecap: round; stroke-dasharray: 2 12; }
+.trip-land { stroke: rgba(145,211,220,.16); stroke-width: 1.5; }
+.trip-land.visited { stroke: rgba(145,211,220,.45); stroke-width: 2; }
+.trip-line { fill: none; stroke: var(--route, var(--amber)); stroke-width: 3; stroke-linecap: round; stroke-linejoin: round; stroke-dasharray: 2 12; }
 .map-stop circle { fill: var(--night); stroke: var(--amber-pale); stroke-width: 3; }
+.map-leader { fill: none; stroke: var(--faint); stroke-width: 1.5; }
 .map-stop text { fill: var(--mist); font-family: var(--font-mono); font-size: 15px; letter-spacing: 2px; text-transform: uppercase; }
 .map-stop.anchor circle { fill: var(--amber); filter: drop-shadow(0 0 8px var(--amber)); }
 .map-disclaimer { fill: var(--faint); font-family: var(--font-mono); font-size: 9px; letter-spacing: 1.5px; }

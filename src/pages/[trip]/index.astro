@@ -1,0 +1,100 @@
+---
+import BaseLayout from "../../layouts/BaseLayout.astro";
+import SiteHeader from "../../components/SiteHeader.astro";
+import SiteFooter from "../../components/SiteFooter.astro";
+import TripMap from "../../components/TripMap.astro";
+import { countries, trips } from "../../content/trips.ts";
+import { uniqueStops } from "../../scripts/trip-map.mjs";
+
+export function getStaticPaths() {
+  return trips.map((trip) => ({ params: { trip: trip.slug }, props: { trip } }));
+}
+
+const { trip } = Astro.props;
+
+const where = countries
+  .filter((c) => trip.visitedCountries.includes(c.iso2))
+  .map((c) => c.name)
+  .join(" · ");
+
+const hasDocument = Boolean(trip.links.pdfDownload || trip.links.htmlDownload);
+const archivedOn = new Date(`${trip.dateEnd}T00:00:00Z`).toLocaleDateString("en-US", {
+  month: "long",
+  year: "numeric",
+  timeZone: "UTC",
+});
+
+// The photo door names the places the edit will come from, so it says something
+// specific per trip instead of repeating one sentence four times.
+const stopNames = uniqueStops(trip.route.waypoints).map((s: { label: string }) => s.label);
+const photoBlurb = stopNames.length > 1
+  ? `A small edit from ${stopNames.slice(0, -1).join(", ")} and ${stopNames.at(-1)}.`
+  : `A small edit from ${trip.anchor.label}.`;
+
+const title = `${trip.title} — ${trip.shortTitle} | Travel`;
+---
+
+<BaseLayout title={title} description={trip.summary} canonicalPath={trip.links.overview} type="article">
+  <SiteHeader compact />
+  <main id="main-content" class="journal">
+    <header class="journal-hero">
+      <div class="journal-heading">
+        <a class="back-link" href="/travel/"><span aria-hidden="true">←</span> Return to the atlas</a>
+        <p class="eyebrow">Journey {trip.number} / {where}</p>
+        <h1>{trip.heading.lead}<br /><em>{trip.heading.emphasis}</em></h1>
+        <p>{trip.summary}</p>
+        <div class="journal-meta">
+          <span>{trip.dateLabel}</span>
+          <span>{trip.anchor.label}</span>
+        </div>
+      </div>
+      <TripMap trip={trip} />
+    </header>
+
+    <section class="journal-intro">
+      <p class="eyebrow">The shape of it</p>
+      <div>
+        <h2>{trip.intro.heading}</h2>
+        <p>{trip.intro.body}</p>
+      </div>
+    </section>
+
+    <section class="journal-doors" aria-label={`${trip.shortTitle} sections`}>
+      <div class="journal-door">
+        <span>01 / Before</span>
+        {hasDocument ? (
+          <Fragment>
+            <h2>The itinerary</h2>
+            <p>The route logic, day-by-day plan, and packing notes, kept as the document stood before departure.</p>
+            <div class="download-actions">
+              {trip.links.pdfDownload && (
+                <a class="button button-primary" href={trip.links.pdfDownload} download>Download PDF <span aria-hidden="true">↓</span></a>
+              )}
+              {trip.links.htmlDownload && (
+                <a class="button" href={trip.links.htmlDownload}>Read it in the browser <span aria-hidden="true">↗</span></a>
+              )}
+            </div>
+            <p class="archive-warning">Archived {archivedOn} · schedules, prices, and availability need fresh verification.</p>
+          </Fragment>
+        ) : (
+          <Fragment>
+            <h2>No itinerary</h2>
+            <p>This journey came before the habit of writing the plan down, so there is no document to preserve. A basic outline may be added later if it proves worth having.</p>
+          </Fragment>
+        )}
+      </div>
+      <a class="journal-door" href={trip.links.photos}>
+        <span>02 / After</span>
+        <h2>The photographs</h2>
+        <p>{photoBlurb}</p>
+        <i aria-hidden="true">↗</i>
+      </a>
+    </section>
+
+    <aside class="truth-note">
+      <span aria-hidden="true">◎</span>
+      <div><strong>{trip.note.title}</strong><p>{trip.note.body}</p></div>
+    </aside>
+  </main>
+  <SiteFooter />
+</BaseLayout>

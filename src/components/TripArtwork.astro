@@ -1,0 +1,167 @@
+---
+// One flat, geometric scene per journey. Deliberately illustrative rather than
+// photographic: the photo galleries are still empty, and a drawn place holds
+// the page without pretending to be a record of it.
+interface Props {
+  slug: string;
+}
+
+const { slug } = Astro.props;
+---
+
+{slug === "norway-2026" && (
+  <svg viewBox="0 0 900 620" preserveAspectRatio="xMidYMid slice">
+    <defs>
+      <linearGradient id="no-sky" x1="0" y1="0" x2="0" y2="1">
+        <stop offset="0" stop-color="#133245" />
+        <stop offset="1" stop-color="#e5985f" />
+      </linearGradient>
+      <linearGradient id="no-water" x1="0" y1="0" x2="1" y2="1">
+        <stop stop-color="#0d2c3b" />
+        <stop offset="1" stop-color="#19475a" />
+      </linearGradient>
+    </defs>
+    <rect width="900" height="620" fill="url(#no-sky)" />
+    <circle cx="680" cy="145" r="68" fill="#ffd5a0" opacity=".8" />
+    <path d="M0 330L125 178l78 104 104-176 114 204 87-112 94 132 110-167 188 190v267H0z" fill="#102c38" />
+    <path d="M0 379l154-82 118 47 112-66 151 72 121-44 244 68v246H0z" fill="url(#no-water)" />
+    <path d="M0 430c155-36 287 48 431 0 143-48 279 35 469-6v196H0z" fill="#0a202a" opacity=".65" />
+    <g transform="translate(540 360)">
+      <rect x="0" y="38" width="130" height="74" fill="#a93b31" />
+      <path d="M-12 40L66 0l78 40z" fill="#5e211e" />
+      <rect x="50" y="66" width="28" height="46" fill="#e2b872" />
+      <path d="M-28 112h190l34 30H-52z" fill="#162a2d" />
+    </g>
+    <g fill="none" stroke="#f7bd77" stroke-width="4" stroke-linecap="round" stroke-dasharray="1 15" opacity=".9">
+      <path d="M181 502c119-100 223-75 322-125" />
+    </g>
+  </svg>
+)}
+
+{slug === "france-2026" && (
+  <svg viewBox="0 0 900 620" preserveAspectRatio="xMidYMid slice">
+    <defs>
+      <linearGradient id="fr-sky" x1="0" y1="0" x2="0" y2="1">
+        <stop offset="0" stop-color="#14384f" />
+        <stop offset="1" stop-color="#9fd0e0" />
+      </linearGradient>
+      <linearGradient id="fr-sea" x1="0" y1="0" x2="0" y2="1">
+        <stop stop-color="#1d6f8c" />
+        <stop offset="1" stop-color="#0b3244" />
+      </linearGradient>
+    </defs>
+    <rect width="900" height="620" fill="url(#fr-sky)" />
+    <circle cx="176" cy="150" r="52" fill="#fdf1d6" opacity=".9" />
+    {/* Alps: far ridge, then a nearer massif with snow caps */}
+    <path d="M0 296l118-118 92 96 96-128 128 150 104-92 116 128 116-96 130 122v82H0z" fill="#3d5f74" opacity=".55" />
+    <path d="M0 352l150-152 118 128 122-160 150 186 122-108 148 154v72H0z" fill="#22485c" />
+    <g fill="#eaf6fb">
+      <path d="M150 200l52 56-30 10-24-16-22 12z" />
+      <path d="M390 168l64 79-38 8-28-22-24 14z" />
+      <path d="M660 200l58 60-34 10-26-18z" />
+    </g>
+    {/* Coast and Mediterranean */}
+    <path d="M0 392l180 26 168-20 200 30 176-24 176 20v176H0z" fill="#123c4f" />
+    <path d="M0 430l900-16v206H0z" fill="url(#fr-sea)" />
+    <g fill="#0a2a39" opacity=".55">
+      <path d="M0 452c160 30 260-22 420 4s300-24 480 2v162H0z" />
+    </g>
+    {/* Headland town */}
+    <g transform="translate(96 372)" fill="#e8d7bd">
+      <rect x="0" y="24" width="26" height="34" /><rect x="34" y="10" width="22" height="48" />
+      <rect x="64" y="30" width="30" height="28" /><rect x="102" y="18" width="20" height="40" />
+    </g>
+    <g fill="#12333f"><path d="M0 400h230l-14 30H0z" /></g>
+    {/* A single sail on the water */}
+    <g transform="translate(690 470)" fill="#f2fbff" opacity=".92">
+      <path d="M0 0l30 44H0z" /><path d="M-26 48h64l-10 12h-44z" fill="#dcecf3" />
+    </g>
+    <g fill="none" stroke="#8ee6f0" stroke-width="4" stroke-linecap="round" stroke-dasharray="1 15" opacity=".9">
+      <path d="M150 520c150-40 210-150 330-176s250 44 348-24" />
+    </g>
+  </svg>
+)}
+
+{slug === "spain-2025" && (
+  <svg viewBox="0 0 900 620" preserveAspectRatio="xMidYMid slice">
+    <defs>
+      <linearGradient id="es25-sky" x1="0" y1="0" x2="0" y2="1">
+        <stop offset="0" stop-color="#2b2350" />
+        <stop offset=".55" stop-color="#b0628a" />
+        <stop offset="1" stop-color="#f0b070" />
+      </linearGradient>
+    </defs>
+    <rect width="900" height="620" fill="url(#es25-sky)" />
+    <circle cx="242" cy="336" r="76" fill="#ffe6b4" opacity=".85" />
+    {/* Distant rooftops */}
+    <path d="M0 420l70-34 58 22 74-30 66 26 88-34 72 28 78-24 96 32 104-28 94 30v212H0z" fill="#5d3355" opacity=".7" />
+    {/* The tower, set against the sun */}
+    <g transform="translate(596 138)" fill="#3d2340">
+      <rect x="0" y="96" width="104" height="326" />
+      <rect x="12" y="60" width="80" height="40" />
+      <rect x="30" y="18" width="44" height="46" />
+      <path d="M52 0l22 20H30z" fill="#e6a45c" />
+      <g fill="#7a4a63">
+        <rect x="20" y="140" width="24" height="52" rx="12" />
+        <rect x="60" y="140" width="24" height="52" rx="12" />
+        <rect x="20" y="222" width="24" height="52" rx="12" />
+        <rect x="60" y="222" width="24" height="52" rx="12" />
+      </g>
+    </g>
+    {/* Arcade of horseshoe arches */}
+    <g transform="translate(0 422)" fill="#2e1c33">
+      <rect width="900" height="198" />
+      <g fill="#7d4a68" opacity=".55">
+        <path d="M60 150V78a34 34 0 0168 0v72z" /><path d="M188 150V78a34 34 0 0168 0v72z" />
+        <path d="M316 150V78a34 34 0 0168 0v72z" /><path d="M444 150V78a34 34 0 0168 0v72z" />
+        <path d="M572 150V78a34 34 0 0168 0v72z" /><path d="M700 150V78a34 34 0 0168 0v72z" />
+        <path d="M828 150V78a34 34 0 0168 0v72z" />
+      </g>
+    </g>
+    <g fill="none" stroke="#ffcf9a" stroke-width="4" stroke-linecap="round" stroke-dasharray="1 15" opacity=".85">
+      <path d="M92 388c126-58 212 26 330-30s224 22 388-52" />
+    </g>
+  </svg>
+)}
+
+{slug === "spain-2014" && (
+  <svg viewBox="0 0 900 620" preserveAspectRatio="xMidYMid slice">
+    <defs>
+      <linearGradient id="es14-sky" x1="0" y1="0" x2="0" y2="1">
+        <stop offset="0" stop-color="#173a4e" />
+        <stop offset=".6" stop-color="#5d6f7e" />
+        <stop offset="1" stop-color="#e0b183" />
+      </linearGradient>
+    </defs>
+    <rect width="900" height="620" fill="url(#es14-sky)" />
+    <circle cx="726" cy="176" r="46" fill="#fdeccd" opacity=".7" />
+    {/* Meseta ridges behind the town */}
+    <path d="M0 372l160-52 148 30 154-46 152 40 146-34 140 44v266H0z" fill="#2c4152" opacity=".6" />
+    {/* Gothic cathedral: twin openwork spires, as at Burgos */}
+    <g transform="translate(300 96)" fill="#1e2f3d">
+      <path d="M60 120L84 0l24 120z" /><path d="M192 120L216 0l24 120z" />
+      <rect x="52" y="120" width="64" height="70" /><rect x="184" y="120" width="64" height="70" />
+      <rect x="30" y="190" width="240" height="216" />
+      <path d="M150 148l58 46h-116z" fill="#31485b" />
+      <circle cx="150" cy="252" r="30" fill="#e3b98a" opacity=".85" />
+      <path d="M120 406v-70a30 30 0 0160 0v70z" fill="#101d27" />
+      <g fill="#33485c">
+        <rect x="56" y="300" width="20" height="58" rx="10" />
+        <rect x="224" y="300" width="20" height="58" rx="10" />
+      </g>
+    </g>
+    {/* Plaza rooftops either side */}
+    <g fill="#243747">
+      <path d="M0 330l64-40 62 30 60-24 56 28v208H0z" />
+      <path d="M596 344l70-34 66 28 72-26 96 34v186H596z" />
+    </g>
+    <g fill="#8f5a4a">
+      <path d="M0 322l64-40 62 30-4 10-58-28-64 38z" /><path d="M596 336l70-34 66 28-4 10-62-26-70 32z" />
+    </g>
+    {/* Plaza floor */}
+    <path d="M0 502h900v118H0z" fill="#1a2733" />
+    <g fill="none" stroke="#f2a98a" stroke-width="4" stroke-linecap="round" stroke-dasharray="1 15" opacity=".9">
+      <path d="M96 566c150-46 236 6 350-38s250 20 366-46" />
+    </g>
+  </svg>
+)}

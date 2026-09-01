@@ -5,6 +5,9 @@ import { validateTravelData } from "../scripts/globe-utils.mjs";
 const globeData = { countries, trips };
 const contentErrors = validateTravelData(countries, trips);
 if (contentErrors.length > 0) throw new Error(`Invalid travel content:\n${contentErrors.join("\n")}`);
+
+// A journey whose route is not yet confirmed is still being written up.
+const pending = trips.filter((trip) => !trip.route.published).length;
 ---
 
 <section id="atlas" class="atlas" aria-labelledby="atlas-title">
@@ -15,9 +18,9 @@ if (contentErrors.length > 0) throw new Error(`Invalid travel content:\n${conten
       Spin the globe. Visited countries hold the stories; each route remembers a different way through.
     </p>
     <div class="atlas-stats" aria-label="Travel archive summary">
-      <div><strong>{countries.length.toString().padStart(2, "0")}</strong><span>country</span></div>
-      <div><strong>{trips.length.toString().padStart(2, "0")}</strong><span>journey</span></div>
-      <div><strong>01</strong><span>story developing</span></div>
+      <div><strong>{countries.length.toString().padStart(2, "0")}</strong><span>{countries.length === 1 ? "country" : "countries"}</span></div>
+      <div><strong>{trips.length.toString().padStart(2, "0")}</strong><span>{trips.length === 1 ? "journey" : "journeys"}</span></div>
+      <div><strong>{pending.toString().padStart(2, "0")}</strong><span>{pending === 1 ? "story developing" : "stories developing"}</span></div>
     </div>
   </div>
 

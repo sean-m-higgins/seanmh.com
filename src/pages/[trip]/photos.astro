@@ -1,0 +1,134 @@
+---
+import BaseLayout from "../../layouts/BaseLayout.astro";
+import SiteHeader from "../../components/SiteHeader.astro";
+import SiteFooter from "../../components/SiteFooter.astro";
+import { trips } from "../../content/trips.ts";
+import { photosForTrip } from "../../content/photos.ts";
+import { uniqueStops } from "../../scripts/trip-map.mjs";
+import { Picture } from "astro:assets";
+
+export function getStaticPaths() {
+  return trips.map((trip) => ({ params: { trip: trip.slug }, props: { trip } }));
+}
+
+const { trip } = Astro.props;
+const photos = photosForTrip(trip.slug);
+
+// The empty contact sheet names this trip's own stops rather than a fixed set.
+const stops = uniqueStops(trip.route.waypoints).map((s: { label: string }) => s.label);
+const frames = (stops.length > 0 ? stops : [trip.anchor.label]).slice(0, 4);
+while (frames.length < 4) frames.push("");
+
+const title = `${trip.shortTitle} Photographs | Travel`;
+const description = `A concise photographic edit from ${trip.title}.`;
+---
+
+<BaseLayout title={title} description={description} canonicalPath={trip.links.photos} type="article">
+  <SiteHeader compact />
+  <main id="main-content" class="photo-journal">
+    <header class="photo-hero">
+      <a class="back-link" href={trip.links.overview}><span aria-hidden="true">←</span> {trip.shortTitle}</a>
+      <p class="eyebrow">After / Contact sheet {trip.number}</p>
+      <h1>{trip.heading.lead}<br /><em>in photographs.</em></h1>
+      <p>A deliberately small edit from the journey. The photographs are being selected from the full roll before they enter the public archive.</p>
+    </header>
+
+    {photos.length > 0 ? (
+      <div class="photo-grid">
+        {photos.map((photo, index) => (
+          <figure class:list={[{ wide: photo.width > photo.height * 1.35, tall: photo.height > photo.width * 1.2 }]}>
+            <button
+              type="button"
+              data-photo={index}
+              data-location={photo.location ?? ""}
+              data-caption={photo.caption}
+              aria-label={`Open photograph: ${photo.alt}`}
+            >
+              <Picture
+                src={photo.src}
+                formats={["avif", "webp"]}
+                widths={[480, 768, 1200, 1800]}
+                sizes="(max-width: 760px) 100vw, 66vw"
+                alt={photo.alt}
+                loading={index < 2 ? "eager" : "lazy"}
+              />
+            </button>
+            <figcaption><span>{photo.location ?? ""}</span>{photo.caption}</figcaption>
+          </figure>
+        ))}
+      </div>
+    ) : (
+      <section class="contact-sheet-empty" aria-labelledby="edit-title">
+        {frames.map((label, index) => (
+          <div class="film-frame">
+            <span>{String(index + 1).padStart(2, "0")}</span><i></i>
+            <small>{index === 0 ? "EDIT IN PROGRESS" : label}</small>
+          </div>
+        ))}
+        <div class="edit-note">
+          <p class="eyebrow">The edit</p>
+          <h2 id="edit-title">Twelve to twenty frames.<br />Only the keepers.</h2>
+          <p>The gallery structure is ready; the final photographs, captions, and locations will be added after the originals have been selected and stripped of private metadata.</p>
+        </div>
+      </section>
+    )}
+
+    <dialog class="lightbox" data-lightbox aria-label="Photograph viewer">
+      <button class="lightbox-close" type="button" data-lightbox-close aria-label="Close photograph">×</button>
+      <button class="lightbox-step lightbox-prev" type="button" data-lightbox-prev aria-label="Previous photograph">←</button>
+      <figure>
+        <img data-lightbox-image src="" alt="" />
+        <figcaption><span data-lightbox-location></span><span data-lightbox-caption></span></figcaption>
+      </figure>
+      <button class="lightbox-step lightbox-next" type="button" data-lightbox-next aria-label="Next photograph">→</button>
+    </dialog>
+
+    <aside class="truth-note photo-note"><span aria-hidden="true">◌</span><div><strong>Privacy is part of the edit.</strong><p>Public derivatives contain no embedded GPS data. Locations are added by hand only when they contribute to the story.</p></div></aside>
+  </main>
+  <SiteFooter />
+</BaseLayout>
+
+<script>
+  const dialog = document.querySelector<HTMLDialogElement>("[data-lightbox]");
+  const triggers = [...document.querySelectorAll<HTMLButtonElement>("[data-photo]")];
+  const image = document.querySelector<HTMLImageElement>("[data-lightbox-image]");
+  const location = document.querySelector<HTMLElement>("[data-lightbox-location]");
+  const caption = document.querySelector<HTMLElement>("[data-lightbox-caption]");
+  let active = 0;
+
+  const show = (index: number) => {
+    if (!dialog || !image || !caption || !location || triggers.length === 0) return;
+    active = (index + triggers.length) % triggers.length;
+    const trigger = triggers[active];
+    const source = trigger.querySelector<HTMLImageElement>("img");
+    if (!source) return;
+    // Read the caption from the trigger's data, not the figcaption's text, so
+    // the location and caption stay two fields instead of one welded string.
+    location.textContent = trigger.dataset.location ?? "";
+    caption.textContent = trigger.dataset.caption ?? "";
+    image.alt = source.alt;
+    // currentSrc is whatever the grid slot resolved, which is too small blown
+    // up; take the largest candidate the srcset offers and let it decode in.
+    image.src = source.currentSrc || source.src;
+    const largest = [...(source.srcset || "").matchAll(/(\S+)\s+(\d+)w/g)]
+      .sort((a, b) => Number(a[2]) - Number(b[2])).at(-1);
+    if (largest) {
+      const full = new Image();
+      full.onload = () => { if (triggers[active] === trigger) image.src = largest[1]; };
+      full.src = largest[1];
+    }
+    if (!dialog.open) dialog.showModal();
+  };
+
+  triggers.forEach((trigger, index) => trigger.addEventListener("click", () => show(index)));
+  document.querySelector("[data-lightbox-close]")?.addEventListener("click", () => dialog?.close());
+  document.querySelector("[data-lightbox-prev]")?.addEventListener("click", () => show(active - 1));
+  document.querySelector("[data-lightbox-next]")?.addEventListener("click", () => show(active + 1));
+  dialog?.addEventListener("click", (event) => {
+    if (event.target === dialog) dialog.close();
+  });
+  dialog?.addEventListener("keydown", (event) => {
+    if (event.key === "ArrowLeft") { event.preventDefault(); show(active - 1); }
+    if (event.key === "ArrowRight") { event.preventDefault(); show(active + 1); }
+  });
+</script>

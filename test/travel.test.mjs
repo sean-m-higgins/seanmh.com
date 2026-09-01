@@ -13,6 +13,7 @@ import {
   ringWrapOffsets,
   validateTravelData,
 } from "../src/scripts/globe-utils.mjs";
+import { frameBounds, makeProjector, placeLabels, uniqueStops } from "../src/scripts/trip-map.mjs";
 
 test("latitude and longitude map to stable globe coordinates", () => {
   assert.deepEqual(latLonToCartesian(0, 0).map((value) => Math.round(value)), [0, 0, 1]);
@@ -103,6 +104,55 @@ test("a ring straddling the seam is drawn whole on both edges", () => {
   assert.equal(lefts[1] - lefts[0], width);
   assert.ok(lefts[1] < width && lefts[1] + span > width, "right copy overflows the edge");
   assert.ok(lefts[0] + span > 0, "left copy carries the overflow back on");
+});
+
+test("map labels for neighbouring stops are pushed apart, pins are not", () => {
+  // Nice and Monaco land within a few pixels of each other at trip-map scale.
+  const pins = [
+    { label: "Marseille", x: 100, y: 400, flip: false },
+    { label: "Nice", x: 500, y: 300, flip: false },
+    { label: "Monaco", x: 505, y: 304, flip: false },
+    { label: "Montpellier", x: 60, y: 300, flip: true },
+  ];
+  const placed = placeLabels(pins, { gap: 19 });
+
+  assert.deepEqual(placed.map((p) => p.label), pins.map((p) => p.label), "order is stable");
+  assert.deepEqual(placed.map((p) => p.y), pins.map((p) => p.y), "pins do not move");
+
+  const nice = placed.find((p) => p.label === "Nice");
+  const monaco = placed.find((p) => p.label === "Monaco");
+  assert.ok(Math.abs(monaco.labelY - nice.labelY) >= 19, "crowded labels separate");
+
+  // A stop on the other side of the map must not be pushed by them.
+  const montpellier = placed.find((p) => p.label === "Montpellier");
+  assert.equal(montpellier.labelY, montpellier.y);
+});
+
+test("a trip map frames the route, and a repeated stop is drawn once", () => {
+  // France returns to Marseille and Nice; the map should pin each place once.
+  const waypoints = [
+    { label: "Nice", latitude: 43.7102, longitude: 7.262 },
+    { label: "Marseille", latitude: 43.2965, longitude: 5.3698 },
+    { label: "French Alps", latitude: 45.3, longitude: 6.58 },
+    { label: "Marseille", latitude: 43.2965, longitude: 5.3698 },
+    { label: "Nice", latitude: 43.7102, longitude: 7.262 },
+  ];
+  const stops = uniqueStops(waypoints);
+  assert.deepEqual(stops.map((s) => s.label), ["Nice", "Marseille", "French Alps"]);
+
+  const bounds = frameBounds(stops);
+  for (const stop of stops) {
+    assert.ok(stop.latitude > bounds.minLat && stop.latitude < bounds.maxLat);
+    assert.ok(stop.longitude > bounds.minLon && stop.longitude < bounds.maxLon);
+  }
+
+  // Every stop must land inside the drawing, or a pin would sit off-canvas.
+  const project = makeProjector(bounds, 620, 760);
+  for (const stop of stops) {
+    const [x, y] = project(stop.longitude, stop.latitude);
+    assert.ok(x >= 0 && x <= 620, `${stop.label} x=${x}`);
+    assert.ok(y >= 0 && y <= 760, `${stop.label} y=${y}`);
+  }
 });
 
 test("countries aggregate multiple trips without treating route stops as visits", () => {

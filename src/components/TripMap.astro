@@ -1,0 +1,115 @@
+---
+import { feature } from "topojson-client";
+import topology from "world-atlas/countries-110m.json";
+
+import { countries, type TripRecord } from "../content/trips.ts";
+import {
+  frameBounds,
+  geometryIntersects,
+  geometryToPath,
+  makeProjector,
+  placeLabels,
+  uniqueStops,
+} from "../scripts/trip-map.mjs";
+
+interface Props {
+  trip: TripRecord;
+}
+
+const { trip } = Astro.props;
+const WIDTH = 620;
+const HEIGHT = 760;
+
+// Frame on the route when there is one; an unconfirmed route still has its
+// anchor. Everything here runs at build time — no atlas reaches the browser.
+const stops = uniqueStops(trip.route.waypoints);
+const bounds = frameBounds(stops.length > 0 ? stops : [trip.anchor]);
+const project = makeProjector(bounds, WIDTH, HEIGHT);
+
+const atlas = feature(topology as never, (topology as never as {
+  objects: { countries: never };
+}).objects.countries) as unknown as {
+  features: { id: string | number; geometry: { type: string; coordinates: unknown } }[];
+};
+
+const visitedIds = new Set(
+  countries.filter((c) => trip.visitedCountries.includes(c.iso2)).map((c) => c.atlasId),
+);
+// Neighbouring land is drawn too, otherwise the sea would swallow Portugal and
+// Italy and the coastline would read as the wrong shape.
+const land = atlas.features
+  .filter((f) => geometryIntersects(f.geometry as never, bounds))
+  .map((f) => ({
+    visited: visitedIds.has(String(f.id).padStart(3, "0")),
+    path: geometryToPath(f.geometry as never, project),
+  }))
+  .filter((f) => f.path.length > 0);
+
+const line = trip.route.waypoints
+  .map((w, i) => {
+    const [x, y] = project(w.longitude, w.latitude);
+    return `${i === 0 ? "M" : "L"}${x.toFixed(1)} ${y.toFixed(1)}`;
+  })
+  .join("");
+
+// Match the anchor on both axes and tightly: Nice and Monaco share a latitude
+// to within 0.03°, and a looser test crowned both of them the anchor.
+const isAnchor = (stop: { latitude: number; longitude: number }) =>
+  Math.abs(stop.latitude - trip.anchor.latitude) < 0.02
+  && Math.abs(stop.longitude - trip.anchor.longitude) < 0.02;
+
+const pins = placeLabels(stops.map((stop) => {
+  const [x, y] = project(stop.longitude, stop.latitude);
+  // Labels flip to the left of the pin near the right edge so they stay in frame.
+  return { ...stop, x, y, anchored: isAnchor(stop), flip: x > WIDTH * 0.62 };
+}));
+
+const anchorPin = stops.length === 0
+  ? (() => {
+      const [x, y] = project(trip.anchor.longitude, trip.anchor.latitude);
+      return { label: trip.anchor.label, x, y, flip: x > WIDTH * 0.62 };
+    })()
+  : null;
+---
+
+<div class="journal-map" role="img" aria-label={`Route map for ${trip.title}`}>
+  <svg viewBox={`0 0 ${WIDTH} ${HEIGHT}`}>
+    <title>{trip.title} — {stops.map((s) => s.label).join(", ") || trip.anchor.label}</title>
+    <defs>
+      <linearGradient id={`map-fill-${trip.slug}`} x1="0" y1="0" x2="1" y2="1">
+        <stop stop-color="#284c5b" />
+        <stop offset="1" stop-color="#102a38" />
+      </linearGradient>
+    </defs>
+    {land.map((shape) => (
+      <path
+        class:list={["trip-land", { visited: shape.visited }]}
+        d={shape.path}
+        fill={shape.visited ? `url(#map-fill-${trip.slug})` : "#0f2531"}
+      />
+    ))}
+    {line && <path class="trip-line" d={line} style={`--route:${trip.route.color}`} />}
+    {pins.map((pin) => {
+      const shift = pin.labelY - pin.y;
+      const side = pin.flip ? -1 : 1;
+      return (
+        <g class:list={["map-stop", { anchor: pin.anchored }]} transform={`translate(${pin.x.toFixed(1)} ${pin.y.toFixed(1)})`}>
+          {Math.abs(shift) > 3 && (
+            <path class="map-leader" d={`M${side * 9} 0L${side * 13} ${shift.toFixed(1)}`} />
+          )}
+          <circle r={pin.anchored ? 9 : 6} />
+          <text x={side * 14} y={(shift + 5).toFixed(1)} text-anchor={pin.flip ? "end" : "start"}>{pin.label}</text>
+        </g>
+      );
+    })}
+    {anchorPin && (
+      <g class="map-stop anchor" transform={`translate(${anchorPin.x.toFixed(1)} ${anchorPin.y.toFixed(1)})`}>
+        <circle r="9" />
+        <text x={anchorPin.flip ? -14 : 14} y="5" text-anchor={anchorPin.flip ? "end" : "start"}>{anchorPin.label}</text>
+      </g>
+    )}
+    {!trip.route.published && (
+      <text class="map-disclaimer" x="24" y={HEIGHT - 22}>ACTUAL ROUTE PENDING CONFIRMATION</text>
+    )}
+  </svg>
+</div>
