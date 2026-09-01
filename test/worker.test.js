@@ -314,11 +314,22 @@ test('G Travel canonicalizes its root and rewrites origin redirects under /trave
   assert.equal(redirected.headers.get('Location'), 'https://seanmh.com/travel/norway-2026/?from=trip');
 });
 
-test('SEO control routes are stable across version cookies and include path apps', async (t) => {
+test('SEO control routes are stable and delegate discovery to path-app sitemaps', async (t) => {
   const restore = mockFetch(async () => {
     throw new Error('control routes must not reach an origin');
   });
   t.after(restore);
+
+  const sitemapIndex = await worker.fetch(request('/sitemap-index.xml', {
+    headers: { Cookie: 'pv=nexus' },
+  }));
+  assert.equal(sitemapIndex.status, 200);
+  assert.match(sitemapIndex.headers.get('Content-Type'), /^application\/xml/);
+  assert.equal(sitemapIndex.headers.get('Set-Cookie'), null);
+  const indexBody = await sitemapIndex.text();
+  assert.match(indexBody, /https:\/\/seanmh\.com\/sitemap-0\.xml<\/loc>/);
+  assert.match(indexBody, /https:\/\/seanmh\.com\/systems\/sitemap-0\.xml<\/loc>/);
+  assert.match(indexBody, /https:\/\/seanmh\.com\/travel\/sitemap-0\.xml<\/loc>/);
 
   const sitemap = await worker.fetch(request('/sitemap-0.xml', {
     headers: { Cookie: 'pv=nexus' },
@@ -328,10 +339,8 @@ test('SEO control routes are stable across version cookies and include path apps
   assert.equal(sitemap.headers.get('Set-Cookie'), null);
   const body = await sitemap.text();
   assert.match(body, /https:\/\/seanmh\.com\/<\/loc>/);
-  assert.match(body, /https:\/\/seanmh\.com\/systems\/<\/loc>/);
-  assert.match(body, /https:\/\/seanmh\.com\/travel\/<\/loc>/);
-  assert.match(body, /https:\/\/seanmh\.com\/travel\/norway-2026\/photos\/<\/loc>/);
-  assert.doesNotMatch(body, /itinerary/);
+  assert.doesNotMatch(body, /\/systems\//);
+  assert.doesNotMatch(body, /\/travel\//);
 
   const robots = await worker.fetch(request('/robots.txt', {
     headers: { Cookie: 'pv=e-2d-game' },

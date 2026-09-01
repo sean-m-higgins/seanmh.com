@@ -55,9 +55,9 @@ const TRAVEL_VERSION_ALIAS = 'g-travel';
 const CARD_PATH = '/card';
 const CARD_VERSION = 'b-card';
 
-// Site-wide discovery files cannot vary with a visual-version cookie. Keep
-// the small canonical set at the edge so Blueprint is discoverable alongside
-// the profile regardless of which presentation a returning visitor selected.
+// Site-wide discovery files cannot vary with a visual-version cookie. Each
+// path app owns its generated sitemap, so new content becomes discoverable
+// without duplicating every route in this Worker's hand-authored list.
 const CONTROL_ROUTES = new Map([
   ['/robots.txt', {
     type: 'text/plain; charset=utf-8',
@@ -65,11 +65,11 @@ const CONTROL_ROUTES = new Map([
   }],
   ['/sitemap-index.xml', {
     type: 'application/xml; charset=utf-8',
-    body: '<?xml version="1.0" encoding="UTF-8"?>\n<sitemapindex xmlns="http://www.sitemaps.org/schemas/sitemap/0.9"><sitemap><loc>https://seanmh.com/sitemap-0.xml</loc></sitemap></sitemapindex>\n',
+    body: '<?xml version="1.0" encoding="UTF-8"?>\n<sitemapindex xmlns="http://www.sitemaps.org/schemas/sitemap/0.9"><sitemap><loc>https://seanmh.com/sitemap-0.xml</loc></sitemap><sitemap><loc>https://seanmh.com/systems/sitemap-0.xml</loc></sitemap><sitemap><loc>https://seanmh.com/travel/sitemap-0.xml</loc></sitemap></sitemapindex>\n',
   }],
   ['/sitemap-0.xml', {
     type: 'application/xml; charset=utf-8',
-    body: '<?xml version="1.0" encoding="UTF-8"?>\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9"><url><loc>https://seanmh.com/</loc></url><url><loc>https://seanmh.com/systems/</loc></url><url><loc>https://seanmh.com/travel/</loc></url><url><loc>https://seanmh.com/travel/norway-2026/</loc></url><url><loc>https://seanmh.com/travel/norway-2026/photos/</loc></url></urlset>\n',
+    body: '<?xml version="1.0" encoding="UTF-8"?>\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9"><url><loc>https://seanmh.com/</loc></url></urlset>\n',
   }],
 ]);
 
