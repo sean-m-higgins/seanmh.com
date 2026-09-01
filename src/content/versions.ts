@@ -78,7 +78,7 @@ export const VERSIONS: readonly VersionDef[] = [
     name: "g-travel",
     href: "/travel/",
     glyph: "◎",
-    label: "G Travel",
+    label: "Travel",
     branch: "version/g-travel",
     blurb: "a living travel atlas",
     color: "#ffb45b",
