@@ -1,4 +1,4 @@
-# G Travel
+# Version G — Travel
 
 Version G of seanmh.com: a static Astro travel journal with a progressively
 enhanced Three.js globe. The public canonical namespace is
