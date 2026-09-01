@@ -233,6 +233,7 @@ em { color: var(--amber-pale); font-family: var(--font-display); font-weight: 40
 .button-primary { border-color: var(--amber); color: #1a1108; background: var(--amber); }
 .button-primary:hover { border-color: var(--amber-pale); background: var(--amber-pale); }
 .text-link { color: var(--aqua); font-family: var(--font-mono); font-size: 0.68rem; letter-spacing: 0.05em; text-decoration: none; }
+.photos-pending { color: var(--faint); }
 
 /* Globe landing */
 .atlas {

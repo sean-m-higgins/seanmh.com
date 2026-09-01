@@ -2,6 +2,9 @@
 import { defineConfig } from 'astro/config';
 
 import sitemap from '@astrojs/sitemap';
+import { publishedPhotoTripSlugs } from './src/content/publication.mjs';
+
+const publishedPhotoTrips = new Set(publishedPhotoTripSlugs);
 
 // https://astro.build/config
 export default defineConfig({
@@ -16,5 +19,10 @@ export default defineConfig({
       cssMinify: false,
     },
   },
-  integrations: [sitemap()]
+  integrations: [sitemap({
+    filter: (page) => {
+      const match = new URL(page).pathname.match(/^\/travel\/([^/]+)\/photos\/$/);
+      return !match || publishedPhotoTrips.has(match[1]);
+    },
+  })]
 });

@@ -1,4 +1,5 @@
 import type { ImageMetadata } from "astro";
+import { isPhotoTripPublished, publishedPhotoTripSlugs } from "./publication.mjs";
 
 export interface TravelPhoto {
   id: string;
@@ -21,6 +22,15 @@ export const tripPhotos: Readonly<Record<string, readonly TravelPhoto[]>> = {
   "spain-2014": [],
 };
 
+for (const slug of publishedPhotoTripSlugs) {
+  if (!(slug in tripPhotos)) throw new Error(`Published photo trip is unknown: ${slug}`);
+  if (tripPhotos[slug].length === 0) throw new Error(`Published photo trip has no photographs: ${slug}`);
+}
+
 export function photosForTrip(slug: string): readonly TravelPhoto[] {
-  return tripPhotos[slug] ?? [];
+  return isPhotoTripPublished(slug) ? (tripPhotos[slug] ?? []) : [];
+}
+
+export function hasPublishedPhotos(slug: string): boolean {
+  return photosForTrip(slug).length > 0;
 }

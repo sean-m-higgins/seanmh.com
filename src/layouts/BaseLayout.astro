@@ -8,6 +8,7 @@ interface Props {
   description: string;
   canonicalPath: string;
   error?: boolean;
+  noindex?: boolean;
   type?: "website" | "article";
 }
 
@@ -16,6 +17,7 @@ const {
   description,
   canonicalPath,
   error = false,
+  noindex = false,
   type = "website",
 } = Astro.props;
 const canonicalUrl = new URL(canonicalPath, Astro.site ?? Astro.url);
@@ -44,7 +46,7 @@ const structuredData = {
     <meta name="generator" content={Astro.generator} />
     <meta name="theme-color" content="#061119" />
     <meta name="portfolio-version" content="g-travel" />
-    <meta name="robots" content={error ? "noindex, nofollow" : "index, follow"} />
+    <meta name="robots" content={error ? "noindex, nofollow" : noindex ? "noindex, follow" : "index, follow"} />
 
     {!error && <link rel="canonical" href={canonicalUrl} />}
     {!error && <meta property="og:title" content={title} />}

@@ -4,6 +4,8 @@ import SiteHeader from "../../components/SiteHeader.astro";
 import SiteFooter from "../../components/SiteFooter.astro";
 import TripMap from "../../components/TripMap.astro";
 import { countries, trips } from "../../content/trips.ts";
+import { hasPublishedPhotos } from "../../content/photos.ts";
+import { publicRouteWaypoints } from "../../content/publication.mjs";
 import { uniqueStops } from "../../scripts/trip-map.mjs";
 
 export function getStaticPaths() {
@@ -26,10 +28,11 @@ const archivedOn = new Date(`${trip.dateEnd}T00:00:00Z`).toLocaleDateString("en-
 
 // The photo door names the places the edit will come from, so it says something
 // specific per trip instead of repeating one sentence four times.
-const stopNames = uniqueStops(trip.route.waypoints).map((s: { label: string }) => s.label);
+const stopNames = uniqueStops(publicRouteWaypoints(trip)).map((s: { label: string }) => s.label);
 const photoBlurb = stopNames.length > 1
   ? `A small edit from ${stopNames.slice(0, -1).join(", ")} and ${stopNames.at(-1)}.`
   : `A small edit from ${trip.anchor.label}.`;
+const photosPublished = hasPublishedPhotos(trip.slug);
 
 const title = `${trip.title} — ${trip.shortTitle} | Travel`;
 ---
@@ -83,12 +86,20 @@ const title = `${trip.title} — ${trip.shortTitle} | Travel`;
           </Fragment>
         )}
       </div>
-      <a class="journal-door" href={trip.links.photos}>
-        <span>02 / After</span>
-        <h2>The photographs</h2>
-        <p>{photoBlurb}</p>
-        <i aria-hidden="true">↗</i>
-      </a>
+      {photosPublished ? (
+        <a class="journal-door" href={trip.links.photos}>
+          <span>02 / After</span>
+          <h2>The photographs</h2>
+          <p>{photoBlurb}</p>
+          <i aria-hidden="true">↗</i>
+        </a>
+      ) : (
+        <div class="journal-door">
+          <span>02 / After</span>
+          <h2>Photographs forthcoming</h2>
+          <p>The edit is still in progress. This door will open when the final frames and captions are ready.</p>
+        </div>
+      )}
     </section>
 
     <aside class="truth-note">

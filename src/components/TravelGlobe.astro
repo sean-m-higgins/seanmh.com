@@ -1,8 +1,10 @@
 ---
 import { countries, trips, tripsForCountry } from "../content/trips.ts";
+import { hasPublishedPhotos } from "../content/photos.ts";
+import { tripsForPublication } from "../content/publication.mjs";
 import { validateTravelData } from "../scripts/globe-utils.mjs";
 
-const globeData = { countries, trips };
+const globeData = { countries, trips: tripsForPublication(trips) };
 const contentErrors = validateTravelData(countries, trips);
 if (contentErrors.length > 0) throw new Error(`Invalid travel content:\n${contentErrors.join("\n")}`);
 
@@ -69,19 +71,24 @@ const pending = trips.filter((trip) => !trip.route.published).length;
         >
           <button class="journey-close" type="button" data-close-country aria-label={`Close ${country.name} details`}>×</button>
           <p class="eyebrow"><span class="country-dot"></span> Visited / {country.name}</p>
-          {countryTrips.map((trip, tripIndex) => (
-            <article data-trip={trip.slug} data-active={tripIndex === 0 ? "" : undefined} style={`--trip-accent:${trip.accent}`}>
-              <p class="journey-date">{trip.dateLabel}</p>
-              <h2>{trip.title}</h2>
-              <p>{trip.summary}</p>
-              {!trip.route.published && <p class="route-note"><span></span> Actual route awaiting final field notes</p>}
-              {countryTrips.length > 1 && trip.route.published && <button class="route-select" type="button" data-select-trip={trip.slug}>Show this route</button>}
-              <div class="journey-actions">
-                <a class="button button-primary" href={trip.links.overview}>Open the journey</a>
-                <a class="text-link" href={trip.links.photos}>View photos <span aria-hidden="true">↗</span></a>
-              </div>
-            </article>
-          ))}
+          {countryTrips.map((trip, tripIndex) => {
+            const photosPublished = hasPublishedPhotos(trip.slug);
+            return (
+              <article data-trip={trip.slug} data-active={tripIndex === 0 ? "" : undefined} style={`--trip-accent:${trip.accent}`}>
+                <p class="journey-date">{trip.dateLabel}</p>
+                <h2>{trip.title}</h2>
+                <p>{trip.summary}</p>
+                {!trip.route.published && <p class="route-note"><span></span> Actual route awaiting final field notes</p>}
+                {countryTrips.length > 1 && trip.route.published && <button class="route-select" type="button" data-select-trip={trip.slug}>Show this route</button>}
+                <div class="journey-actions">
+                  <a class="button button-primary" href={trip.links.overview}>Open the journey</a>
+                  {photosPublished
+                    ? <a class="text-link" href={trip.links.photos}>View photos <span aria-hidden="true">↗</span></a>
+                    : <span class="text-link photos-pending">Photos forthcoming</span>}
+                </div>
+              </article>
+            );
+          })}
         </aside>
       );
     })}
@@ -111,7 +118,7 @@ const pending = trips.filter((trip) => !trip.route.published).length;
     .catch(() => {
       if (stage) stage.dataset.state = "fallback";
       const status = document.querySelector("#globe-status");
-      if (status) status.textContent = "The interactive globe is unavailable. Norway links remain below.";
+      if (status) status.textContent = "The interactive globe is unavailable. Journey links remain below.";
     });
   const idle = (window as Window & {
     requestIdleCallback?: (callback: () => void, options?: { timeout: number }) => number;

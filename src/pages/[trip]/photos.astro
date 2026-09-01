@@ -4,6 +4,7 @@ import SiteHeader from "../../components/SiteHeader.astro";
 import SiteFooter from "../../components/SiteFooter.astro";
 import { trips } from "../../content/trips.ts";
 import { photosForTrip } from "../../content/photos.ts";
+import { publicRouteWaypoints } from "../../content/publication.mjs";
 import { uniqueStops } from "../../scripts/trip-map.mjs";
 import { Picture } from "astro:assets";
 
@@ -15,7 +16,7 @@ const { trip } = Astro.props;
 const photos = photosForTrip(trip.slug);
 
 // The empty contact sheet names this trip's own stops rather than a fixed set.
-const stops = uniqueStops(trip.route.waypoints).map((s: { label: string }) => s.label);
+const stops = uniqueStops(publicRouteWaypoints(trip)).map((s: { label: string }) => s.label);
 const frames = (stops.length > 0 ? stops : [trip.anchor.label]).slice(0, 4);
 while (frames.length < 4) frames.push("");
 
@@ -23,7 +24,7 @@ const title = `${trip.shortTitle} Photographs | Travel`;
 const description = `A concise photographic edit from ${trip.title}.`;
 ---
 
-<BaseLayout title={title} description={description} canonicalPath={trip.links.photos} type="article">
+<BaseLayout title={title} description={description} canonicalPath={trip.links.photos} type="article" noindex={photos.length === 0}>
   <SiteHeader compact />
   <main id="main-content" class="photo-journal">
     <header class="photo-hero">

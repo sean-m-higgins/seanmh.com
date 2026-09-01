@@ -2,7 +2,8 @@
 import { feature } from "topojson-client";
 import topology from "world-atlas/countries-110m.json";
 
-import { countries, type TripRecord } from "../content/trips.ts";
+import { countries, type RouteWaypoint, type TripRecord } from "../content/trips.ts";
+import { publicRouteWaypoints } from "../content/publication.mjs";
 import {
   frameBounds,
   geometryIntersects,
@@ -20,9 +21,21 @@ const { trip } = Astro.props;
 const WIDTH = 620;
 const HEIGHT = 760;
 
+interface PlacedPin {
+  label: string;
+  latitude: number;
+  longitude: number;
+  x: number;
+  y: number;
+  anchored: boolean;
+  flip: boolean;
+  labelY: number;
+}
+
 // Frame on the route when there is one; an unconfirmed route still has its
 // anchor. Everything here runs at build time — no atlas reaches the browser.
-const stops = uniqueStops(trip.route.waypoints);
+const visibleWaypoints: readonly RouteWaypoint[] = publicRouteWaypoints(trip);
+const stops = uniqueStops(visibleWaypoints);
 const bounds = frameBounds(stops.length > 0 ? stops : [trip.anchor]);
 const project = makeProjector(bounds, WIDTH, HEIGHT);
 
@@ -45,7 +58,7 @@ const land = atlas.features
   }))
   .filter((f) => f.path.length > 0);
 
-const line = trip.route.waypoints
+const line = visibleWaypoints
   .map((w, i) => {
     const [x, y] = project(w.longitude, w.latitude);
     return `${i === 0 ? "M" : "L"}${x.toFixed(1)} ${y.toFixed(1)}`;
@@ -58,7 +71,7 @@ const isAnchor = (stop: { latitude: number; longitude: number }) =>
   Math.abs(stop.latitude - trip.anchor.latitude) < 0.02
   && Math.abs(stop.longitude - trip.anchor.longitude) < 0.02;
 
-const pins = placeLabels(stops.map((stop) => {
+const pins: PlacedPin[] = placeLabels(stops.map((stop) => {
   const [x, y] = project(stop.longitude, stop.latitude);
   // Labels flip to the left of the pin near the right edge so they stay in frame.
   return { ...stop, x, y, anchored: isAnchor(stop), flip: x > WIDTH * 0.62 };

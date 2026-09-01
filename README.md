@@ -28,6 +28,9 @@ Run the main worktree's `node scripts/dev-proxy.mjs` to exercise the complete
    `npm run photos:prepare -- incoming/<trip> src/assets/trips/<trip>`.
 4. Author alt text, captions, and any public location labels in the photo
    manifest. Never derive public location labels from EXIF.
+5. When the gallery edit is ready, add the trip slug to
+   `src/content/publication.mjs`. Until then its placeholder stays unlinked,
+   `noindex`, and out of the sitemap.
 
 The Norway pre-trip downloads are sanitized historical artifacts. Regenerate
 the PDF after editing the HTML with `npm run itinerary:pdf`.

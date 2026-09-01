@@ -1,3 +1,9 @@
+---
+import { hasPublishedPhotos } from "../content/photos.ts";
+
+const norwayPhotosPublished = hasPublishedPhotos("norway-2026");
+---
+
 <footer class="site-footer">
   <div>
     <a class="brand footer-brand" href="/travel/">
@@ -9,7 +15,7 @@
   <nav aria-label="Footer navigation">
     <a href="/travel/">Atlas</a>
     <a href="/travel/norway-2026/">Norway 2026</a>
-    <a href="/travel/norway-2026/photos/">Norway photos</a>
+    {norwayPhotosPublished && <a href="/travel/norway-2026/photos/">Norway photos</a>}
     <a href="/?v=nexus">Nexus</a>
   </nav>
 </footer>

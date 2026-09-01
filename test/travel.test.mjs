@@ -14,6 +14,11 @@ import {
   validateTravelData,
 } from "../src/scripts/globe-utils.mjs";
 import { frameBounds, makeProjector, placeLabels, uniqueStops } from "../src/scripts/trip-map.mjs";
+import {
+  isPhotoTripPublished,
+  publicRouteWaypoints,
+  tripsForPublication,
+} from "../src/content/publication.mjs";
 
 test("latitude and longitude map to stable globe coordinates", () => {
   assert.deepEqual(latLonToCartesian(0, 0).map((value) => Math.round(value)), [0, 0, 1]);
@@ -179,4 +184,32 @@ test("travel data validation rejects duplicate, unknown, and incomplete records"
   assert.ok(errors.some((error) => error.includes("Invalid latitude")));
   assert.ok(errors.some((error) => error.includes("at least two")));
   assert.ok(errors.some((error) => error.includes("Route color")));
+});
+
+test("unpublished route coordinates are removed from every public payload", () => {
+  const waypoints = [
+    { label: "Private draft", latitude: 67.1, longitude: 13.2 },
+    { label: "Private draft two", latitude: 67.2, longitude: 13.3 },
+  ];
+  const draft = {
+    slug: "draft",
+    route: { published: false, waypoints },
+  };
+  const published = {
+    slug: "published",
+    route: { published: true, waypoints },
+  };
+
+  assert.deepEqual(publicRouteWaypoints(draft), []);
+  assert.equal(publicRouteWaypoints(published), waypoints);
+
+  const [publicDraft, publicPublished] = tripsForPublication([draft, published]);
+  assert.deepEqual(publicDraft.route.waypoints, []);
+  assert.equal(publicPublished, published, "published records stay untouched");
+  assert.equal(draft.route.waypoints, waypoints, "redaction does not mutate authoring data");
+});
+
+test("photo galleries remain unpublished until explicitly released", () => {
+  assert.equal(isPhotoTripPublished("norway-2026"), false);
+  assert.equal(isPhotoTripPublished("unknown-trip"), false);
 });

@@ -5,13 +5,16 @@ import TravelGlobe from "../components/TravelGlobe.astro";
 import TripArtwork from "../components/TripArtwork.astro";
 import BaseLayout from "../layouts/BaseLayout.astro";
 import { countries, trips } from "../content/trips.ts";
+import { hasPublishedPhotos } from "../content/photos.ts";
+import { publicRouteWaypoints } from "../content/publication.mjs";
 import { uniqueStops } from "../scripts/trip-map.mjs";
 
 const title = "Travel — Routes, Field Notes, and Photographs";
 const description = "Sean Higgins’s journeys on an interactive globe: two crossings of Spain, southern France and the Alps, and a solo motorcycle run from Oslo to Lofoten.";
 
 const journeys = trips.map((trip) => {
-  const stops = uniqueStops(trip.route.waypoints).map((s: { label: string }) => s.label);
+  const stops = uniqueStops(publicRouteWaypoints(trip)).map((s: { label: string }) => s.label);
+  const photosPublished = hasPublishedPhotos(trip.slug);
   const lat = trip.anchor.latitude;
   const lon = trip.anchor.longitude;
   return {
@@ -21,7 +24,9 @@ const journeys = trips.map((trip) => {
       .map((c) => c.name)
       .join(" · "),
     shape: stops.length > 0 ? `${stops.length} stops` : "Route pending",
-    archive: trip.links.pdfDownload ? "Plan + photographs" : "Photographs",
+    archive: trip.links.pdfDownload
+      ? photosPublished ? "Plan + photographs" : "Plan · photos forthcoming"
+      : photosPublished ? "Photographs" : "Photos forthcoming",
     coordinates: `${Math.abs(lat).toFixed(3)}° ${lat >= 0 ? "N" : "S"} · ${Math.abs(lon).toFixed(3)}° ${lon >= 0 ? "E" : "W"}`,
   };
 });
