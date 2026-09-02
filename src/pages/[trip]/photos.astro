@@ -36,8 +36,10 @@ const WIDE_SLOT = "(max-width: 760px) calc(100vw - 2rem), min(66vw, 848px)";
 // The journal page opens on the first half of the route because its italic
 // second half finishes the sentence. A gallery has no second half, so taking
 // heading.lead alone left Norway titled "Oslo" for an edit that is mostly
-// Lofoten. Name both ends instead — the trip title already holds them.
-const photoSubject = trip.title.replace(" to ", " + ");
+// Lofoten. Name both ends instead — the trip title already holds them, and the
+// arrow between them keeps the direction, which is the whole difference between
+// the two Spain journeys. Titles not written as "X to Y" stay as they are.
+const [origin, destination] = trip.title.split(" to ");
 
 const title = `${trip.shortTitle} Photographs | Travel`;
 const description = `A concise photographic edit from ${trip.title}.`;
@@ -49,7 +51,9 @@ const description = `A concise photographic edit from ${trip.title}.`;
     <header class="photo-hero">
       <a class="back-link" href={trip.links.overview}><span aria-hidden="true">←</span> {trip.shortTitle}</a>
       <p class="eyebrow">After / Contact sheet {trip.number}</p>
-      <h1>{photoSubject}<br /><em>in photographs.</em></h1>
+      <h1>{origin}{destination && (
+        <Fragment>{" "}<span class="route-leg"><span class="route-arrow" aria-hidden="true">→</span><span class="sr-only">to </span>{destination}</span></Fragment>
+      )}<br /><em>in photographs.</em></h1>
       <p>A deliberately small edit from the journey. The photographs are being selected from the full roll before they enter the public archive.</p>
     </header>
 

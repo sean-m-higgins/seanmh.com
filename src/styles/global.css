@@ -424,6 +424,12 @@ a.journal-door:hover { background: #102d3a; }
 .truth-note p { margin: 0; color: var(--mist); font-size: .79rem; }
 
 .photo-hero h1 { font-size: clamp(4.2rem, 8vw, 8.5rem); }
+/* The arrow carries the direction of the route. Set smaller and in the sans
+   stack, since the display serif has no glyph for it. It stays with the place
+   it points at, so a heading that wraps breaks to "Oslo / -> Lofoten" rather
+   than leaving the arrow dangling at the end of the first line. */
+.photo-hero h1 .route-leg { white-space: nowrap; }
+.photo-hero h1 .route-arrow { display: inline-block; margin-right: .12em; color: var(--amber-pale); font-family: var(--font-sans); font-size: .5em; letter-spacing: 0; vertical-align: .18em; }
 .download-actions { display: flex; margin-top: 2rem; flex-wrap: wrap; gap: .75rem; }
 .archive-warning { margin-top: 1rem; color: var(--faint); font-family: var(--font-mono); font-size: .58rem; letter-spacing: .06em; }
 
