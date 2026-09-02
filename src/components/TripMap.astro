@@ -1,6 +1,9 @@
 ---
 import { feature } from "topojson-client";
-import topology from "world-atlas/countries-110m.json";
+// The journal map zooms in far closer than the globe does, so it reads the 50m
+// topology: at 110m the Lofoten archipelago does not exist and Norway renders
+// as open sea. This is a build-time import; only the traced path ships.
+import topology from "world-atlas/countries-50m.json";
 
 import { countries, type RouteWaypoint, type TripRecord } from "../content/trips.ts";
 import { publicRouteWaypoints } from "../content/publication.mjs";

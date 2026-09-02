@@ -1,6 +1,6 @@
-// Build-time geometry for the journal page map. The outlines come from the same
-// world-atlas topology the globe uses, so a new trip draws itself from its
-// waypoints instead of needing a hand-authored country silhouette.
+// Build-time geometry for the journal page map. The outlines come from the
+// world-atlas topology, so a new trip draws itself from its waypoints instead
+// of needing a hand-authored country silhouette.
 
 /**
  * Frame the map on where the trip actually went, not on the whole country —

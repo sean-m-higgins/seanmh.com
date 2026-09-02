@@ -5,6 +5,11 @@ declare module "world-atlas/countries-110m.json" {
   export default topology;
 }
 
+declare module "world-atlas/countries-50m.json" {
+  const topology: Record<string, any>;
+  export default topology;
+}
+
 declare module "./scripts/globe-utils.mjs" {
   export function greatCirclePoints(
     start: { latitude: number; longitude: number },
