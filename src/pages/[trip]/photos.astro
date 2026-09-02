@@ -20,6 +20,15 @@ const stops = uniqueStops(publicRouteWaypoints(trip)).map((s: { label: string })
 const frames = (stops.length > 0 ? stops : [trip.anchor.label]).slice(0, 4);
 while (frames.length < 4) frames.push("");
 
+// These describe .photo-grid in global.css and must move with it. The gallery
+// container caps at 1280px and the grid is 12 columns with a 1rem gap, so a
+// figure spanning 4 tops out at 416px and one spanning 8 at 848px — the slots
+// never grow past that however wide the window gets. Saying "66vw" for every
+// image, as this once did, overstates a 4-column figure by 2.4x, and the
+// browser then downloads roughly four times the pixels it can display.
+const NARROW_SLOT = "min(33vw, 416px)";
+const WIDE_SLOT = "min(66vw, 848px)";
+
 const title = `${trip.shortTitle} Photographs | Travel`;
 const description = `A concise photographic edit from ${trip.title}.`;
 ---
@@ -36,8 +45,10 @@ const description = `A concise photographic edit from ${trip.title}.`;
 
     {photos.length > 0 ? (
       <div class="photo-grid">
-        {photos.map((photo, index) => (
-          <figure class:list={[{ wide: photo.width > photo.height * 1.35, tall: photo.height > photo.width * 1.2 }]}>
+        {photos.map((photo, index) => {
+          const wide = photo.width > photo.height * 1.35;
+          return (
+          <figure class:list={[{ wide, tall: photo.height > photo.width * 1.2 }]}>
             <button
               type="button"
               data-photo={index}
@@ -49,14 +60,15 @@ const description = `A concise photographic edit from ${trip.title}.`;
                 src={photo.src}
                 formats={["avif", "webp"]}
                 widths={[480, 768, 1200, 1800]}
-                sizes="(max-width: 760px) 100vw, 66vw"
+                sizes={wide ? WIDE_SLOT : NARROW_SLOT}
                 alt={photo.alt}
                 loading={index < 2 ? "eager" : "lazy"}
               />
             </button>
             <figcaption><span>{photo.location ?? ""}</span>{photo.caption}</figcaption>
           </figure>
-        ))}
+          );
+        })}
       </div>
     ) : (
       <section class="contact-sheet-empty" aria-labelledby="edit-title">
