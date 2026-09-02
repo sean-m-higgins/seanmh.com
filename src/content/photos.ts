@@ -120,7 +120,7 @@ export const tripPhotos: Readonly<Record<string, readonly TravelPhoto[]>> = {
       "Rain earlier, judging by the street.", "Oslo"),
     frame("glass-wreck", no09,
       "An angular glass-and-steel structure tilted in shallow coastal water at dusk, a low island behind it and a pink sky above",
-      "Tilted in the shallows, deliberately, like something run aground."),
+      "Tilted in the shallows, deliberately, like something run aground.", "Oslo"),
     frame("vestfjorden-cloud", no10,
       "A steep headland with cloud pouring over its ridge, dark sea in the foreground",
       "Cloud coming over the ridge faster than the ferry moved.", "Vestfjorden"),
