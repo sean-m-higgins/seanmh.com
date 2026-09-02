@@ -547,6 +547,10 @@ a.journal-door:hover { background: #102d3a; }
   .journal-doors { grid-template-columns: 1fr; }
   .journal-door { min-height: 19rem; }
   .photo-hero { padding-top: 5rem; }
+  /* One photograph per row on a phone. The slot is then the full container, so
+     NARROW_SLOT and WIDE_SLOT in [trip]/photos.astro carry a matching branch. */
+  .photo-grid { gap: 2rem; }
+  .photo-grid figure, .photo-grid figure.wide, .photo-grid figure.tall { grid-column: span 12; }
   .contact-sheet-empty { grid-template-columns: repeat(2, 1fr); }
   .lightbox[open] { grid-template-columns: 2.5rem 1fr 2.5rem; }
   .lightbox figure { padding: 3rem 0 1rem; }
