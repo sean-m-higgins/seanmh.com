@@ -4,7 +4,11 @@
  * complete, then add the trip slug here to make the gallery indexable and link
  * to it throughout the site.
  */
-export const publishedPhotoTripSlugs = Object.freeze([]);
+export const publishedPhotoTripSlugs = Object.freeze([
+  "norway-2026",
+  "france-2026",
+  "spain-2025",
+]);
 
 const publishedPhotoTrips = new Set(publishedPhotoTripSlugs);
 

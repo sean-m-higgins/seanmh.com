@@ -466,6 +466,9 @@ a.journal-door:hover { background: #102d3a; }
 .lightbox figure { display: flex; height: 100%; margin: 0; padding: 2rem 0; align-items: center; flex-direction: column; justify-content: center; }
 .lightbox img { display: block; max-width: 100%; max-height: calc(92svh - 7rem); object-fit: contain; }
 .lightbox figcaption { width: 100%; padding-top: .75rem; color: var(--mist); font-size: .72rem; }
+/* Matches the grid: the location sits on its own line above the caption. Empty
+   for photographs with no location, and then it must not take a line at all. */
+.lightbox figcaption span:first-child:not(:empty) { display: block; color: var(--amber); font-family: var(--font-mono); font-size: .54rem; letter-spacing: .08em; text-transform: uppercase; }
 .lightbox-close { position: absolute; top: .75rem; right: .75rem; z-index: 2; width: 2.5rem; height: 2.5rem; border: 1px solid var(--line); background: var(--night); cursor: pointer; font-size: 1.3rem; }
 .lightbox-step { height: 4rem; border: 0; color: var(--aqua); background: transparent; cursor: pointer; font-size: 1.2rem; }
 .lightbox-step:hover, .lightbox-close:hover { color: var(--ice); background: rgba(131, 228, 227, .08); }

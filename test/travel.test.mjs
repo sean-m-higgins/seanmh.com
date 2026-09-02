@@ -17,6 +17,7 @@ import { frameBounds, makeProjector, placeLabels, uniqueStops } from "../src/scr
 import {
   isPhotoTripPublished,
   publicRouteWaypoints,
+  publishedPhotoTripSlugs,
   tripsForPublication,
 } from "../src/content/publication.mjs";
 
@@ -210,6 +211,11 @@ test("unpublished route coordinates are removed from every public payload", () =
 });
 
 test("photo galleries remain unpublished until explicitly released", () => {
-  assert.equal(isPhotoTripPublished("norway-2026"), false);
+  // Naming a trip here would only track whichever edit happens to be finished,
+  // so assert the gate itself: nothing is published unless it is on the list.
+  assert.equal(isPhotoTripPublished("spain-2014"), false, "an unfinished edit stays closed");
   assert.equal(isPhotoTripPublished("unknown-trip"), false);
+  for (const slug of publishedPhotoTripSlugs) {
+    assert.equal(isPhotoTripPublished(slug), true, `${slug} is released`);
+  }
 });
