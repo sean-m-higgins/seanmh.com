@@ -212,9 +212,11 @@ test("unpublished route coordinates are removed from every public payload", () =
 
 test("photo galleries remain unpublished until explicitly released", () => {
   // Naming a trip here would only track whichever edit happens to be finished,
-  // so assert the gate itself: nothing is published unless it is on the list.
-  assert.equal(isPhotoTripPublished("spain-2014"), false, "an unfinished edit stays closed");
+  // so assert the gate itself: a slug on the list opens, anything else stays
+  // shut. Every trip is released at present, which is exactly why the negative
+  // case is worth keeping — it is the only thing still guarding a new slug.
   assert.equal(isPhotoTripPublished("unknown-trip"), false);
+  assert.equal(isPhotoTripPublished(""), false);
   for (const slug of publishedPhotoTripSlugs) {
     assert.equal(isPhotoTripPublished(slug), true, `${slug} is released`);
   }

@@ -8,6 +8,7 @@ export const publishedPhotoTripSlugs = Object.freeze([
   "norway-2026",
   "france-2026",
   "spain-2025",
+  "spain-2014",
 ]);
 
 const publishedPhotoTrips = new Set(publishedPhotoTripSlugs);
