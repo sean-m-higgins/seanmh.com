@@ -5,7 +5,6 @@ import TravelGlobe from "../components/TravelGlobe.astro";
 import TripArtwork from "../components/TripArtwork.astro";
 import BaseLayout from "../layouts/BaseLayout.astro";
 import { countries, trips } from "../content/trips.ts";
-import { hasPublishedPhotos } from "../content/photos.ts";
 import { publicRouteWaypoints } from "../content/publication.mjs";
 import { uniqueStops } from "../scripts/trip-map.mjs";
 
@@ -14,7 +13,6 @@ const description = "Sean Higgins’s journeys on an interactive globe: two cros
 
 const journeys = trips.map((trip) => {
   const stops = uniqueStops(publicRouteWaypoints(trip)).map((s: { label: string }) => s.label);
-  const photosPublished = hasPublishedPhotos(trip.slug);
   const lat = trip.anchor.latitude;
   const lon = trip.anchor.longitude;
   return {
@@ -23,10 +21,7 @@ const journeys = trips.map((trip) => {
       .filter((c) => trip.visitedCountries.includes(c.iso2))
       .map((c) => c.name)
       .join(" · "),
-    shape: stops.length > 0 ? `${stops.length} stops` : "Route pending",
-    archive: trip.links.pdfDownload
-      ? photosPublished ? "Plan + photographs" : "Plan · photos forthcoming"
-      : photosPublished ? "Photographs" : "Photos forthcoming",
+    route: stops.length > 0 ? `${stops.length} stops` : "Route pending",
     coordinates: `${Math.abs(lat).toFixed(3)}° ${lat >= 0 ? "N" : "S"} · ${Math.abs(lon).toFixed(3)}° ${lon >= 0 ? "E" : "W"}`,
   };
 });
@@ -38,21 +33,13 @@ const journeys = trips.map((trip) => {
   <main id="main-content">
     <TravelGlobe />
 
-    <section class="manifesto" aria-labelledby="manifesto-title">
-      <p class="eyebrow">02 / Why keep an atlas?</p>
-      <div>
-        <h2 id="manifesto-title">Not a checklist.<br />A record of <em>how it felt.</em></h2>
-        <p>Plans become routes. Routes become photographs, small discoveries, and useful details worth passing forward. This archive keeps all three together.</p>
-      </div>
-    </section>
-
     <section class="journeys" aria-labelledby="journeys-title">
       <div class="journeys-heading">
-        <p class="eyebrow">03 / The journeys</p>
+        <p class="eyebrow">02 / The journeys</p>
         <h2 id="journeys-title">{trips.length} routes,<br /><em>newest first.</em></h2>
       </div>
 
-      {journeys.map(({ trip, where, shape, archive, coordinates }) => (
+      {journeys.map(({ trip, where, route, coordinates }) => (
         <article class="featured-journey" style={`--trip-accent:${trip.accent}`}>
           <div class="featured-art" aria-hidden="true">
             <TripArtwork slug={trip.slug} />
@@ -64,9 +51,7 @@ const journeys = trips.map((trip) => {
             <p>{trip.summary}</p>
             <dl>
               <div><dt>Where</dt><dd>{where}</dd></div>
-              <div><dt>Anchor</dt><dd>{trip.anchor.label}</dd></div>
-              <div><dt>Shape</dt><dd>{shape}</dd></div>
-              <div><dt>Archive</dt><dd>{archive}</dd></div>
+              <div><dt>Route</dt><dd>{route}</dd></div>
             </dl>
             <a class="button button-primary" href={trip.links.overview}>Enter the {trip.shortTitle} journal <span aria-hidden="true">↗</span></a>
           </div>

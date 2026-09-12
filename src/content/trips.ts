@@ -32,8 +32,6 @@ export interface TripRecord {
   /** Journal headline, split so the second half can be set in italic. */
   heading: { lead: string; emphasis: string };
   intro: { heading: string; body: string };
-  /** The standing note at the foot of the journal page. */
-  note: { title: string; body: string };
   route: TripRoute;
   links: {
     overview: string;
@@ -94,20 +92,19 @@ export const trips: readonly TripRecord[] = [
     heading: { lead: "Oslo", emphasis: "to Lofoten." },
     intro: {
       heading: "Fly north. Cross the Vestfjorden. Pick up the road where the mountains meet it.",
-      body: "The plan used Bodø as the hinge: an airport close to the motorcycle, a three-hour ferry that lands beside Reine, and three weather-flexible days based in a waterfront rorbu. The plan below is preserved as it existed before departure; the route atlas will show only the confirmed journey.",
-    },
-    note: {
-      title: "Plan and record stay separate.",
-      body: "The pre-trip document is useful because it shows the decisions before the outcome. Actual route coordinates and photo locations will be published only after they are confirmed.",
+      body: "Bodø was the hinge: an airport close to the motorcycle, a three-hour ferry that lands beside Reine, and three weather-flexible days based in a waterfront rorbu. The plan below is preserved as it stood before departure.",
     },
     route: {
       id: "norway-2026-actual",
       label: "Actual route",
       color: "#ffb45b",
-      // The pre-trip itinerary is not evidence of the completed route. Keep the
-      // globe route unpublished until Sean confirms the actual stops.
-      published: false,
-      waypoints: [],
+      published: true,
+      waypoints: [
+        { label: "Oslo", latitude: 59.9139, longitude: 10.7522, modeFromPrevious: "air" },
+        { label: "Bodø", latitude: 67.2804, longitude: 14.4049, modeFromPrevious: "air" },
+        { label: "Hamnøy", latitude: 67.949, longitude: 13.133, modeFromPrevious: "ferry" },
+        { label: "Henningsvær", latitude: 68.1533, longitude: 14.2044, modeFromPrevious: "motorcycle" },
+      ],
     },
     links: {
       overview: "/travel/norway-2026/",
@@ -134,10 +131,6 @@ export const trips: readonly TripRecord[] = [
     intro: {
       heading: "Two climates, one trip, with the mountains folded into the middle.",
       body: "The south came first and slowest — Marseille and Montpellier taking most of the early days. Then the route turned inland and uphill for a weekend on snow before dropping back to sea level, where Nice became a base for the last stretch and Monaco filled a single day.",
-    },
-    note: {
-      title: "A route that doubles back on purpose.",
-      body: "Marseille and Nice each appear twice because the Alps sit inland from both. The line on the atlas follows the order they were travelled rather than tidying the loop into a circle.",
     },
     route: {
       id: "france-2026-actual",
@@ -178,10 +171,6 @@ export const trips: readonly TripRecord[] = [
       heading: "The same country, the other half of it.",
       body: "The 2014 trip ran across the north and finished in Madrid. This one started there and went the way the first never did: south into Andalusia, then along the coast, arriving in Barcelona from the opposite direction to the one it had been left in.",
     },
-    note: {
-      title: "Two journeys, one country.",
-      body: "Spain carries both routes on the atlas, in different colours. Selecting a journey on the globe shows only that line, so the 2014 and 2025 crossings can be read apart.",
-    },
     route: {
       id: "spain-2025-actual",
       label: "Actual route",
@@ -217,10 +206,6 @@ export const trips: readonly TripRecord[] = [
     intro: {
       heading: "The first one, chaperoned, and the reason for all the rest.",
       body: "A school group tour that flew into Barcelona and out of Madrid, moving by motorcoach with nights in Barcelona, Bilbao, Burgos and Madrid, and a day given over to Toledo. No plan of Sean's own survives from it—there was nothing to preserve, because someone else had written it.",
-    },
-    note: {
-      title: "Recorded from memory and one surviving document.",
-      body: "The route comes from the tour's own map rather than a journal. Stops are accurate; the day-by-day is not reconstructed here, and a basic itinerary may be written later if it proves worth having.",
     },
     route: {
       id: "spain-2014-actual",

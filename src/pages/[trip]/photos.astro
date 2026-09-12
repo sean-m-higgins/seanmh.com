@@ -54,7 +54,6 @@ const description = `A concise photographic edit from ${trip.title}.`;
       <h1>{origin}{destination && (
         <Fragment>{" "}<span class="route-leg"><span class="route-arrow" aria-hidden="true">→</span><span class="sr-only">to </span>{destination}</span></Fragment>
       )}<br /><em>in photographs.</em></h1>
-      <p>A deliberately small edit from the journey. The photographs are being selected from the full roll before they enter the public archive.</p>
     </header>
 
     {photos.length > 0 ? (
@@ -109,8 +108,6 @@ const description = `A concise photographic edit from ${trip.title}.`;
       </figure>
       <button class="lightbox-step lightbox-next" type="button" data-lightbox-next aria-label="Next photograph">→</button>
     </dialog>
-
-    <aside class="truth-note photo-note"><span aria-hidden="true">◌</span><div><strong>Privacy is part of the edit.</strong><p>Public derivatives contain no embedded GPS data. Locations are added by hand only when they contribute to the story.</p></div></aside>
   </main>
   <SiteFooter />
 </BaseLayout>

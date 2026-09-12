@@ -357,15 +357,6 @@ em { color: var(--amber-pale); font-family: var(--font-display); font-weight: 40
 .country-index small { margin-top: 0.18rem; color: var(--faint); font-family: var(--font-mono); font-size: 0.57rem; }
 .country-index i { color: var(--aqua); font-style: normal; }
 
-.manifesto {
-  display: grid;
-  padding: clamp(7rem, 12vw, 12rem) clamp(0rem, 6vw, 7rem);
-  grid-template-columns: 0.7fr 1.4fr;
-  gap: 3rem;
-  border-top: 1px solid var(--line);
-}
-.manifesto h2 { max-width: 14ch; margin-bottom: 1.8rem; font-size: clamp(2.7rem, 5vw, 5.5rem); font-weight: 500; letter-spacing: -0.055em; line-height: 0.98; }
-.manifesto div > p { max-width: 46rem; color: var(--mist); font-size: 1.05rem; }
 .journeys { padding-bottom: clamp(5rem, 9vw, 9rem); border-top: 1px solid var(--line); }
 .journeys-heading { padding: clamp(5rem, 9vw, 9rem) 0 clamp(2.5rem, 5vw, 4rem); }
 .journeys-heading h2 { margin: 0; font-size: clamp(2.4rem, 4.5vw, 4.4rem); font-weight: 500; letter-spacing: -.055em; line-height: .98; }
@@ -404,12 +395,12 @@ em { color: var(--amber-pale); font-family: var(--font-display); font-weight: 40
 .map-stop circle { fill: var(--night); stroke: var(--amber-pale); stroke-width: 3; }
 .map-leader { fill: none; stroke: var(--faint); stroke-width: 1.5; }
 .map-stop text { fill: var(--mist); font-family: var(--font-mono); font-size: 15px; letter-spacing: 2px; text-transform: uppercase; }
-.map-stop.anchor circle { fill: var(--amber); filter: drop-shadow(0 0 8px var(--amber)); }
 .map-disclaimer { fill: var(--faint); font-family: var(--font-mono); font-size: 9px; letter-spacing: 1.5px; }
 .journal-intro { display: grid; padding: clamp(6rem, 10vw, 10rem) clamp(0rem, 5vw, 5rem); grid-template-columns: .55fr 1.45fr; gap: 3rem; border-top: 1px solid var(--line); }
 .journal-intro h2 { max-width: 22ch; margin-bottom: 1.6rem; font-size: clamp(2.5rem, 4.5vw, 4.6rem); font-weight: 500; letter-spacing: -.05em; line-height: 1; }
 .journal-intro div > p { max-width: 49rem; color: var(--mist); font-size: 1rem; }
-.journal-doors { display: grid; margin-bottom: 5rem; grid-template-columns: repeat(2, 1fr); gap: 1px; background: var(--line-bright); border: 1px solid var(--line-bright); }
+.journal-doors { display: grid; margin-bottom: 8rem; grid-template-columns: repeat(2, 1fr); gap: 1px; background: var(--line-bright); border: 1px solid var(--line-bright); }
+.journal-doors.single { grid-template-columns: 1fr; }
 .journal-door { position: relative; min-height: 23rem; padding: clamp(2rem, 5vw, 5rem); background: var(--panel-solid); text-decoration: none; }
 a.journal-door { transition: background 200ms ease; }
 a.journal-door:hover { background: #102d3a; }
@@ -418,10 +409,6 @@ a.journal-door:hover { background: #102d3a; }
 .journal-door h2 { margin: 4rem 0 1rem; font-size: clamp(2.2rem, 4vw, 4rem); font-weight: 500; letter-spacing: -.05em; }
 .journal-door p:not(.archive-warning) { max-width: 28rem; color: var(--mist); }
 .journal-door i { position: absolute; right: 2rem; bottom: 1.7rem; color: var(--aqua); font-size: 1.3rem; font-style: normal; }
-.truth-note { display: flex; max-width: 58rem; margin: 0 auto 8rem; padding: 1.5rem; border: 1px solid var(--line); align-items: flex-start; gap: 1rem; background: rgba(13,39,52,.45); }
-.truth-note > span { color: var(--aqua); font-size: 1.35rem; }
-.truth-note strong { display: block; margin-bottom: .25rem; font-size: .84rem; }
-.truth-note p { margin: 0; color: var(--mist); font-size: .79rem; }
 
 .photo-hero h1 { font-size: clamp(4.2rem, 8vw, 8.5rem); }
 /* The arrow carries the direction of the route. Set smaller and in the sans
@@ -435,7 +422,6 @@ a.journal-door:hover { background: #102d3a; }
 
 /* Photo edit */
 .photo-hero { max-width: 78rem; padding: clamp(6rem, 10vw, 10rem) 0 5rem; }
-.photo-hero > p:not(.eyebrow) { max-width: 44rem; color: var(--mist); font-size: 1.04rem; }
 .contact-sheet-empty { display: grid; padding: 2rem 0 8rem; grid-template-columns: repeat(4, 1fr); grid-template-rows: auto auto; gap: 1rem; }
 .film-frame { position: relative; aspect-ratio: .78; overflow: hidden; border: 1px solid var(--line); background: linear-gradient(145deg, #112f3b, #07131b 70%); }
 .film-frame:nth-child(2) { background: linear-gradient(160deg, #39291f, #102630 48%, #07131b); }
@@ -450,7 +436,6 @@ a.journal-door:hover { background: #102d3a; }
 .edit-note { grid-column: 2 / 5; padding: 4rem 0 0 2rem; }
 .edit-note h2 { font-size: clamp(2.7rem, 5vw, 5rem); font-weight: 500; letter-spacing: -.06em; line-height: .95; }
 .edit-note > p:not(.eyebrow) { max-width: 42rem; color: var(--mist); }
-.photo-note { margin-bottom: 8rem; }
 .photo-grid { display: grid; padding-bottom: 7rem; grid-template-columns: repeat(12, 1fr); gap: 1rem; }
 .photo-grid figure { grid-column: span 4; margin: 0; }
 .photo-grid figure.wide { grid-column: span 8; }.photo-grid figure.tall { grid-column: span 4; }
@@ -541,8 +526,6 @@ a.journal-door:hover { background: #102d3a; }
      so the actions move to the far edge instead. */
   .journey-actions { justify-content: flex-end; }
   .country-index { width: 100%; margin: 1rem 0 3rem; }
-  .manifesto { padding: 6rem 0; grid-template-columns: 1fr; gap: 1rem; }
-  .manifesto h2 { font-size: clamp(2.8rem, 13vw, 4rem); }
   .featured-journey { margin-inline: -1rem; }
   .featured-art { min-height: 22rem; }
   .featured-copy { padding: 2rem 1rem 3rem; }

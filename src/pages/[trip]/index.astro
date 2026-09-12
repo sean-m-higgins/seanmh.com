@@ -62,50 +62,38 @@ const title = `${trip.title} — ${trip.shortTitle} | Travel`;
       </div>
     </section>
 
-    <section class="journal-doors" aria-label={`${trip.shortTitle} sections`}>
-      <div class="journal-door">
-        <span>01 / Before</span>
-        {hasDocument ? (
-          <Fragment>
-            <h2>The itinerary</h2>
-            <p>The route logic, day-by-day plan, and packing notes, kept as the document stood before departure.</p>
-            <div class="download-actions">
-              {trip.links.pdfDownload && (
-                <a class="button button-primary" href={trip.links.pdfDownload} download>Download PDF <span aria-hidden="true">↓</span></a>
-              )}
-              {trip.links.htmlDownload && (
-                <a class="button" href={trip.links.htmlDownload}>Read it in the browser <span aria-hidden="true">↗</span></a>
-              )}
-            </div>
-            <p class="archive-warning">Archived {archivedOn} · schedules, prices, and availability need fresh verification.</p>
-          </Fragment>
-        ) : (
-          <Fragment>
-            <h2>No itinerary</h2>
-            <p>This journey came before the habit of writing the plan down, so there is no document to preserve. A basic outline may be added later if it proves worth having.</p>
-          </Fragment>
-        )}
-      </div>
+    <section class:list={["journal-doors", { single: !hasDocument }]} aria-label={`${trip.shortTitle} sections`}>
+      {hasDocument && (
+        <div class="journal-door">
+          <span>Before</span>
+          <h2>The itinerary</h2>
+          <p>The route logic, day-by-day plan, and packing notes, kept as the document stood before departure.</p>
+          <div class="download-actions">
+            {trip.links.pdfDownload && (
+              <a class="button button-primary" href={trip.links.pdfDownload} download>Download PDF <span aria-hidden="true">↓</span></a>
+            )}
+            {trip.links.htmlDownload && (
+              <a class="button" href={trip.links.htmlDownload}>Read it in the browser <span aria-hidden="true">↗</span></a>
+            )}
+          </div>
+          <p class="archive-warning">Archived {archivedOn} · schedules, prices, and availability need fresh verification.</p>
+        </div>
+      )}
       {photosPublished ? (
         <a class="journal-door" href={trip.links.photos}>
-          <span>02 / After</span>
+          <span>After</span>
           <h2>The photographs</h2>
           <p>{photoBlurb}</p>
           <i aria-hidden="true">↗</i>
         </a>
       ) : (
         <div class="journal-door">
-          <span>02 / After</span>
+          <span>After</span>
           <h2>Photographs forthcoming</h2>
           <p>The edit is still in progress. This door will open when the final frames and captions are ready.</p>
         </div>
       )}
     </section>
-
-    <aside class="truth-note">
-      <span aria-hidden="true">◎</span>
-      <div><strong>{trip.note.title}</strong><p>{trip.note.body}</p></div>
-    </aside>
   </main>
   <SiteFooter />
 </BaseLayout>
