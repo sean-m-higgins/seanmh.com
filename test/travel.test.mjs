@@ -8,6 +8,7 @@ import {
   fitVerticalFov,
   greatCirclePoints,
   groupTripsByCountry,
+  isHomelandPolygon,
   latLonToCartesian,
   projectRing,
   ringWrapOffsets,
@@ -93,6 +94,42 @@ test("no country outline is split across the atlas texture seam", () => {
   // The seam sits at 90 degrees west, so North America genuinely straddles it
   // and must be drawn twice. If this reaches zero the wrapping stopped working.
   assert.ok(seamCrossers > 0, "expected seam-crossing rings to be drawn on both edges");
+});
+
+test("a visit shades the landmass it covered, not distant territories", () => {
+  const topology = JSON.parse(
+    readFileSync(new URL("../node_modules/world-atlas/countries-110m.json", import.meta.url)),
+  );
+  const atlas = feature(topology, topology.objects.countries);
+  // Atlas ids and centroids as the country records carry them.
+  const shaded = (atlasId, centroid) => {
+    const country = atlas.features.find((f) => String(f.id).padStart(3, "0") === atlasId);
+    const polygons = country.geometry.type === "Polygon"
+      ? [country.geometry.coordinates]
+      : country.geometry.coordinates;
+    return polygons
+      .filter((polygon) => isHomelandPolygon(polygon, centroid))
+      .map((polygon) => polygon[0]);
+  };
+  const holds = (rings, longitude, latitude) => rings.some((ring) => {
+    const lons = ring.map(([lon]) => lon);
+    const lats = ring.map(([, lat]) => lat);
+    return longitude >= Math.min(...lons) && longitude <= Math.max(...lons)
+      && latitude >= Math.min(...lats) && latitude <= Math.max(...lats);
+  });
+
+  // The atlas files French Guiana under France and Svalbard under Norway, and
+  // shading them claimed journeys that never happened.
+  const france = shaded("250", { latitude: 46.6, longitude: 2.4 });
+  assert.ok(holds(france, 2.4, 46.6), "mainland France stays shaded");
+  assert.ok(holds(france, 9.1, 42.2), "Corsica belongs to the mainland visit");
+  assert.ok(!holds(france, -53, 4), "French Guiana is not shaded");
+
+  const norway = shaded("578", { latitude: 65.1, longitude: 13.3 });
+  assert.ok(holds(norway, 13.3, 65.1), "mainland Norway stays shaded");
+  assert.ok(!holds(norway, 16, 78.5), "Svalbard is not shaded");
+
+  assert.equal(shaded("724", { latitude: 40.2, longitude: -3.6 }).length, 1, "Spain is unaffected");
 });
 
 test("a ring straddling the seam is drawn whole on both edges", () => {

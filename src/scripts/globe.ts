@@ -7,6 +7,7 @@ import type { CountryRecord, TripRecord } from "../content/trips.ts";
 import {
   fitVerticalFov,
   greatCirclePoints,
+  isHomelandPolygon,
   latLonToCartesian,
   projectRing,
   ringWrapOffsets,
@@ -52,12 +53,25 @@ function traceRing(
   }
 }
 
-function makeAtlasTexture(visitedAtlasIds: Set<string>) {
+function makeAtlasTexture(visited: readonly CountryRecord[]) {
   const canvas = document.createElement("canvas");
   canvas.width = 2048;
   canvas.height = 1024;
   const context = canvas.getContext("2d");
   if (!context) throw new Error("Canvas 2D is unavailable");
+
+  const paint = (polygons: number[][][][], highlighted: boolean) => {
+    if (polygons.length === 0) return;
+    context.beginPath();
+    for (const polygon of polygons) {
+      for (const ring of polygon) traceRing(context, ring, canvas.width, canvas.height);
+    }
+    context.fillStyle = highlighted ? "#e79043" : "#284756";
+    context.fill("evenodd");
+    context.strokeStyle = highlighted ? "rgba(255,220,165,.95)" : "rgba(151,196,207,.28)";
+    context.lineWidth = highlighted ? 2.4 : 0.75;
+    context.stroke();
+  };
 
   const gradient = context.createLinearGradient(0, 0, 0, canvas.height);
   gradient.addColorStop(0, "#173747");
@@ -71,20 +85,20 @@ function makeAtlasTexture(visitedAtlasIds: Set<string>) {
     (countriesTopology as { objects: { countries: never } }).objects.countries,
   ) as unknown as { features: AtlasFeature[] };
 
+  const centroids = new Map(visited.map((country) => [country.atlasId, country.centroid]));
   for (const country of atlas.features) {
     const polygons = country.geometry.type === "Polygon"
       ? [country.geometry.coordinates as number[][][]]
       : country.geometry.coordinates as number[][][][];
-    context.beginPath();
-    for (const polygon of polygons) {
-      for (const ring of polygon) traceRing(context, ring, canvas.width, canvas.height);
-    }
-    const visited = visitedAtlasIds.has(String(country.id).padStart(3, "0"));
-    context.fillStyle = visited ? "#e79043" : "#284756";
-    context.fill("evenodd");
-    context.strokeStyle = visited ? "rgba(255,220,165,.95)" : "rgba(151,196,207,.28)";
-    context.lineWidth = visited ? 2.4 : 0.75;
-    context.stroke();
+    // A visit shades the landmass it covered, not every territory the atlas
+    // files under the same country: France arrives carrying French Guiana on
+    // the shoulder of South America, which no journey here has reached.
+    const centroid = centroids.get(String(country.id).padStart(3, "0"));
+    const home = centroid
+      ? polygons.filter((polygon) => isHomelandPolygon(polygon, centroid))
+      : [];
+    paint(polygons.filter((polygon) => !home.includes(polygon)), false);
+    paint(home, true);
   }
 
   // Hairline latitude guides keep the object reading as an atlas, not a ball.
@@ -260,11 +274,10 @@ export function startGlobe() {
   container.appendChild(renderer.domElement);
 
   const globe = new THREE.Group();
-  const visitedIds = new Set(data.countries.map((country) => country.atlasId));
   const sphere = new THREE.Mesh(
     new THREE.SphereGeometry(RADIUS, 96, 64),
     new THREE.MeshPhongMaterial({
-      map: makeAtlasTexture(visitedIds),
+      map: makeAtlasTexture(data.countries),
       specular: new THREE.Color("#356f7e"),
       shininess: 24,
       emissive: new THREE.Color("#04131b"),

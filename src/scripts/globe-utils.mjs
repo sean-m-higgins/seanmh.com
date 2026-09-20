@@ -133,3 +133,29 @@ export function validateTravelData(countries, trips) {
   }
   return errors;
 }
+
+// Natural Earth folds overseas territories into the sovereign state, so the
+// atlas hands France its polygon for French Guiana and Norway its polygons for
+// Svalbard. Eight degrees reaches an offshore island that belongs to the
+// mainland visit, such as Corsica, and stops well short of a territory an
+// ocean away.
+const HOMELAND_DEGREES = 8;
+
+export function isHomelandPolygon(polygon, centroid, limitDegrees = HOMELAND_DEGREES) {
+  let west = Infinity;
+  let east = -Infinity;
+  let south = Infinity;
+  let north = -Infinity;
+  for (const [longitude, latitude] of polygon[0]) {
+    if (longitude < west) west = longitude;
+    if (longitude > east) east = longitude;
+    if (latitude < south) south = latitude;
+    if (latitude > north) north = latitude;
+  }
+  const northSouth = Math.max(south - centroid.latitude, centroid.latitude - north, 0);
+  // Meridians converge, so a degree of longitude is worth less the further
+  // north the country sits.
+  const eastWest = Math.max(west - centroid.longitude, centroid.longitude - east, 0)
+    * Math.cos(centroid.latitude * DEG);
+  return Math.hypot(northSouth, eastWest) <= limitDegrees;
+}
