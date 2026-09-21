@@ -3,9 +3,9 @@
 A seven-room house for Sean Higgins's software, woodworking, art, and Eagle
 Scout project, inspired by Gaudí and the
 procedural storytelling recorded in the project's `.inspiration` survey.
-Branch: `version/h-gaudi`. Planned origin: `seanmh-gaudi.pages.dev`.
-Public selection after release: `https://seanmh.com/?v=h-gaudi`.
-Current status: local implementation; not deployed.
+Branch: `version/h-gaudi`. Origin: `seanmh-gaudi.pages.dev`.
+Public route: `https://seanmh.com/?v=h-gaudi`.
+Current status: deployed September 21, 2026; discovered through the Nexus.
 
 This is a static Astro site. Cloudflare Pages builds this branch; the front
 routing Worker lives only on `main`. Do not deploy this branch over the router.
@@ -41,12 +41,12 @@ Review scripts expect the preview on port 4329. Outputs live in gitignored
 `artifacts/`; the generated social image lives in `public/`. The main worktree's
 local proxy on port 8787 supports `/?v=h-gaudi` for integrated routing checks.
 
-## Release
+## Deployment
 
-Provision and verify the H Pages origin before publishing Worker routing,
-Nexus, and Blueprint integration changes. H is intentionally discovered through
-the Nexus rather than the shared switcher. The canonical
-default stays `a-scroll`. The wiki's Gaudi page contains the release order.
+Cloudflare Pages auto-deploys this branch to `seanmh-gaudi.pages.dev`. The main
+Worker routes `/?v=h-gaudi` to that origin. H is intentionally discovered
+through the Nexus rather than the shared switcher, and the canonical default
+remains `a-scroll`. The wiki's Gaudi page contains the deployment record.
 
 ## Shared files
 

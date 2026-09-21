@@ -1,6 +1,13 @@
 # Verification record
 
-Implementation dates: September 19–21, 2026. Local edition; not deployed.
+Implementation dates: September 19–21, 2026. Deployed September 21, 2026.
+
+## Production release — September 21
+
+- Verified `https://seanmh-gaudi.pages.dev` returns 200 before updating the edge route.
+- Deployed Worker version `035922bc-9196-4180-ae65-3c9e0c9ec1db` with Wrangler. `https://seanmh.com/?v=h-gaudi&seed=42` returns 200, reports `X-Portfolio-Version: h-gaudi`, and sets the `pv=h-gaudi` preference cookie.
+- Verified an anonymous request to `https://seanmh.com/` still reports `X-Portfolio-Version: a-scroll`.
+- Casa Higgins remains absent from the shared switcher and is discovered through the Nexus.
 
 ## Nexus return and discovery posture — September 21
 
