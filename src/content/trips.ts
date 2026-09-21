@@ -73,12 +73,18 @@ export interface PlaceRecord {
 // Only countries the atlas can actually shade belong here. Monaco is visited on
 // the France journey but is absent from the 110m topology, so it lives on that
 // route as a waypoint rather than as a highlighted country.
+//
+// Listed in the order Sean first set foot in each, unlike the journeys below.
 export const countries: readonly CountryRecord[] = [
+  // The United States shades by state rather than in one blanket: travel here
+  // is a scatter of places rather than a route, and the atlas files Alaska and
+  // Hawaii under the same country as the lower forty-eight.
   {
-    iso2: "NO",
-    atlasId: "578",
-    name: "Norway",
-    centroid: { latitude: 65.1, longitude: 13.3 },
+    iso2: "US",
+    atlasId: "840",
+    name: "United States",
+    centroid: { latitude: 39.8, longitude: -98.6 },
+    shadeBy: "states",
   },
   {
     iso2: "ES",
@@ -92,15 +98,11 @@ export const countries: readonly CountryRecord[] = [
     name: "France",
     centroid: { latitude: 46.6, longitude: 2.4 },
   },
-  // The United States shades by state rather than in one blanket: travel here
-  // is a scatter of places rather than a route, and the atlas files Alaska and
-  // Hawaii under the same country as the lower forty-eight.
   {
-    iso2: "US",
-    atlasId: "840",
-    name: "United States",
-    centroid: { latitude: 39.8, longitude: -98.6 },
-    shadeBy: "states",
+    iso2: "NO",
+    atlasId: "578",
+    name: "Norway",
+    centroid: { latitude: 65.1, longitude: 13.3 },
   },
 ];
 

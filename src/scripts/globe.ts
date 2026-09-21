@@ -636,7 +636,8 @@ export function startGlobe() {
   render();
 
   stage.dataset.state = "ready";
-  selectCountry(data.countries[0]?.iso2 ?? "");
+  // Open on the newest journey, whatever order the country index is in.
+  selectCountry(data.trips[0]?.visitedCountries[0] ?? "");
 
   document.addEventListener("astro:before-swap", () => {
     cancelAnimationFrame(frame);

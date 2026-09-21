@@ -68,14 +68,14 @@ if (contentErrors.length > 0) throw new Error(`Invalid travel content:\n${conten
       <p class="place-label-note" data-place-note hidden></p>
     </div>
 
-    {countries.map((country, countryIndex) => {
+    {countries.map((country) => {
       const countryTrips = tripsForCountry(country.iso2);
       return (
         <aside
           class="journey-card"
           data-country-card={country.iso2}
           aria-label={`${country.name} journeys`}
-          hidden={countryIndex > 0}
+          hidden={country.iso2 !== trips[0]?.visitedCountries[0]}
         >
           <button class="journey-close" type="button" data-close-country aria-label={`Close ${country.name} details`}>×</button>
           <p class="eyebrow"><span class="country-dot"></span> Visited / {country.name}</p>
