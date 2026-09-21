@@ -679,6 +679,154 @@ function buildGlobe(color: THREE.Color): Interior {
   };
 }
 
+// h-gaudi: Casa Higgins as a vaulted nave of true catenary arches (Gaudí's
+// hanging chains, inverted) under a trencadís rose window. The house holds
+// what it was built for: a small table, a ramp, an easel, and a terminal.
+function buildGaudi(color: THREE.Color): Interior {
+  const group = new THREE.Group();
+  const FLOOR_Y = -0.34;
+  const HALF_SPAN = 0.4; // front arch half-width
+  const K = 2.4; // span/sag ratio; sets the arch tall and narrow, as Gaudí's are
+  const ARCHES = 5;
+  const limestone = new THREE.Color(0xe8ddc7);
+
+  // Each arch is an inverted catenary, nesting smaller toward the back like
+  // the portal at H's threshold. Stone up front, glowing into the color behind.
+  const crowns: THREE.Vector3[] = [];
+  const feet: [THREE.Vector3[], THREE.Vector3[]] = [[], []];
+  for (let i = 0; i < ARCHES; i++) {
+    const halfSpan = HALF_SPAN * (1 - i * 0.07);
+    const a = halfSpan / K;
+    const rise = a * (Math.cosh(K) - 1);
+    const z = 0.3 - i * 0.15;
+    const points = Array.from({ length: 33 }, (_, j) => {
+      const x = (j / 16 - 1) * halfSpan;
+      return new THREE.Vector3(x, FLOOR_Y + rise - a * (Math.cosh(x / a) - 1), z);
+    });
+    group.add(new THREE.Mesh(
+      new THREE.TubeGeometry(new THREE.CatmullRomCurve3(points), 48, 0.014, 6),
+      new THREE.MeshBasicMaterial({ color: limestone.clone().lerp(color, i / (ARCHES - 1)) })
+    ));
+    crowns.push(points[16]);
+    feet[0].push(points[0]);
+    feet[1].push(points[32]);
+  }
+
+  // A ridge through the crowns and a rail along each row of feet tie the
+  // arches into one vault.
+  const lineMaterial = new THREE.LineBasicMaterial({
+    color,
+    transparent: true,
+    opacity: 0.45,
+    blending: THREE.AdditiveBlending,
+    depthWrite: false,
+  });
+  for (const path of [crowns, ...feet]) {
+    group.add(new THREE.Line(new THREE.BufferGeometry().setFromPoints(path), lineMaterial));
+  }
+
+  // The rose window: rings of broken-tile triangles, twinkling on the cards
+  // shader, set just behind the last arch.
+  const RINGS = [1, 7, 13, 19];
+  const tiles = RINGS.reduce((sum, count) => sum + count, 0);
+  const tileGeometry = new THREE.CircleGeometry(0.03, 3);
+  const time = { value: 0 };
+  const rose = new THREE.InstancedMesh(
+    tileGeometry,
+    new THREE.ShaderMaterial({
+      vertexShader: CARDS_VERT,
+      fragmentShader: CARDS_FRAG,
+      uniforms: { uTime: time, uColor: { value: color.clone().lerp(new THREE.Color(0xffffff), 0.5) } },
+      transparent: true,
+      side: THREE.DoubleSide,
+      depthWrite: false,
+      blending: THREE.AdditiveBlending,
+    }),
+    tiles
+  );
+  const phases = new Float32Array(tiles);
+  const dummy = new THREE.Object3D();
+  let tile = 0;
+  RINGS.forEach((count, ring) => {
+    for (let k = 0; k < count; k++) {
+      const angle = (k / count) * Math.PI * 2 + ring * 0.4;
+      dummy.position.set(Math.cos(angle) * ring * 0.045, Math.sin(angle) * ring * 0.045, 0);
+      dummy.rotation.z = Math.random() * Math.PI * 2;
+      dummy.scale.setScalar(0.75 + Math.random() * 0.5);
+      dummy.updateMatrix();
+      rose.setMatrixAt(tile, dummy.matrix);
+      phases[tile++] = ring * 1.3 + Math.random();
+    }
+  });
+  tileGeometry.setAttribute("aPhase", new THREE.InstancedBufferAttribute(phases, 1));
+  rose.position.set(0, 0.02, -0.36);
+  group.add(rose);
+
+  // The four collections, in limestone, on the nave floor.
+  const stone = new THREE.MeshBasicMaterial({ color: limestone });
+  const glow = new THREE.MeshBasicMaterial({ color });
+  const box = (w: number, h: number, d: number, x: number, y: number, z: number, material = stone) => {
+    const mesh = new THREE.Mesh(new THREE.BoxGeometry(w, h, d), material);
+    mesh.position.set(x, y, z);
+    return mesh;
+  };
+
+  // Woodworking: a small table.
+  const table = new THREE.Group();
+  table.add(box(0.13, 0.014, 0.07, 0, 0.07, 0));
+  for (const [x, z] of [[-1, -1], [1, -1], [1, 1], [-1, 1]]) {
+    table.add(box(0.01, 0.07, 0.01, x * 0.055, 0.035, z * 0.027));
+  }
+  table.position.set(-0.19, FLOOR_Y, 0.075);
+
+  // The Eagle Scout project: a wheelchair ramp up to a landing, with a rail.
+  const ramp = new THREE.Group();
+  const slope = box(0.17, 0.01, 0.07, 0, 0, 0);
+  slope.rotation.z = 0.3;
+  slope.position.set(0, 0.025, 0);
+  ramp.add(slope, box(0.05, 0.052, 0.07, 0.105, 0.026, 0));
+  const rail = box(0.2, 0.006, 0.006, 0.02, 0.1, -0.035);
+  rail.rotation.z = 0.3;
+  ramp.add(rail, box(0.006, 0.07, 0.006, -0.06, 0.04, -0.035), box(0.006, 0.076, 0.006, 0.11, 0.09, -0.035));
+  ramp.position.set(0.17, FLOOR_Y, 0.075);
+
+  // Art: a canvas on an easel, painted in the house color.
+  const easel = new THREE.Group();
+  for (const side of [-1, 1]) {
+    const leg = box(0.008, 0.19, 0.008, side * 0.035, 0.09, 0);
+    leg.rotation.z = -side * 0.12;
+    easel.add(leg);
+  }
+  easel.add(box(0.09, 0.075, 0.006, 0, 0.12, 0.008, glow), box(0.1, 0.008, 0.02, 0, 0.078, 0.01));
+  easel.rotation.x = -0.12;
+  easel.position.set(-0.16, FLOOR_Y, -0.225);
+
+  // Software: a dark screen (H's marine ink) with a blinking cursor.
+  const terminal = new THREE.Group();
+  terminal.add(
+    box(0.13, 0.09, 0.006, 0, 0, 0),
+    box(0.115, 0.075, 0.004, 0, 0, 0.004, new THREE.MeshBasicMaterial({ color: 0x203e3d })),
+    box(0.012, 0.06, 0.012, 0, -0.07, 0),
+    box(0.06, 0.008, 0.035, 0, -0.1, 0)
+  );
+  const cursor = box(0.014, 0.02, 0.004, -0.04, -0.018, 0.007, glow);
+  terminal.add(cursor);
+  terminal.position.set(0.16, FLOOR_Y + 0.105, -0.225);
+
+  group.add(table, ramp, easel, terminal);
+  group.scale.setScalar(1.25); // fill the glass like the neighboring worlds
+
+  return {
+    object: group,
+    update(time_) {
+      time.value = time_;
+      cursor.visible = time_ % 1 < 0.55;
+      // A sway rather than a spin, so the nave keeps its depth.
+      group.rotation.y = Math.sin(time_ * 0.2) * 0.4;
+    },
+  };
+}
+
 const INTERIOR_BUILDERS: Record<VersionDef["interior"], (color: THREE.Color) => Interior> = {
   aurora: buildAurora,
   cards: buildCards,
@@ -687,6 +835,7 @@ const INTERIOR_BUILDERS: Record<VersionDef["interior"], (color: THREE.Color) => 
   ring: buildRing,
   blueprint: buildBlueprint,
   globe: buildGlobe,
+  gaudi: buildGaudi,
 };
 
 // ---------------------------------------------------------------------------

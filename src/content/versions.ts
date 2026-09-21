@@ -10,7 +10,7 @@ export interface VersionDef {
   blurb: string;
   color: string;
   /** Which miniature world lives inside this version's orb. */
-  interior: "aurora" | "cards" | "rain" | "halfpipe" | "ring" | "blueprint" | "globe";
+  interior: "aurora" | "cards" | "rain" | "halfpipe" | "ring" | "blueprint" | "globe" | "gaudi";
 }
 
 export const VERSIONS: readonly VersionDef[] = [
@@ -83,5 +83,15 @@ export const VERSIONS: readonly VersionDef[] = [
     blurb: "a living travel atlas",
     color: "#ffb45b",
     interior: "globe",
+  },
+  {
+    name: "h-gaudi",
+    href: "/?v=h-gaudi",
+    glyph: "⌒",
+    label: "Casa Higgins",
+    branch: "version/h-gaudi",
+    blurb: "a house that grows",
+    color: "#c49a59",
+    interior: "gaudi",
   },
 ];
