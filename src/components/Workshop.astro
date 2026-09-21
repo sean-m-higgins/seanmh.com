@@ -1,0 +1,16 @@
+---
+import { Picture } from 'astro:assets';
+import { woodworking } from '../content/making';
+import { treeArt } from '../lib/art';
+const stages = ['freshman', 'sophomore', 'junior', 'senior'];
+---
+<section id="growth" class="room growth" data-room="04" aria-labelledby="growth-heading">
+  <div class="section-heading"><p class="eyebrow">04 / GROWTH</p><span class="margin-note">the hands learn, too.</span></div>
+  <div class="workshop-layout">
+    <div class="workshop-tree"><p class="eyebrow">THE WOODSHOP</p><h2 id="growth-heading">A little better,<br/><em>by hand.</em></h2><p>Four woodworking projects, in the order I made them. A place to see the work grow from one piece to the next.</p><div class="woodland" set:html={treeArt()}></div><p class="woodland-note">GROWTH LEAVES A GRAIN.</p></div>
+    <div class="wood-projects">{woodworking.map((piece, i) => <figure class={`wood-project wood-project-${i + 1}`} data-wood-project>
+      <div class="wood-photo">{piece.image ? <Picture src={piece.image} alt={piece.alt ?? piece.title ?? `Woodworking project ${i + 1}`} formats={['avif', 'webp']} fallbackFormat="webp" widths={[240, 400, 640, 960]} sizes="(max-width: 760px) calc((100vw - 92px) / 2), (max-width: 1100px) 25vw, (max-width: 1649px) 23vw, 380px" loading="lazy" decoding="async"/> : <div class="wood-placeholder"><span class="wood-slot-number" aria-hidden="true">{String(i + 1).padStart(2, '0')}</span><span class="photo-pending">PROJECT PHOTO FORTHCOMING</span><svg viewBox="0 0 300 220" aria-hidden="true"><path d="M20 20h26m-26 0v26M280 20h-26m26 0v26M20 200h26m-26 0v-26M280 200h-26m26 0v-26" fill="none" stroke="currentColor"/><path d="M150 90v40m-20-20h40" fill="none" stroke="currentColor" stroke-opacity=".35"/></svg></div>}</div>
+      <figcaption><div><span class="eyebrow">{String(i + 1).padStart(2, '0')} / WOODWORKING</span><h3>{piece.title ?? `Project ${String(i + 1).padStart(2, '0')}`}</h3></div><span class="wood-order">The {stages[i]} piece</span>{piece.caption && <p>{piece.caption}</p>}</figcaption>
+    </figure>)}</div>
+  </div>
+</section>

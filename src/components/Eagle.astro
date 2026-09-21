@@ -1,0 +1,22 @@
+---
+import { Image } from 'astro:assets';
+import { eagle } from '../content/making';
+import { rampArt } from '../lib/ramp.mjs';
+---
+<section id="eagle" class="room eagle" data-room="06" aria-labelledby="eagle-heading">
+  <div class="section-heading"><p class="eyebrow">06 / A WAY IN</p><span class="margin-note">make room for someone else.</span></div>
+  <div class="eagle-layout">
+    <div class="eagle-copy">
+      <p class="eyebrow">THE EAGLE SCOUT PROJECT</p>
+      <h2 id="eagle-heading">One of the<br/>first <em>big things.</em></h2>
+      <p class="eagle-lead">A portable wheelchair ramp.</p>
+      <p>For my Eagle Scout project, I designed and built a long metal ramp for wheelchair access, with a large square platform at the top. Wheels along the base let the structure roll into place.</p>
+      <p>One of my first large projects, made for a very practical purpose: helping someone get where they need to go.</p>
+      <dl class="project-facts"><div><dt>PROJECT</dt><dd>Eagle Scout</dd></div><div><dt>PURPOSE</dt><dd>Wheelchair access</dd></div><div><dt>FORMAT</dt><dd>Portable · wheeled</dd></div></dl>
+    </div>
+    <figure class="ramp-study">
+      {eagle.image ? <Image src={eagle.image} alt={eagle.alt ?? 'The portable wheelchair ramp I designed and built for my Eagle Scout project'} widths={[600, 900, 1400]} sizes="(max-width: 760px) 85vw, 50vw" loading="lazy"/> : <div set:html={rampArt()}/>}
+      <figcaption>{eagle.image ? (eagle.caption ?? 'THE EAGLE SCOUT PROJECT') : 'THE EAGLE SCOUT PROJECT / A STRUCTURE THAT ROLLS INTO PLACE'}</figcaption>
+    </figure>
+  </div>
+</section>

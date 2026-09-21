@@ -1,19 +1,49 @@
 ---
-import BaseLayout from "../layouts/BaseLayout.astro";
-import Hero from "../components/Hero.astro";
-import About from "../components/About.astro";
-import Experience from "../components/Experience.astro";
-import Differentiators from "../components/Differentiators.astro";
-import Contact from "../components/Contact.astro";
-import Quote from "../components/Quote.astro";
-import { testimonials } from "../content/about";
+import GaudiLayout from '../layouts/GaudiLayout.astro';
+import { portalArt, projectArt } from '../lib/art';
+import { site } from '../content/site';
+import { projects } from '../content/projects';
+import Studies from '../components/Studies.astro';
+import Workshop from '../components/Workshop.astro';
+import ArtRoom from '../components/ArtRoom.astro';
+import Eagle from '../components/Eagle.astro';
+import Mosaic from '../components/Mosaic.astro';
+const chapters = ['Threshold', 'Structure', 'Works', 'Growth', 'Courtyard', 'Eagle', 'Light'];
+const exhibits = [
+  {id:'api-gateway-platform', kind:'gateway', label:'01 / Infrastructure', title:['A considered','way in.'], caption:'API Gateway Platform', text:'Authentication architecture for the APIs people depend on.', detail:'A gateway is a front door: deciding what comes through, and on whose authority. This work brings together OAuth, Workforce SSO, Step-Up Auth, and Lua gateway maintenance.', medium:'OAuth 2.0 · Lua · AWS'},
+  {id:'consent-ui', kind:'consent', label:'02 / Human interfaces', title:['The space','for a yes.'], caption:'Consent UI', text:'A clear place for customers to choose how their data is shared.', detail:'The human-facing side of the API Gateway Platform: a full-stack Angular application served through AWS CloudFront, making consent part of the interface.', medium:'Angular · CloudFront'},
+  {id:'partner-conversion-etl', kind:'data', label:'03 / Data systems', title:['Many paths.','One current.'], caption:'Partner Conversion ETL', text:'Automating the workflows that move customer accounts.', detail:'An Angular and Java application connects the interface to Scala ETL workflows, bringing the steps of a partner conversion into one automated process.', medium:'Scala · Java · Angular · EMR'},
+  {id:'seanmh-com', kind:'house', label:'04 / An ongoing experiment', title:['One address.','Many worlds.'], caption:'seanmh.com', text:'Independent digital experiences, connected by one shared identity.', detail:'A portfolio expressed through scrolling stories, a business card, a terminal, games, a systems map, a travel atlas, and this house. Built with Astro and independently deployed behind a Cloudflare Worker.', medium:'Astro · TypeScript · Cloudflare'},
+];
 ---
-
-<BaseLayout title="Sean Higgins — Software Engineer">
-  <Hero />
-  <About />
-  <Quote {...testimonials[1]} align="right" wide flushBottom />
-  <Experience />
-  <Differentiators />
-  <Contact />
-</BaseLayout>
+<GaudiLayout>
+  <header class="masthead">
+    <a class="wordmark" href="#threshold"><svg viewBox="0 0 32 40" aria-hidden="true"><path d="M2 36C2 14 10 2 16 2S30 14 30 36M7 36C7 19 12 9 16 9S25 19 25 36M2 36h28"/></svg><span>casa higgins<small>A HOUSE THAT GROWS</small></span></a>
+    <nav class="primary-nav" aria-label="Main"><a href="#works">Work</a><a href="#growth">Craft</a><a href="#courtyard">Art</a><a href="#eagle">Service</a></nav>
+    <a class="nexus-return" href="/?v=nexus" aria-label="Return to the Nexus"><span aria-hidden="true">↖</span> Nexus</a>
+  </header>
+  <div class="chapter-rail"><span class="rail-label">SEVEN ROOMS. STILL GROWING.</span><nav aria-label="Rooms">{chapters.map((c,i)=><a href={`#${c.toLowerCase()}`} data-chapter-link={c.toLowerCase()} aria-label={`${i+1}. ${c}`}><span class="rail-dot"></span><span class="rail-name">{c}</span></a>)}</nav><span class="rail-progress" aria-hidden="true">01 / 07</span></div>
+  <main id="main">
+    <svg class="inlay" aria-hidden="true"><path data-inlay-shadow/><path data-inlay/></svg>
+    <section id="threshold" class="room threshold" data-room="01">
+      <div class="hero-copy"><p class="eyebrow"><span class="tiny-star">✳</span> SEAN HIGGINS · THINGS I MAKE</p><h1>A house for<br/>the things <br/>I <em>make.</em></h1><p class="hero-note">Software. Woodworking. Art. A way in.<br/>Come in. There’s a little of everything.</p><a class="text-link" href="#structure">Step inside <span aria-hidden="true">↓</span></a></div>
+      <figure class="hero-architecture"><div class="portal" set:html={portalArt()}></div><canvas id="lightwell" aria-hidden="true"></canvas><figcaption><span>FIG. 01 — AN OPEN DOOR</span><span>FORM FOLLOWS CURIOSITY</span></figcaption></figure>
+      <div class="threshold-foot"><span>INSPIRED BY NATURE.<br/>BUILT WITH CODE.</span><p>A personal world, through the eyes of architecture.</p><span class="room-number">01 <i>/ 07</i></span></div>
+    </section>
+    <Studies />
+    <section id="works" class="room works" data-room="03">
+      <div class="section-heading"><p class="eyebrow">03 / SELECTED WORKS</p><span class="margin-note">a few things that hold.</span></div>
+      <div class="works-intro"><h2>Different materials.<br/>The same <em>care.</em></h2><p>From the front door of an API to the movement of data.<br/>Four pieces of a continuing practice.</p></div>
+      <div class="exhibit-grid">{exhibits.map((e,i)=>{const p=projects.find(p=>p.id===e.id)!; return <article class={`exhibit exhibit-${e.kind}`}><div class="exhibit-art" set:html={projectArt(e.kind,`work-${i}`)}></div><div class="exhibit-body"><p class="eyebrow">{e.label}</p><h3>{e.title.map(line=><span>{line}<br/></span>)}</h3><p class="work-name">{e.caption}</p><p>{e.text}</p><details><summary>Inside the work <span aria-hidden="true">+</span></summary><div class="work-detail"><p>{e.detail}</p><p class="medium">{e.medium}</p><a href={i===3?'/?v=nexus':p.url}>{i===3?'Enter the Nexus ↗':'Capital One ↗'}</a></div></details></div></article>})}</div>
+    </section>
+    <Workshop />
+    <ArtRoom />
+    <Eagle />
+    <section id="light" class="room light" data-room="07">
+      <div class="section-heading"><p class="eyebrow">07 / TAKE A LITTLE LIGHT</p><span class="margin-note">a small thing to keep.</span></div>
+      <div class="light-layout"><Mosaic /><div class="closing-copy"><h2>Make something<br/><em>worth keeping.</em></h2><p>A useful system. An object with a story.<br/>A small corner of the internet.<br/>There’s always room for one more.</p><a class="contact-link" href={`mailto:${site.email}`}>Let’s make something. <span aria-hidden="true">↗</span></a><div class="socials"><a href={site.github}>GitHub ↗</a><a href={site.linkedin}>LinkedIn ↗</a><a href={`mailto:${site.email}`}>{site.email}</a></div></div></div>
+      <footer><a class="signature" href="#threshold">casa higgins <span>Sean Higgins × OpenAI Codex · 2026</span></a><p>An architectural interpretation of Gaudí.<br/>Original geometry. Built in code.</p><details class="version-menu"><summary>Explore the other worlds <span aria-hidden="true">↗</span></summary><nav aria-label="Portfolio versions"><a href="/?v=a-scroll">A / Scroll</a><a href="/?v=b-card">B / Card</a><a href="/?v=c-terminal">C / Terminal</a><a href="/?v=nexus">The Nexus / All worlds</a><a href="/systems/">F / Blueprint</a><a href="/travel/">G / Travel</a><span aria-current="page">H / Casa Higgins</span></nav></details></footer>
+    </section>
+  </main>
+  <script>import '../scripts/gaudi';</script>
+</GaudiLayout>

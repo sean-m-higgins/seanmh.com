@@ -1,0 +1,9 @@
+---
+import { mosaicTiles, DEFAULT_SEED, DEFAULT_MOSAIC, mosaicTitle, motifs, glazes, forms } from '../lib/geometry.mjs';
+---
+<div class="mosaic-object">
+  <svg id="mosaic" viewBox="0 0 600 600" role="img" aria-label="A ceramic mosaic study in Mediterranean glazes"><defs><clipPath id="tile-clip"><path d={forms[0].path}/></clipPath></defs><g clip-path="url(#tile-clip)" id="mosaic-tiles">{mosaicTiles(DEFAULT_SEED, 600, 600, 30, DEFAULT_MOSAIC).map(t => <polygon points={t.points.map(p=>p.join(',')).join(' ')} fill={t.color} stroke="#f0e4c7" stroke-width="2"/>)}</g><circle cx="300" cy="300" r="64" fill="#f5efdf"/><path d="M270 330C270 290 287 270 300 270S330 290 330 330M279 330C279 303 291 284 300 284S321 303 321 330M266 331H334" stroke="#355c57" stroke-width="2" fill="none"/></svg>
+  <p class="mosaic-title" id="mosaic-title">{mosaicTitle(DEFAULT_SEED, DEFAULT_MOSAIC)}</p><p class="mosaic-edition" id="mosaic-edition">MEDITERRANEAN / RIVER STONE / {DEFAULT_SEED}</p>
+  <fieldset class="mosaic-options enhancement" hidden><legend>Make it yours</legend><p>Six patterns. Six glazes. Three forms. A new composition every time.</p><div class="mosaic-selects">{[{key:'motif',label:'Pattern',choices:motifs},{key:'glaze',label:'Glaze',choices:glazes},{key:'form',label:'Form',choices:forms}].map(group => <label for={`mosaic-${group.key}`}>{group.label}<select id={`mosaic-${group.key}`} data-mosaic-option={group.key}>{group.choices.map(choice => <option value={choice.id}>{choice.label}</option>)}</select></label>)}</div></fieldset>
+  <div class="mosaic-controls enhancement" hidden><button id="reroll" type="button">Lay another mosaic <span aria-hidden="true">↻</span></button><button id="save-tile" type="button">Keep this tile <span aria-hidden="true">↓</span></button><button id="copy-tile" type="button">Copy its address <span aria-hidden="true">↗</span></button></div><p id="mosaic-status" class="status" role="status" aria-live="polite"></p>
+</div>

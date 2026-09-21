@@ -1,0 +1,14 @@
+---
+import { Image } from 'astro:assets';
+import { artworks } from '../content/making';
+import { courtyardArt } from '../lib/art';
+---
+<section id="courtyard" class="room courtyard art-room" data-room="05" aria-labelledby="art-heading">
+  <div class="section-heading"><p class="eyebrow">05 / THE COURTYARD</p><span class="margin-note">a room for looking.</span></div>
+  <div class="art-intro"><div><p class="eyebrow">THE ART ROOM</p><h2 id="art-heading">A few things<br/>for the <em>walls.</em></h2></div><p>Seven places for art.<br/>One very good place for Sunny.<br/><span class="gallery-pending">The frames are up. Artwork is on its way.</span></p></div>
+  <div class="gallery-wall">{artworks.map((piece, i) => <figure class={`gallery-piece gallery-piece-${i + 1}`} data-art-piece>
+    <div class={`canvas-frame ${piece.frame}`}><div class="canvas-surface">{piece.image ? <Image src={piece.image} alt={piece.alt ?? piece.title ?? `Artwork ${i + 1}`} widths={[300, 600, 900]} sizes="(max-width: 760px) 40vw, 25vw" loading="lazy"/> : <div class="art-placeholder"><span>{String(i + 1).padStart(2, '0')}</span><small>CANVAS<br/>FORTHCOMING</small></div>}</div></div>
+    <figcaption>{piece.title ?? `UNTITLED SPACE ${String(i + 1).padStart(2, '0')}`}{piece.caption && <span>{piece.caption}</span>}</figcaption>
+  </figure>)}
+  <figure class="sunny-room"><div set:html={courtyardArt()}></div><figcaption><span>THE RESIDENT ART CRITIC</span><span>SUNNY ↗</span></figcaption></figure></div>
+</section>

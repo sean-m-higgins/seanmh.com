@@ -1,0 +1,883 @@
+/* The house is a collection of things, not a second résumé. */
+.studies-heading {
+  display: flex;
+  justify-content: space-between;
+  align-items: end;
+  gap: 32px;
+  margin-bottom: 42px;
+}
+.studies-heading > div {
+  display: flex;
+  align-items: end;
+  gap: clamp(30px, 5vw, 80px);
+}
+.studies-heading h2 {
+  font-size: clamp(54px, 5.7vw, 88px);
+}
+.studies-heading p {
+  color: #56604f;
+  font-size: 12px;
+}
+.studies-heading .study-instruction {
+  font-size: 8px;
+  letter-spacing: 0.12em;
+  white-space: nowrap;
+}
+.study-instruction span {
+  margin-left: 12px;
+  font-size: 23px;
+}
+.study-navigation {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 20px;
+  border-top: 1px solid #a8ab92;
+  padding: 14px 0;
+}
+.study-tabs {
+  display: flex;
+  gap: clamp(8px, 1.5vw, 26px);
+}
+.study-tabs button {
+  border: 0;
+  border-bottom: 1px solid transparent;
+  background: transparent;
+  padding: 12px 0;
+  font-size: 11px;
+  white-space: nowrap;
+}
+.study-tabs button span {
+  font-size: 8px;
+  margin-right: 6px;
+  color: #67715d;
+}
+.study-tabs button[aria-current] {
+  border-bottom-color: var(--ink);
+}
+.study-tabs button:hover {
+  color: #7a542b;
+}
+.study-arrows {
+  display: flex;
+  gap: 18px;
+  align-items: center;
+  flex-shrink: 0;
+}
+.study-arrows button {
+  width: 44px;
+  height: 44px;
+  border: 1px solid #a8ab92;
+  background: transparent;
+  border-radius: 50%;
+  font-size: 20px;
+  transition: background 0.2s;
+}
+.study-arrows button:hover:not(:disabled) {
+  background: #d4c9ae;
+}
+.study-arrows button:disabled {
+  opacity: 0.3;
+  cursor: default;
+}
+#study-count {
+  font-size: 9px;
+  font-variant-numeric: tabular-nums;
+  letter-spacing: 0.12em;
+}
+.study-track {
+  display: flex;
+  gap: 30px;
+  overflow-x: auto;
+  overscroll-behavior-x: contain;
+  scroll-snap-type: x mandatory;
+  scrollbar-width: thin;
+  scrollbar-color: #8b9278 #d8ceb7;
+  position: relative;
+  padding-bottom: 18px;
+}
+.study-track:focus-visible {
+  outline-offset: 3px;
+}
+.study-slide {
+  flex: 0 0 100%;
+  min-width: 0;
+  display: grid;
+  grid-template-columns: 0.9fr 1.1fr;
+  align-items: center;
+  gap: clamp(30px, 7vw, 110px);
+  padding: clamp(28px, 4vw, 64px);
+  scroll-snap-align: start;
+  background: #f2e8d1;
+  border: 1px solid #c6bfa2;
+}
+.study-copy > .eyebrow {
+  color: #69725b;
+  font-size: 9px;
+  margin-bottom: 24px;
+}
+.study-copy h3 {
+  font-size: clamp(44px, 4.7vw, 74px);
+}
+.study-copy > p:not(.eyebrow) {
+  margin-top: 22px;
+  max-width: 370px;
+  color: #52604d;
+  font-size: 13px;
+}
+.study-copy .study-note {
+  font-family: var(--serif);
+  font-size: 23px !important;
+  line-height: 1.3;
+  font-style: italic;
+}
+.study-control {
+  margin: 26px 0 18px;
+  max-width: 330px;
+}
+.study-control label {
+  display: flex;
+  justify-content: space-between;
+  font-size: 11px;
+}
+.study-control output {
+  color: #6b725d;
+  font-variant-numeric: tabular-nums;
+}
+.study-control input {
+  width: 100%;
+  height: 40px;
+  accent-color: #597253;
+  cursor: ew-resize;
+}
+.study-drawing {
+  min-width: 0;
+}
+.study-drawing svg text {
+  font: 8px var(--sans);
+  letter-spacing: 0.14em;
+  fill: var(--ink);
+}
+.study-drawing figcaption {
+  font-size: 8px;
+  letter-spacing: 0.13em;
+  text-align: center;
+  margin-top: 20px;
+  line-height: 1.8;
+}
+.study-branch {
+  background: #e8e9d4;
+}
+.study-ruled {
+  background: #e2e8df;
+}
+.study-light {
+  background: #e5e5d6;
+}
+.study-fragments {
+  background: #eae0c7;
+}
+
+.workshop-layout {
+  display: grid;
+  grid-template-columns: 0.82fr 1.18fr;
+  gap: 8%;
+  align-items: start;
+}
+.workshop-tree {
+  min-width: 0;
+  position: relative;
+}
+.workshop-tree > .eyebrow {
+  margin-bottom: 24px;
+  color: #4f6252;
+}
+.workshop-tree h2 {
+  font-size: clamp(56px, 5.6vw, 92px);
+  position: relative;
+  z-index: 1;
+}
+.workshop-tree > p:not(.eyebrow) {
+  max-width: 300px;
+  margin-top: 24px;
+  color: #425d4b;
+  font-size: 12px;
+}
+.woodland {
+  width: 100%;
+  max-width: 425px;
+  margin: -55px 0 -45px -30px;
+}
+.workshop-tree .woodland-note {
+  margin-top: 0;
+  font-size: 8px !important;
+  letter-spacing: 0.18em;
+  text-align: center;
+}
+.wood-projects {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  column-gap: 26px;
+  row-gap: 40px;
+  counter-reset: piece;
+}
+.wood-project:nth-child(even) {
+  margin-top: 64px;
+}
+.wood-photo {
+  padding: 9px;
+  background: #8b7053;
+  box-shadow:
+    inset 0 0 0 1px #716347,
+    3px 6px 11px #2d482820;
+}
+.wood-project-2 .wood-photo {
+  background: #705742;
+}
+.wood-project-3 .wood-photo {
+  background: #a68b63;
+}
+.wood-project-4 .wood-photo {
+  background: #68513d;
+}
+.wood-placeholder {
+  aspect-ratio: 4 / 5;
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  background: #e1d7bd;
+  color: #625d47;
+  box-shadow: inset 0 0 12px #2e23132a;
+}
+.wood-placeholder::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  opacity: 0.4;
+  background: repeating-linear-gradient(
+    88deg,
+    transparent 0 13px,
+    #ac996b22 14px 15px,
+    transparent 16px 31px
+  );
+}
+.wood-placeholder svg {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+}
+.wood-slot-number {
+  font-family: var(--serif);
+  font-size: clamp(60px, 7vw, 100px);
+  font-weight: 400;
+  color: #7c745c;
+  margin-top: -30px;
+}
+.photo-pending {
+  position: absolute;
+  bottom: 25px;
+  width: 100%;
+  text-align: center;
+  font-size: 6px;
+  letter-spacing: 0.14em;
+}
+.wood-photo img {
+  display: block;
+  width: 100%;
+  height: auto;
+}
+.wood-project figcaption {
+  padding-top: 18px;
+}
+.wood-project .eyebrow {
+  font-size: 7px;
+  color: #445e4c;
+}
+.wood-project h3 {
+  font-size: 33px;
+  margin: 8px 0;
+}
+.wood-order {
+  font-family: var(--serif);
+  font-size: 20px;
+  font-style: italic;
+  color: #506249;
+}
+.wood-project figcaption > p {
+  font-size: 12px;
+  margin-top: 12px;
+}
+
+.art-intro {
+  display: flex;
+  align-items: end;
+  justify-content: space-between;
+  gap: 40px;
+}
+.art-intro .eyebrow {
+  margin-bottom: 22px;
+  color: #756348;
+}
+.art-intro > p {
+  font-size: 12px;
+  color: #5e624e;
+}
+.gallery-pending {
+  display: inline-block;
+  margin-top: 12px;
+  font-family: var(--serif);
+  font-size: 21px;
+  font-style: italic;
+}
+.gallery-wall {
+  display: grid;
+  grid-template-columns: repeat(12, minmax(0, 1fr));
+  grid-template-rows: 220px 180px 190px 210px;
+  column-gap: 22px;
+  row-gap: 20px;
+  max-width: 1260px;
+  margin: 75px auto 0;
+  align-items: center;
+}
+.gallery-piece {
+  min-width: 0;
+  position: relative;
+  z-index: 2;
+}
+.gallery-piece-1 {
+  grid-area: 1 / 1 / 3 / 4;
+  align-self: start;
+}
+.gallery-piece-2 {
+  grid-area: 1 / 5 / 2 / 9;
+  width: 84%;
+  justify-self: center;
+}
+.gallery-piece-3 {
+  grid-area: 1 / 10 / 3 / 13;
+  align-self: start;
+}
+.gallery-piece-4 {
+  grid-area: 3 / 1 / 4 / 3;
+  width: 85%;
+  justify-self: center;
+}
+.gallery-piece-5 {
+  grid-area: 3 / 11 / 4 / 13;
+  width: 85%;
+  justify-self: center;
+}
+.gallery-piece-6 {
+  grid-area: 4 / 2 / 5 / 5;
+}
+.gallery-piece-7 {
+  grid-area: 4 / 9 / 5 / 12;
+}
+.canvas-frame {
+  --frame: #75563e;
+  padding: 3px;
+  background: #443a2e;
+  border: clamp(4px, 0.4vw, 6px) solid var(--frame);
+  box-shadow:
+    2px 5px 7px #43331d20,
+    0 1px 2px #43331d30;
+}
+.canvas-frame.oak {
+  --frame: #aa8b60;
+}
+.canvas-frame.charcoal {
+  --frame: #474a40;
+}
+.canvas-surface {
+  background: #f2ead6;
+}
+.art-placeholder {
+  aspect-ratio: 3 / 4;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  gap: 16px;
+  background-color: #e7dfc9;
+  background-image:
+    repeating-linear-gradient(0deg, transparent 0 2px, #8d81610a 2px 3px),
+    repeating-linear-gradient(90deg, transparent 0 2px, #fffdf21c 2px 3px);
+}
+.art-placeholder span {
+  font: italic 36px var(--serif);
+  color: #7b745b;
+}
+.art-placeholder small {
+  font-size: 6px;
+  letter-spacing: 0.14em;
+  line-height: 1.7;
+  color: #665f4c;
+}
+.landscape .art-placeholder {
+  aspect-ratio: 1.85;
+}
+.square .art-placeholder {
+  aspect-ratio: 1;
+}
+.square .art-placeholder span,
+.landscape .art-placeholder span {
+  font-size: 26px;
+}
+.square .art-placeholder,
+.landscape .art-placeholder {
+  gap: 6px;
+}
+.canvas-surface img {
+  width: 100%;
+  height: auto;
+  display: block;
+}
+.gallery-piece figcaption {
+  text-align: center;
+  font-size: 6px;
+  letter-spacing: 0.13em;
+  margin-top: 12px;
+  color: #665f4c;
+  line-height: 1.8;
+}
+.gallery-piece figcaption span {
+  display: block;
+}
+.sunny-room {
+  grid-area: 2 / 4 / 5 / 10;
+  align-self: center;
+  margin: 0 -25px;
+}
+.sunny-room figcaption {
+  display: flex;
+  justify-content: center;
+  gap: 22px;
+  font-size: 7px;
+  letter-spacing: 0.12em;
+  color: #5e624e;
+}
+
+.eagle {
+  background: #d9dfcd;
+}
+.eagle-layout {
+  display: grid;
+  grid-template-columns: 0.85fr 1.15fr;
+  gap: 7%;
+  align-items: center;
+}
+.eagle-copy > .eyebrow {
+  margin-bottom: 26px;
+  font-size: 9px;
+  color: #55644e;
+}
+.eagle-copy h2 {
+  font-size: clamp(56px, 6vw, 94px);
+}
+.eagle-copy > p:not(.eyebrow) {
+  margin-top: 24px;
+  max-width: 370px;
+  color: #475b48;
+  font-size: 13px;
+}
+.eagle-copy .eagle-lead {
+  font-family: var(--serif);
+  font-size: 28px !important;
+  font-style: italic;
+  margin-top: 30px;
+}
+.project-facts {
+  margin: 36px 0 0;
+}
+.project-facts > div {
+  display: flex;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 14px 0;
+  border-top: 1px solid #afb8a1;
+  max-width: 370px;
+}
+.project-facts dt {
+  font-size: 8px;
+  letter-spacing: 0.15em;
+  align-self: center;
+}
+.project-facts dd {
+  font-family: var(--serif);
+  font-size: 20px;
+  margin: 0;
+}
+.ramp-study {
+  padding: 25px 20px;
+  background: #ede6d1;
+  border: 1px solid #bcc0a7;
+  transform: rotate(1.5deg);
+  box-shadow: 8px 12px 0 -5px #a1ae932f;
+}
+.ramp-study figcaption {
+  font-size: 7px;
+  letter-spacing: 0.13em;
+  text-align: center;
+  padding-top: 16px;
+}
+.ramp-study img {
+  width: 100%;
+  height: auto;
+}
+
+.mosaic-options {
+  border: 0;
+  padding: 0;
+  margin: 26px 0 18px;
+  text-align: left;
+}
+.mosaic-options legend {
+  font: italic 26px var(--serif);
+  padding: 0;
+}
+.mosaic-options > p {
+  font-size: 10px;
+  margin-top: 5px;
+  color: #606750;
+}
+.mosaic-selects {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr;
+  gap: 12px;
+  margin-top: 16px;
+}
+.mosaic-selects label {
+  font-size: 9px;
+  letter-spacing: 0.04em;
+}
+.mosaic-selects select {
+  display: block;
+  margin-top: 7px;
+  border: 1px solid #bab79f;
+  border-radius: 0;
+  background: #eee7d5;
+  color: var(--ink);
+  width: 100%;
+  height: 44px;
+  padding: 0 7px;
+  font: 11px var(--sans);
+  cursor: pointer;
+}
+.mosaic-controls {
+  flex-wrap: wrap;
+}
+
+@media (min-width: 1650px) {
+  .gallery-wall {
+    grid-template-rows: 230px 200px 210px 220px;
+  }
+}
+@media (max-width: 1100px) {
+  .studies-heading > div {
+    gap: 28px;
+  }
+  .studies-heading .study-instruction {
+    display: none;
+  }
+  .study-tabs {
+    gap: 15px;
+  }
+  .study-tabs button {
+    font-size: 10px;
+  }
+  .study-arrows {
+    gap: 10px;
+  }
+  .study-slide {
+    gap: 28px;
+    padding: 30px;
+  }
+  .study-copy h3 {
+    font-size: 48px;
+  }
+  .workshop-layout {
+    gap: 5%;
+    grid-template-columns: 0.8fr 1.2fr;
+  }
+  .wood-projects {
+    column-gap: 18px;
+  }
+  .workshop-tree h2 {
+    font-size: 62px;
+  }
+  .gallery-wall {
+    column-gap: 15px;
+    grid-template-rows: 170px 140px 145px 155px;
+  }
+  .sunny-room {
+    margin: 0 -15px;
+  }
+  .eagle-layout {
+    gap: 5%;
+  }
+  .eagle-copy h2 {
+    font-size: 65px;
+  }
+}
+@media (max-width: 760px) {
+  .studies-heading {
+    margin-bottom: 28px;
+  }
+  .studies-heading > div {
+    display: block;
+  }
+  .studies-heading h2 {
+    font-size: 62px;
+  }
+  .studies-heading p {
+    margin-top: 20px;
+  }
+  .study-navigation {
+    display: block;
+    padding-top: 5px;
+  }
+  .study-tabs {
+    justify-content: space-between;
+    gap: 8px;
+  }
+  .study-tabs button {
+    font-size: 10px;
+  }
+  .study-tabs button span {
+    display: block;
+    text-align: left;
+    margin-bottom: 6px;
+  }
+  .study-arrows {
+    justify-content: space-between;
+    margin-top: 8px;
+  }
+  .study-arrows button {
+    width: 38px;
+    height: 38px;
+  }
+  .study-track {
+    gap: 16px;
+  }
+  .study-slide {
+    grid-template-columns: 1fr;
+    grid-template-rows: auto 1fr;
+    padding: 24px 22px 20px;
+    gap: 22px;
+    align-items: start;
+  }
+  .study-copy h3 {
+    font-size: clamp(44px, 9vw, 60px);
+  }
+  .study-copy > .eyebrow {
+    margin-bottom: 16px;
+    font-size: 8px;
+  }
+  .study-copy > p:not(.eyebrow) {
+    font-size: 12px;
+    margin-top: 16px;
+    max-width: 100%;
+  }
+  .study-copy .study-note {
+    font-size: 21px !important;
+  }
+  .study-control {
+    margin: 18px 0 12px;
+    max-width: none;
+  }
+  .study-drawing {
+    width: 100%;
+    max-width: 460px;
+    align-self: end;
+    justify-self: center;
+  }
+  .study-drawing figcaption {
+    font-size: 6px;
+    margin-top: 6px;
+  }
+  .workshop-layout {
+    grid-template-columns: 1fr;
+    gap: 20px;
+  }
+  .workshop-tree {
+    min-height: 345px;
+    padding-bottom: 10px;
+  }
+  .workshop-tree h2 {
+    font-size: clamp(58px, 10vw, 78px);
+  }
+  .workshop-tree > p:not(.eyebrow) {
+    max-width: 65%;
+    margin-top: 18px;
+    position: relative;
+    z-index: 1;
+  }
+  .woodland {
+    position: absolute;
+    width: 49%;
+    max-width: 290px;
+    right: -17px;
+    bottom: 5px;
+    margin: 0;
+    opacity: 0.8;
+  }
+  .workshop-tree .woodland-note {
+    display: none;
+  }
+  .wood-projects {
+    column-gap: 16px;
+    row-gap: 25px;
+  }
+  .wood-project:nth-child(even) {
+    margin-top: 42px;
+  }
+  .wood-photo {
+    padding: 6px;
+  }
+  .wood-slot-number {
+    font-size: 60px;
+  }
+  .photo-pending {
+    font-size: 5px;
+    letter-spacing: 0.05em;
+    bottom: 15px;
+  }
+  .wood-project .eyebrow {
+    font-size: 6px;
+  }
+  .wood-project h3 {
+    font-size: 28px;
+  }
+  .wood-order {
+    font-size: 18px;
+  }
+  .art-intro {
+    display: block;
+  }
+  .art-intro > p {
+    margin-top: 24px;
+  }
+  .gallery-pending {
+    font-size: 19px;
+  }
+  .gallery-wall {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    grid-template-rows: auto;
+    column-gap: 26px;
+    row-gap: 32px;
+    margin-top: 45px;
+  }
+  .gallery-piece {
+    width: 100%;
+  }
+  .gallery-piece-1 {
+    grid-area: 1 / 1;
+    align-self: start;
+  }
+  .gallery-piece-2 {
+    grid-area: 2 / 1;
+  }
+  .gallery-piece-3 {
+    grid-area: 1 / 2;
+    margin-top: 28px;
+  }
+  .gallery-piece-4 {
+    grid-area: 2 / 2;
+    width: 75%;
+    justify-self: center;
+  }
+  .gallery-piece-5 {
+    grid-area: 4 / 1 / 6 / 2;
+    align-self: center;
+  }
+  .gallery-piece-6 {
+    grid-area: 4 / 2;
+  }
+  .gallery-piece-7 {
+    grid-area: 5 / 2;
+  }
+  .sunny-room {
+    grid-area: 3 / 1 / 4 / 3;
+    margin: -20px -15px -10px;
+  }
+  .sunny-room figcaption {
+    font-size: 6px;
+  }
+  .gallery-piece figcaption {
+    font-size: 5px;
+  }
+  .art-placeholder {
+    gap: 10px;
+  }
+  .art-placeholder span {
+    font-size: 28px;
+  }
+  .art-placeholder small {
+    font-size: 5px;
+  }
+  .landscape .art-placeholder span {
+    font-size: 22px;
+  }
+  .eagle-layout {
+    grid-template-columns: 1fr;
+    gap: 42px;
+  }
+  .eagle-copy h2 {
+    font-size: clamp(62px, 11vw, 85px);
+  }
+  .eagle-copy > p:not(.eyebrow) {
+    max-width: 500px;
+  }
+  .ramp-study {
+    padding: 18px 12px;
+  }
+  .ramp-study figcaption {
+    font-size: 6px;
+  }
+  .mosaic-selects {
+    gap: 8px;
+  }
+  .mosaic-selects select {
+    font-size: 10px;
+    padding: 0 3px;
+  }
+}
+@media (max-width: 540px) {
+  .masthead {
+    height: auto;
+    min-height: 116px;
+    flex-wrap: wrap;
+    padding-top: 20px;
+    row-gap: 9px;
+  }
+  .primary-nav {
+    order: 3;
+    width: 100%;
+    margin: 0;
+    justify-content: space-between;
+    gap: 12px;
+    font-size: 11px;
+  }
+  .nexus-return {
+    order: 2;
+  }
+}
+@media print {
+  .study-track {
+    display: block;
+    overflow: visible;
+  }
+  .study-slide {
+    break-inside: avoid;
+    margin-bottom: 20px;
+  }
+  .study-navigation,
+  .study-control,
+  .mosaic-options {
+    display: none !important;
+  }
+}

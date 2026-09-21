@@ -1,5 +1,9 @@
 # build output
 dist/
+artifacts/
+# Original uploads stay local; publish only processed assets from src/assets.
+/incoming/
+/tmp-eagle-scout-ramp.jpeg
 # generated types
 .astro/
 
