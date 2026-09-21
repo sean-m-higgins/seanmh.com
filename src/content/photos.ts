@@ -53,19 +53,36 @@ import fr23 from "../assets/trips/france-2026/23-23img-3412.jpg";
 import fr24 from "../assets/trips/france-2026/24-24img-3499.jpg";
 import fr25 from "../assets/trips/france-2026/25-25img-3524.jpg";
 
-import es01 from "../assets/trips/spain-2025/01-1img-1199.jpg";
-import es02 from "../assets/trips/spain-2025/02-2img-1640.jpg";
-import es03 from "../assets/trips/spain-2025/03-3img-1509.jpg";
-import es04 from "../assets/trips/spain-2025/04-4img-1516.jpg";
-import es05 from "../assets/trips/spain-2025/05-5img-1521.jpg";
-import es06 from "../assets/trips/spain-2025/06-6img-1433.jpg";
-import es07 from "../assets/trips/spain-2025/07-7img-1337.jpg";
-import es08 from "../assets/trips/spain-2025/08-8img-1542.jpg";
-import es09 from "../assets/trips/spain-2025/09-9img-1543.jpg";
-import es10 from "../assets/trips/spain-2025/10-10img-1656.jpg";
-import es11 from "../assets/trips/spain-2025/11-11img-1734.jpg";
-import es12 from "../assets/trips/spain-2025/12-12img-1694.jpg";
-import es13 from "../assets/trips/spain-2025/13-13img-1752.jpg";
+import es01 from "../assets/trips/spain-2025/01-1-madrid.jpg";
+import es02 from "../assets/trips/spain-2025/02-2-madrid.jpg";
+import es03 from "../assets/trips/spain-2025/03-3-madrid.jpg";
+import es04 from "../assets/trips/spain-2025/04-4-madrid.jpg";
+import es05 from "../assets/trips/spain-2025/05-5-madrid.jpg";
+import es06 from "../assets/trips/spain-2025/06-6-madrid.jpg";
+import es07 from "../assets/trips/spain-2025/07-7-madrid.jpg";
+import es08 from "../assets/trips/spain-2025/08-8-madrid.jpg";
+import es09 from "../assets/trips/spain-2025/09-9-seville.jpg";
+import es10 from "../assets/trips/spain-2025/10-10-seville.jpg";
+import es11 from "../assets/trips/spain-2025/11-11-seville.jpg";
+import es12 from "../assets/trips/spain-2025/12-12-seville.jpg";
+import es13 from "../assets/trips/spain-2025/13-13-seville.jpg";
+import es14 from "../assets/trips/spain-2025/14-14-seville.jpg";
+import es15 from "../assets/trips/spain-2025/15-15-seville.jpg";
+import es16 from "../assets/trips/spain-2025/16-16-seville.jpg";
+import es17 from "../assets/trips/spain-2025/17-17-seville.jpg";
+import es18 from "../assets/trips/spain-2025/18-18-seville.jpg";
+import es19 from "../assets/trips/spain-2025/19-19-valencia.jpg";
+import es20 from "../assets/trips/spain-2025/20-20-valencia.jpg";
+import es21 from "../assets/trips/spain-2025/21-21-valencia.jpg";
+import es22 from "../assets/trips/spain-2025/22-22-valencia.jpg";
+import es23 from "../assets/trips/spain-2025/23-23-valencia.jpg";
+import es24 from "../assets/trips/spain-2025/24-24-barcelona.jpg";
+import es25 from "../assets/trips/spain-2025/25-25-barcelona.jpg";
+import es26 from "../assets/trips/spain-2025/26-26-barcelona.jpg";
+import es27 from "../assets/trips/spain-2025/27-27-barcelona.jpg";
+import es28 from "../assets/trips/spain-2025/28-28-barcelona.jpg";
+import es29 from "../assets/trips/spain-2025/29-29-barcelona.jpg";
+import es30 from "../assets/trips/spain-2025/30-30-barcelona.jpg";
 
 import e01 from "../assets/trips/spain-2014/01-1-barcelona.jpg";
 import e02 from "../assets/trips/spain-2014/02-2-barcelona.jpg";
@@ -335,45 +352,96 @@ export const tripPhotos: Readonly<Record<string, readonly TravelPhoto[]>> = {
   ],
 
   "spain-2025": [
-    frame("rooftops-at-dusk", es01,
-      "A rooftop view across a city at dusk, lit signage on the buildings below and the skyline fading to orange behind",
-      "The city from above, at the hour it starts lighting up.", "Madrid"),
-    frame("vermouth-and-olives", es02,
-      "A metal café table with a tall glass of red vermouth and a bowl of olives, a tree-lined plaza with empty terraces behind",
-      "A red vermouth, and the plaza still waking up.", "Barcelona"),
-    frame("hotel-suizo", es03,
-      "A rooftop sign reading Hotel Suizo above a pale apartment block, lit gold by low sun under a sky of small clouds",
-      "The sign catches the sun a while after the street loses it.", "Barcelona"),
-    frame("mural-corridor", es04,
-      "A corridor with an ornate coffered ceiling and a long mural in bright blues and pinks, a neon sign reading eat better live longer",
-      "An old ceiling and a very new wall.", "Barcelona"),
-    frame("beach-at-night", es05,
-      "A dark empty beach at night, the lit sail-shaped silhouette of a seafront hotel standing at the far end of the sand",
-      "The beach empties and the hotel keeps its lights on.", "Barcelona"),
-    frame("tattoo-parlour", es06,
-      "A yellow-fronted tattoo parlour with hand-painted gold lettering reading Tatuajes across its windows",
-      "Hand-painted signage, doing more work than most shopfronts.", "Valencia"),
-    frame("stained-glass-shadow", es07,
-      "The photographer's long shadow cast on a stone floor washed with green, pink and blue light from stained glass, their shoes at the bottom of the frame",
-      "You stand in the window whether you meant to or not.", "Barcelona"),
-    frame("swirling-ceiling", es08,
-      "A white plaster ceiling swirling in a spiral around a crystal chandelier, ornate stained-glass doors below",
-      "The ceiling turns around the light fitting.", "Barcelona"),
-    frame("blue-glass-room", es09,
-      "A room with bone-like stone columns and a wall of wavy glazing set with blue circular panes, visitors standing at the windows",
-      "The blue is strongest at the top, where the light is.", "Barcelona"),
-    frame("basilica-from-below", es10,
-      "The ornate stone facade and spires of a large basilica photographed steeply from below against a deep blue evening sky",
-      "There is no distance at which it fits in the frame.", "Barcelona"),
-    frame("balcony-in-gold", es11,
-      "A warm ochre building facade lit gold by low evening sun, a person standing out on one of the wrought-iron balconies",
-      "One balcony occupied, at exactly the right hour.", "Madrid"),
-    frame("cathedral-arches", es12,
+    frame("rooftops-in-grey", es01,
+      "A wide view across a city of terracotta rooftops under a flat grey sky, aerials and roof terraces below and distant towers on the skyline",
+      "The roofs run on until the weather stops them.", "Madrid"),
+    frame("roofline-at-sundown", es02,
+      "City rooftops catching low orange sun beneath a wide bank of cloud, a church dome and spire among them and towers on the far skyline",
+      "The sun found the gap under the cloud and spent it all on the roofs.", "Madrid"),
+    frame("callao-at-night", es03,
+      "A night view between two tall buildings to a lit cinema front with CALLAO in vertical letters, the city's lights running to the horizon behind",
+      "One vertical sign, doing the lighting for the whole street.", "Madrid"),
+    frame("cathedral-arches", es04,
       "The dark interior of a Gothic cathedral, massive columns and pointed arches receding toward lit stained-glass windows",
       "Built dark, so the windows have something to do.", "Madrid"),
-    frame("vaults-and-rose", es13,
+    frame("vaults-and-rose", es05,
       "Gothic stone vaults lit warm from below, with a rose window and tall lancet windows glowing violet in the wall beneath",
       "The vaults hold the warm light; the glass keeps the cold.", "Madrid"),
+    frame("balcony-in-gold", es06,
+      "A warm ochre building facade lit gold by low evening sun, a person standing out on one of the wrought-iron balconies",
+      "One balcony occupied, at exactly the right hour.", "Madrid"),
+    frame("cathedral-at-sundown", es07,
+      "A domed cathedral standing in silhouette against a sky burning orange and pink, lamps lit in the plaza below and people crossing it",
+      "Everyone in the plaza turned the same way at once.", "Madrid"),
+    frame("over-the-park", es08,
+      "A view over the bare and evergreen treetops of a large park to low city blocks, a pale dome among them and a line of mountains on the horizon",
+      "The city stops, and then the sierra starts.", "Madrid"),
+    frame("tiled-balustrade", es09,
+      "A grand arcaded plaza floodlit at night, its tower and long facade reflected in a canal, a ceramic-tiled balustrade curving across the foreground",
+      "Floodlit and empty, which is the trade for going late.", "Seville"),
+    frame("ceramic-newel", es10,
+      "A painted blue and yellow ceramic urn on a tiled balustrade at night, beside a flight of steps and a lamp post, a tiled facade rising behind",
+      "Even the handrail is glazed and painted.", "Seville"),
+    frame("tower-at-the-end", es11,
+      "A narrow street of pink and ochre houses with an iron lantern bracketed to a wall, an ornate baroque bell tower closing the far end",
+      "Every street here is aimed at a tower.", "Seville"),
+    frame("bell-tower-from-below", es12,
+      "A tall square bell tower of pale stone and brick tracery photographed steeply from below against a blue sky, an ornate street lamp and dark foliage at the edge of the frame",
+      "You lean back far enough to lose the street entirely.", "Seville"),
+    frame("gilded-vaults", es13,
+      "Ribbed Gothic vaults lit gold and silver from below, an ornate organ with ranks of horizontal pipes standing between the piers",
+      "Gold on one vault, silver on the next, and the organ aimed down the middle.", "Seville"),
+    frame("through-the-tower-glass", es14,
+      "A city of white roofs and a cathedral's pinnacled parapets seen from high up through a scratched, dusty pane of glass",
+      "The view from the top arrives through glass nobody has cleaned.", "Seville"),
+    frame("stained-glass-shadow", es15,
+      "The photographer's long shadow cast on a stone floor washed with green, pink and blue light from stained glass, their shoes at the bottom of the frame",
+      "You stand in the window whether you meant to or not.", "Seville"),
+    frame("tiled-corner-tower", es16,
+      "An ornate brick corner building set with blue-and-white tiled panels, a glazed balcony and a tiled turret dome, against a deep blue sky",
+      "Brick, tile and a turret, on a corner that only needed a building.", "Seville"),
+    frame("gate-and-courtyard", es17,
+      "A bright yellow courtyard with arches, tiled dado and potted plants, seen through the dense scrollwork of a tall wrought-iron gate",
+      "The courtyards are all behind gates, and the gates are all open enough to look.", "Seville"),
+    frame("iris-courtyard", es18,
+      "A narrow residential courtyard planted with irises between lamp posts, ringed by white apartment blocks with yellow-trimmed balconies",
+      "A garden in the gap the balconies left.", "Seville"),
+    frame("tattoo-parlour", es19,
+      "A yellow-fronted tattoo parlour with hand-painted gold lettering reading Tatuajes across its windows",
+      "Hand-painted signage, doing more work than most shopfronts.", "Valencia"),
+    frame("wide-beach", es20,
+      "A long flat beach with surf breaking along a curving shoreline under heavy grey and white cloud, a few distant figures walking the sand",
+      "Miles of it, and a handful of people out.", "Valencia"),
+    frame("palms-and-bridge", es21,
+      "A many-arched stone bridge seen through the trunks of tall palms and pines growing in the sunken parkland beneath it",
+      "The river left, and the park moved in under the bridges.", "Valencia"),
+    frame("ornate-facade", es22,
+      "A cream apartment building with carved stonework and rows of iron balconies, bare plane trees in front and people on the pavement below",
+      "Bare branches, in front of a facade that does not need the help.", "Valencia"),
+    frame("pastry-window", es23,
+      "A bakery window display of filled and glazed pastries laid out in rows, each group named on a small handwritten card",
+      "Seven kinds, all handwritten, none of them in English.", "Valencia"),
+    frame("vermouth-and-a-croqueta", es24,
+      "A tall glass of red vermouth with a striped straw and a single croqueta in a small bowl on a metal cafe table, a tree-lined plaza of red chairs behind",
+      "One vermouth, one croqueta, and the plaza doing the rest.", "Barcelona"),
+    frame("hotel-suizo", es25,
+      "A rooftop sign reading Hotel Suizo above a pale apartment block, lit gold by low sun under a sky of small clouds",
+      "The sign catches the sun a while after the street loses it.", "Barcelona"),
+    frame("mural-corridor", es26,
+      "A corridor with an ornate coffered ceiling and a long mural in bright blues and pinks, a neon sign reading eat better live longer",
+      "An old ceiling and a very new wall.", "Barcelona"),
+    frame("beach-at-night", es27,
+      "A dark empty beach at night, the lit sail-shaped silhouette of a seafront hotel standing at the far end of the sand",
+      "The beach empties and the hotel keeps its lights on.", "Barcelona"),
+    frame("swirling-ceiling", es28,
+      "A white plaster ceiling swirling in a spiral around a crystal chandelier, ornate stained-glass doors below",
+      "The ceiling turns around the light fitting.", "Barcelona"),
+    frame("blue-glass-room", es29,
+      "A room with bone-like stone columns and a wall of wavy glazing set with blue circular panes, visitors standing talking at the windows",
+      "The blue is strongest at the top, where the light is.", "Barcelona"),
+    frame("basilica-from-below", es30,
+      "The ornate stone facade and spires of a large basilica photographed steeply from below against a deep blue evening sky",
+      "There is no distance at which it fits in the frame.", "Barcelona"),
   ],
 
   "spain-2014": [
