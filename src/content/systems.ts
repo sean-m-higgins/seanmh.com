@@ -47,7 +47,7 @@ export const regions: readonly SystemRegion[] = [
     number: "01",
     title: "Experience layer",
     summary:
-      "Eight expressions of one portfolio, each with a deliberate audience, interaction model, and fallback posture.",
+      "Nine expressions of one portfolio, each with a deliberate audience, interaction model, and fallback posture, including Casa Higgins: a Gaudí-inspired architectural portrait.",
   },
   {
     id: "edge",
@@ -147,10 +147,10 @@ export const nodes: readonly SystemNode[] = [
     region: "experience",
     code: "EXP.01",
     title: "Portfolio universes",
-    label: "Scroll · Card · Terminal",
-    summary: "Three presentations share one professional identity.",
+    label: "Scroll · Card · Terminal · Gaudí",
+    summary: "Four presentations share one professional identity.",
     detail:
-      "Scroll is the canonical long-form portfolio. Card compresses the same identity into a tactile single-view artifact. Terminal turns it into an operable command surface. Each presentation stays useful without its enhanced motion or graphics.",
+      "Scroll is the canonical long-form portfolio. Card compresses the same identity into a tactile single-view artifact. Terminal turns it into an operable command surface. Casa Higgins makes it an architectural portrait through six rooms inspired by Gaudí. Each presentation stays useful without its enhanced motion or graphics.",
     decisions: [
       "Let presentation diverge while facts stay aligned.",
       "Keep the canonical default readable and recruiter-safe.",
@@ -159,6 +159,7 @@ export const nodes: readonly SystemNode[] = [
       { label: "Scroll source", href: "https://github.com/sean-m-higgins/seanmh.com/tree/version/a-scroll" },
       { label: "Card source", href: "https://github.com/sean-m-higgins/seanmh.com/tree/version/b-card" },
       { label: "Terminal source", href: "https://github.com/sean-m-higgins/seanmh.com/tree/version/c-terminal" },
+      { label: "Gaudí source", href: "https://github.com/sean-m-higgins/seanmh.com/tree/version/h-gaudi" },
     ],
     href: "/?v=a-scroll",
     position: { x: 61, y: 20 },
