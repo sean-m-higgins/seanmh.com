@@ -12,7 +12,7 @@ Multi-version portfolio site. Scroll is the canonical default; visitors can expl
 | `version/e-2d-game` | Counter boxing game | seanmh-2d-game.pages.dev |
 | `version/f-blueprint` | Living systems map at `/systems/` | seanmh-blueprint.pages.dev |
 | `version/g-travel` | Interactive travel atlas at `/travel/` | seanmh-travel.pages.dev |
-| `version/h-gaudi` | Casa Higgins — a seven-room house for things made | seanmh-gaudi.pages.dev (release pending) |
+| `version/h-gaudi` | Casa Higgins — a seven-room house for things made | seanmh-gaudi.pages.dev |
 
 ## Quick Start
 
