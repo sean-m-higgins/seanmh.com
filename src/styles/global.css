@@ -334,6 +334,64 @@ em { color: var(--amber-pale); font-family: var(--font-display); font-weight: 40
 .journey-actions .button { min-height: 2.35rem; padding: 0.55rem 0.7rem; font-size: 0.57rem; }
 .route-select { padding: .35rem 0; border: 0; color: var(--aqua); background: transparent; cursor: pointer; font-family: var(--font-mono); font-size: .56rem; letter-spacing: .08em; text-transform: uppercase; }
 
+/* A lit beam carries its name on the canvas. The globe keeps the coordinates;
+   the card below keeps the same places reachable without a pointer. */
+.place-label {
+  position: absolute;
+  z-index: 6;
+  max-width: 14rem;
+  padding: 0.5rem 0.7rem;
+  border: 1px solid var(--line-bright);
+  background: rgba(5, 18, 25, 0.9);
+  backdrop-filter: blur(12px);
+  pointer-events: none;
+  transform: translate(0.8rem, -50%);
+  transition: opacity 160ms ease;
+}
+.place-label[hidden] { display: none; }
+.place-label[data-behind] { opacity: 0; }
+.place-label p { margin: 0; }
+.place-label-name { color: var(--ice); font-size: 0.82rem; font-weight: 600; }
+.place-label-meta { margin-top: 0.15rem; color: var(--faint); font-family: var(--font-mono); font-size: 0.55rem; letter-spacing: 0.08em; text-transform: uppercase; }
+.place-label-note { margin-top: 0.4rem; color: var(--mist); font-size: 0.72rem; }
+.place-label-note[hidden] { display: none; }
+
+.place-index { max-height: min(22rem, 46vh); overflow-y: auto; overscroll-behavior: contain; }
+.place-index section + section { margin-top: 0.9rem; }
+.place-index h3 {
+  position: sticky;
+  top: 0;
+  margin: 0 0 0.2rem;
+  padding: 0.25rem 0;
+  color: var(--faint);
+  background: rgba(5, 18, 25, 0.92);
+  font-family: var(--font-mono);
+  font-size: 0.55rem;
+  font-weight: 400;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+}
+.place-index ul { margin: 0; padding: 0; list-style: none; }
+.place-index button {
+  display: flex;
+  width: 100%;
+  padding: 0.3rem 0;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 0.75rem;
+  border: 0;
+  color: var(--mist);
+  background: transparent;
+  cursor: pointer;
+  font-family: inherit;
+  font-size: 0.82rem;
+  text-align: left;
+}
+.place-index button:hover, .place-index button[data-active] { color: var(--ice); }
+.place-index button[data-active] span { text-decoration: underline; text-underline-offset: 0.2em; }
+.place-index small { color: var(--faint); font-family: var(--font-mono); font-size: 0.55rem; }
+.place-note { margin: 0 0 0.2rem; color: var(--faint); font-size: 0.72rem; }
+
 .country-index { grid-column: 1 / -1; width: min(100%, 42rem); margin-left: clamp(0rem, 2vw, 2rem); }
 .country-index .eyebrow { margin-bottom: 0.5rem; color: var(--faint); }
 .country-index button {
@@ -525,6 +583,9 @@ a.journal-door:hover { background: #102d3a; }
      viewport, so no amount of card padding clears it at every scroll offset),
      so the actions move to the far edge instead. */
   .journey-actions { justify-content: flex-end; }
+  /* The place list scrolls, so a row sits in that same corner at some offset or
+     other. It keeps its rows clear of the dial rather than fight for the spot. */
+  .place-index { padding-left: 2rem; }
   .country-index { width: 100%; margin: 1rem 0 3rem; }
   .featured-journey { margin-inline: -1rem; }
   .featured-art { min-height: 22rem; }

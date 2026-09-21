@@ -3,9 +3,10 @@ import { OrbitControls } from "three/examples/jsm/controls/OrbitControls.js";
 import { feature } from "topojson-client";
 import countriesTopology from "world-atlas/countries-110m.json";
 
-import type { CountryRecord, TripRecord } from "../content/trips.ts";
+import type { CountryRecord, PlaceRecord, TripRecord } from "../content/trips.ts";
 import {
   fitVerticalFov,
+  formatPlaceDate,
   greatCirclePoints,
   isHomelandPolygon,
   latLonToCartesian,
@@ -13,10 +14,29 @@ import {
   ringWrapOffsets,
 } from "./globe-utils.mjs";
 
+interface StateShape {
+  name: string;
+  polygons: number[][][][];
+}
+
 interface GlobeData {
   countries: CountryRecord[];
   trips: TripRecord[];
+  places: PlaceRecord[];
+  states: StateShape[];
 }
+
+interface AtlasStyle {
+  fill: string;
+  stroke: string;
+  width: number;
+}
+
+const UNVISITED: AtlasStyle = { fill: "#284756", stroke: "rgba(151,196,207,.28)", width: 0.75 };
+const VISITED: AtlasStyle = { fill: "#e79043", stroke: "rgba(255,220,165,.95)", width: 2.4 };
+// A state is presence rather than a journey, so it takes the same orange held
+// back a little: visited, but not a story with a route through it.
+const VISITED_STATE: AtlasStyle = { fill: "rgba(231,144,67,.55)", stroke: "rgba(255,220,165,.8)", width: 1.4 };
 
 interface AtlasFeature {
   id: string | number;
@@ -53,23 +73,23 @@ function traceRing(
   }
 }
 
-function makeAtlasTexture(visited: readonly CountryRecord[]) {
+function makeAtlasTexture(visited: readonly CountryRecord[], states: readonly StateShape[]) {
   const canvas = document.createElement("canvas");
   canvas.width = 2048;
   canvas.height = 1024;
   const context = canvas.getContext("2d");
   if (!context) throw new Error("Canvas 2D is unavailable");
 
-  const paint = (polygons: number[][][][], highlighted: boolean) => {
+  const paint = (polygons: number[][][][], style: AtlasStyle) => {
     if (polygons.length === 0) return;
     context.beginPath();
     for (const polygon of polygons) {
       for (const ring of polygon) traceRing(context, ring, canvas.width, canvas.height);
     }
-    context.fillStyle = highlighted ? "#e79043" : "#284756";
+    context.fillStyle = style.fill;
     context.fill("evenodd");
-    context.strokeStyle = highlighted ? "rgba(255,220,165,.95)" : "rgba(151,196,207,.28)";
-    context.lineWidth = highlighted ? 2.4 : 0.75;
+    context.strokeStyle = style.stroke;
+    context.lineWidth = style.width;
     context.stroke();
   };
 
@@ -85,21 +105,30 @@ function makeAtlasTexture(visited: readonly CountryRecord[]) {
     (countriesTopology as { objects: { countries: never } }).objects.countries,
   ) as unknown as { features: AtlasFeature[] };
 
-  const centroids = new Map(visited.map((country) => [country.atlasId, country.centroid]));
+  const records = new Map(visited.map((country) => [country.atlasId, country]));
   for (const country of atlas.features) {
     const polygons = country.geometry.type === "Polygon"
       ? [country.geometry.coordinates as number[][][]]
       : country.geometry.coordinates as number[][][][];
+    const record = records.get(String(country.id).padStart(3, "0"));
+    // A country shaded by its states holds no blanket highlight of its own —
+    // the places decide which parts of it are lit, which is also how Alaska and
+    // Hawaii stop being a special case.
+    if (record?.shadeBy === "states") {
+      paint(polygons, UNVISITED);
+      continue;
+    }
     // A visit shades the landmass it covered, not every territory the atlas
     // files under the same country: France arrives carrying French Guiana on
     // the shoulder of South America, which no journey here has reached.
-    const centroid = centroids.get(String(country.id).padStart(3, "0"));
-    const home = centroid
-      ? polygons.filter((polygon) => isHomelandPolygon(polygon, centroid))
+    const home = record
+      ? polygons.filter((polygon) => isHomelandPolygon(polygon, record.centroid))
       : [];
-    paint(polygons.filter((polygon) => !home.includes(polygon)), false);
-    paint(home, true);
+    paint(polygons.filter((polygon) => !home.includes(polygon)), UNVISITED);
+    paint(home, VISITED);
   }
+
+  paint(states.flatMap((state) => state.polygons), VISITED_STATE);
 
   // Hairline latitude guides keep the object reading as an atlas, not a ball.
   context.strokeStyle = "rgba(139,218,224,.08)";
@@ -234,6 +263,90 @@ function makeMarker(trip: TripRecord) {
   return { group, hitTarget: core, ring };
 }
 
+// A place is a hairline rather than a pin. WebGL draws a line one pixel wide
+// whatever the zoom, so a hundred of them over one continent stay separate
+// marks instead of smearing into a single lit blob — which is also why none of
+// this needs clustering.
+const BEAM_BASE = 1.002;
+const BEAM_TIP = 1.045;
+// Vertex colours are read in the renderer's linear working space, so these go
+// through THREE.Color rather than being written out by hand: an sRGB triple
+// typed straight into the buffer comes back washed out.
+const VISIT_TINT = { color: new THREE.Color("#eafdff"), foot: 0.92, head: 0.34 };
+// Home is not a visit. It burns red against the cool scatter of the rest, and
+// holds its colour the whole length of the beam rather than fading out — a
+// hairline that fades is a hairline that goes back to looking like every other
+// one. The red clears both the atlas's amber and Spain's coral trip accent.
+const HOME_TINT = { color: new THREE.Color("#ff2f45"), foot: 1, head: 0.82 };
+
+function makeDotTexture() {
+  const canvas = document.createElement("canvas");
+  canvas.width = 64;
+  canvas.height = 64;
+  const context = canvas.getContext("2d");
+  if (!context) throw new Error("Canvas 2D is unavailable");
+  const glow = context.createRadialGradient(32, 32, 0, 32, 32, 32);
+  glow.addColorStop(0, "rgba(255,255,255,1)");
+  glow.addColorStop(0.3, "rgba(198,246,252,.9)");
+  glow.addColorStop(1, "rgba(120,220,235,0)");
+  context.fillStyle = glow;
+  context.fillRect(0, 0, 64, 64);
+  return new THREE.CanvasTexture(canvas);
+}
+
+function makePlaceBeams(places: readonly PlaceRecord[]) {
+  const beamPoints = new Float32Array(places.length * 6);
+  const beamColors = new Float32Array(places.length * 8);
+  const headPoints = new Float32Array(places.length * 3);
+  const headColors = new Float32Array(places.length * 4);
+
+  places.forEach((place, index) => {
+    const foot = latLonToCartesian(place.latitude, place.longitude, BEAM_BASE);
+    const head = latLonToCartesian(place.latitude, place.longitude, BEAM_TIP);
+    beamPoints.set(foot, index * 6);
+    beamPoints.set(head, index * 6 + 3);
+    headPoints.set(head, index * 3);
+  });
+
+  const beams = new THREE.LineSegments(
+    new THREE.BufferGeometry(),
+    new THREE.LineBasicMaterial({ vertexColors: true, transparent: true, depthWrite: false }),
+  );
+  beams.geometry.setAttribute("position", new THREE.BufferAttribute(beamPoints, 3));
+  beams.geometry.setAttribute("color", new THREE.BufferAttribute(beamColors, 4));
+
+  const heads = new THREE.Points(
+    new THREE.BufferGeometry(),
+    new THREE.PointsMaterial({
+      size: 0.03,
+      map: makeDotTexture(),
+      vertexColors: true,
+      transparent: true,
+      depthWrite: false,
+    }),
+  );
+  heads.geometry.setAttribute("position", new THREE.BufferAttribute(headPoints, 3));
+  heads.geometry.setAttribute("color", new THREE.BufferAttribute(headColors, 4));
+
+  // Lighting a beam is only ever a change of colour, so the whole layer stays
+  // one geometry and one draw call however many places arrive.
+  const tints = places.map((place) => (place.home ? HOME_TINT : VISIT_TINT));
+
+  const light = (index: number, lit: boolean) => {
+    const tint = tints[index];
+    const { r, g, b } = tint.color;
+    const foot = lit ? 1 : tint.foot;
+    const head = lit ? 1 : tint.head;
+    beamColors.set([r, g, b, foot, r, g, b, head], index * 8);
+    headColors.set([r, g, b, lit ? 1 : 0.8], index * 4);
+    beams.geometry.attributes.color.needsUpdate = true;
+    heads.geometry.attributes.color.needsUpdate = true;
+  };
+  places.forEach((_place, index) => light(index, false));
+
+  return { beams, heads, headPoints, light };
+}
+
 function makeRoute(trip: TripRecord) {
   const group = new THREE.Group();
   if (!trip.route.published || trip.route.waypoints.length < 2) return group;
@@ -277,7 +390,7 @@ export function startGlobe() {
   const sphere = new THREE.Mesh(
     new THREE.SphereGeometry(RADIUS, 96, 64),
     new THREE.MeshPhongMaterial({
-      map: makeAtlasTexture(data.countries),
+      map: makeAtlasTexture(data.countries, data.states),
       specular: new THREE.Color("#356f7e"),
       shininess: 24,
       emissive: new THREE.Color("#04131b"),
@@ -302,6 +415,9 @@ export function startGlobe() {
     hitTargets.push(marker.hitTarget);
     pulseRings.push(marker.ring);
   }
+
+  const placeLayer = makePlaceBeams(data.places);
+  globe.add(placeLayer.beams, placeLayer.heads);
 
   const controls = new OrbitControls(camera, renderer.domElement);
   controls.enablePan = false;
@@ -343,7 +459,16 @@ export function startGlobe() {
       button.toggleAttribute("data-active", button.dataset.country === iso2);
     });
     const firstTrip = data.trips.find((trip) => trip.visitedCountries.includes(iso2));
-    if (firstTrip) selectTrip(firstTrip.slug);
+    if (firstTrip) {
+      selectTrip(firstTrip.slug);
+      return;
+    }
+    // A country held by places rather than journeys has no route to draw, and
+    // leaving the last one lit would read as belonging to it.
+    routeGroups.forEach((route) => { route.visible = false; });
+    if (status) {
+      status.textContent = `${country.name} selected. ${data.places.length} places are lit on the globe.`;
+    }
   };
 
   document.querySelectorAll<HTMLButtonElement>("[data-country]").forEach((button) => {
@@ -360,24 +485,105 @@ export function startGlobe() {
     });
   });
 
+  const label = document.querySelector<HTMLElement>("[data-place-label]");
+  const labelName = label?.querySelector<HTMLElement>("[data-place-name]");
+  const labelMeta = label?.querySelector<HTMLElement>("[data-place-meta]");
+  const labelNote = label?.querySelector<HTMLElement>("[data-place-note]");
+  const placeCountry = data.countries.find((country) => country.shadeBy === "states")?.iso2;
+  // What the beam layer is showing, and what a click or a button settled on:
+  // moving the pointer away from a beam falls back to the chosen one.
+  let litPlace = -1;
+  let chosenPlace = -1;
+
+  const showPlace = (index: number) => {
+    if (index === litPlace) return;
+    if (litPlace >= 0) placeLayer.light(litPlace, false);
+    litPlace = index;
+    if (index >= 0) placeLayer.light(index, true);
+
+    const place = data.places[index];
+    document.querySelectorAll<HTMLElement>("[data-place]").forEach((button) => {
+      button.toggleAttribute("data-active", button.dataset.place === place?.id);
+    });
+    if (!label || !labelName || !labelMeta || !labelNote) return;
+    label.hidden = !place;
+    if (!place) return;
+    labelName.textContent = place.label;
+    labelMeta.textContent = [place.state, formatPlaceDate(place.date)].filter(Boolean).join(" · ");
+    labelNote.textContent = place.note ?? "";
+    labelNote.hidden = !place.note;
+  };
+
+  const selectPlace = (id: string) => {
+    const index = data.places.findIndex((place) => place.id === id);
+    if (index < 0) return;
+    chosenPlace = index;
+    showPlace(index);
+    if (placeCountry) selectCountry(placeCountry);
+    const place = data.places[index];
+    const when = formatPlaceDate(place.date);
+    if (status) {
+      status.textContent = when
+        ? `${place.label}, ${place.state}. Visited ${when}.`
+        : `${place.label}, ${place.state}.`;
+    }
+  };
+
   const raycaster = new THREE.Raycaster();
+  raycaster.params.Points.threshold = 0.03;
   const pointer = new THREE.Vector2();
+  const scratch = new THREE.Vector3();
+
+  // The raycaster does not know the globe is solid, so a beam on the far side
+  // would answer a click through the planet. A point on the unit sphere faces
+  // the camera only while its dot product with the camera position clears one.
+  const facingCamera = (index: number) => scratch
+    .fromArray(placeLayer.headPoints, index * 3)
+    .applyMatrix4(globe.matrixWorld)
+    .dot(camera.position) > 1;
+
+  const aim = (event: PointerEvent) => {
+    const rect = renderer.domElement.getBoundingClientRect();
+    pointer.x = ((event.clientX - rect.left) / rect.width) * 2 - 1;
+    pointer.y = -((event.clientY - rect.top) / rect.height) * 2 + 1;
+    raycaster.setFromCamera(pointer, camera);
+  };
+
+  const pickPlace = () => {
+    const hit = raycaster.intersectObject(placeLayer.heads, false)[0];
+    if (hit?.index === undefined) return -1;
+    return facingCamera(hit.index) ? hit.index : -1;
+  };
+
   let pointerDown = { x: 0, y: 0 };
   renderer.domElement.addEventListener("pointerdown", (event) => {
     pointerDown = { x: event.clientX, y: event.clientY };
     controls.autoRotate = false;
   });
+  renderer.domElement.addEventListener("pointermove", (event) => {
+    aim(event);
+    const hovered = pickPlace();
+    renderer.domElement.style.cursor = hovered >= 0 ? "pointer" : "";
+    showPlace(hovered >= 0 ? hovered : chosenPlace);
+  });
+  renderer.domElement.addEventListener("pointerleave", () => showPlace(chosenPlace));
   renderer.domElement.addEventListener("pointerup", (event) => {
     if (Math.hypot(event.clientX - pointerDown.x, event.clientY - pointerDown.y) > 8) return;
-    const rect = renderer.domElement.getBoundingClientRect();
-    pointer.x = ((event.clientX - rect.left) / rect.width) * 2 - 1;
-    pointer.y = -((event.clientY - rect.top) / rect.height) * 2 + 1;
-    raycaster.setFromCamera(pointer, camera);
+    aim(event);
+    const place = pickPlace();
+    if (place >= 0) {
+      selectPlace(data.places[place].id);
+      return;
+    }
     const hit = raycaster.intersectObjects(hitTargets, false)[0];
     const country = hit?.object.userData.country as string | undefined;
     const trip = hit?.object.userData.trip as string | undefined;
     if (country) selectCountry(country);
     if (trip) selectTrip(trip);
+  });
+
+  document.querySelectorAll<HTMLButtonElement>("[data-place]").forEach((button) => {
+    button.addEventListener("click", () => selectPlace(button.dataset.place ?? ""));
   });
 
   const resize = () => {
@@ -414,6 +620,14 @@ export function startGlobe() {
       const material = ring.material as THREE.MeshBasicMaterial;
       material.opacity = 0.68 + Math.sin(elapsed * 2 + index) * 0.2;
     });
+    if (label && !label.hidden && litPlace >= 0) {
+      scratch.fromArray(placeLayer.headPoints, litPlace * 3).applyMatrix4(globe.matrixWorld);
+      const behind = scratch.dot(camera.position) <= 1;
+      scratch.project(camera);
+      label.style.left = `${container.offsetLeft + ((scratch.x + 1) / 2) * container.clientWidth}px`;
+      label.style.top = `${container.offsetTop + ((1 - scratch.y) / 2) * container.clientHeight}px`;
+      label.toggleAttribute("data-behind", behind);
+    }
     controls.update();
     renderer.render(scene, camera);
   };

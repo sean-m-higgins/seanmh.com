@@ -47,6 +47,27 @@ export interface CountryRecord {
   atlasId: string;
   name: string;
   centroid: { latitude: number; longitude: number };
+  /** Shade only the subdivisions a place names, never the whole country. */
+  shadeBy?: "states";
+}
+
+/**
+ * A place is the lighter half of the atlas: somewhere Sean has been that never
+ * became a journey. It carries no route, no journal, and no photographs — a
+ * name, a date, and at most a sentence.
+ */
+export interface PlaceRecord {
+  id: string;
+  label: string;
+  /** Full subdivision name, spelled as the atlas spells it. */
+  state: string;
+  latitude: number;
+  longitude: number;
+  /** Year, month, or day — whatever is actually remembered. */
+  date?: string;
+  note?: string;
+  /** Where Sean is from. Its beam is lit differently to the visits. */
+  home?: boolean;
 }
 
 // Only countries the atlas can actually shade belong here. Monaco is visited on
@@ -70,6 +91,16 @@ export const countries: readonly CountryRecord[] = [
     atlasId: "250",
     name: "France",
     centroid: { latitude: 46.6, longitude: 2.4 },
+  },
+  // The United States shades by state rather than in one blanket: travel here
+  // is a scatter of places rather than a route, and the atlas files Alaska and
+  // Hawaii under the same country as the lower forty-eight.
+  {
+    iso2: "US",
+    atlasId: "840",
+    name: "United States",
+    centroid: { latitude: 39.8, longitude: -98.6 },
+    shadeBy: "states",
   },
 ];
 
@@ -236,4 +267,60 @@ export function tripBySlug(slug: string): TripRecord | undefined {
 
 export function tripsForCountry(iso2: string): readonly TripRecord[] {
   return trips.filter((trip) => trip.visitedCountries.includes(iso2));
+}
+
+// Newest first, like the journeys. St. Louis is home rather than a trip, so it
+// carries no date — every other line here is measured from it.
+export const places: readonly PlaceRecord[] = [
+  { id: "st-louis", label: "St. Louis", state: "Missouri", latitude: 38.627, longitude: -90.1994, note: "Home.", home: true },
+  { id: "las-vegas", label: "Las Vegas", state: "Nevada", latitude: 36.1699, longitude: -115.1398, date: "2026" },
+  { id: "ann-arbor", label: "Ann Arbor", state: "Michigan", latitude: 42.2808, longitude: -83.743, date: "2026" },
+  { id: "baltimore", label: "Baltimore", state: "Maryland", latitude: 39.2904, longitude: -76.6122, date: "2026" },
+  { id: "davis", label: "Davis", state: "West Virginia", latitude: 39.1301, longitude: -79.4645, date: "2026" },
+  { id: "beaver-creek", label: "Beaver Creek", state: "Colorado", latitude: 39.6043, longitude: -106.5165, date: "2026" },
+  { id: "bluemont", label: "Bluemont", state: "Virginia", latitude: 39.0965, longitude: -77.8811, date: "2025" },
+  { id: "detroit", label: "Detroit", state: "Michigan", latitude: 42.3314, longitude: -83.0458, date: "2025" },
+  { id: "denver", label: "Denver", state: "Colorado", latitude: 39.7392, longitude: -104.9903, date: "2025" },
+  { id: "rothbury", label: "Rothbury", state: "Michigan", latitude: 43.5136, longitude: -86.3453, date: "2024" },
+  { id: "burnet", label: "Burnet", state: "Texas", latitude: 30.7582, longitude: -98.2283, date: "2024" },
+  { id: "mclean", label: "McLean", state: "Virginia", latitude: 38.9339, longitude: -77.1773, date: "2024" },
+  { id: "ozark", label: "Ozark", state: "Arkansas", latitude: 35.487, longitude: -93.8288, date: "2023" },
+  { id: "poconos", label: "The Poconos", state: "Pennsylvania", latitude: 41.1215, longitude: -75.3646, date: "2023" },
+  { id: "charleston", label: "Charleston", state: "South Carolina", latitude: 32.7765, longitude: -79.9311, date: "2023" },
+  { id: "orlando", label: "Orlando", state: "Florida", latitude: 28.5384, longitude: -81.3789, date: "2023" },
+  { id: "big-sur", label: "Big Sur", state: "California", latitude: 36.2704, longitude: -121.8081, date: "2022" },
+  { id: "miami", label: "Miami", state: "Florida", latitude: 25.7617, longitude: -80.1918, date: "2021" },
+  { id: "washington-dc", label: "Washington", state: "District of Columbia", latitude: 38.9072, longitude: -77.0369, date: "2020" },
+  { id: "seattle", label: "Seattle", state: "Washington", latitude: 47.6062, longitude: -122.3321, date: "2018" },
+  { id: "decatur", label: "Decatur", state: "Arkansas", latitude: 36.339, longitude: -94.4601, date: "2018" },
+  { id: "austin", label: "Austin", state: "Texas", latitude: 30.2672, longitude: -97.7431, date: "2018" },
+  { id: "nashville", label: "Nashville", state: "Tennessee", latitude: 36.1627, longitude: -86.7816, date: "2017" },
+  { id: "mammoth-cave", label: "Mammoth Cave", state: "Kentucky", latitude: 37.1862, longitude: -86.1, date: "2017" },
+  { id: "biloxi", label: "Biloxi", state: "Mississippi", latitude: 30.396, longitude: -88.8853, date: "2017" },
+  { id: "new-orleans", label: "New Orleans", state: "Louisiana", latitude: 29.9511, longitude: -90.0715, date: "2017" },
+  { id: "cincinnati", label: "Cincinnati", state: "Ohio", latitude: 39.1031, longitude: -84.512, date: "2017" },
+  { id: "madison", label: "Madison", state: "Wisconsin", latitude: 43.0731, longitude: -89.4012, date: "2017" },
+  { id: "devils-lake", label: "Devil’s Lake", state: "Wisconsin", latitude: 43.4283, longitude: -89.7304, date: "2016" },
+  { id: "chicago", label: "Chicago", state: "Illinois", latitude: 41.8781, longitude: -87.6298, date: "2016" },
+  { id: "philadelphia", label: "Philadelphia", state: "Pennsylvania", latitude: 39.9526, longitude: -75.1652, date: "2015" },
+  { id: "fort-wayne", label: "Fort Wayne", state: "Indiana", latitude: 41.0793, longitude: -85.1394, date: "2015" },
+  { id: "park-city", label: "Park City", state: "Utah", latitude: 40.6461, longitude: -111.498, date: "2015" },
+  { id: "milwaukee", label: "Milwaukee", state: "Wisconsin", latitude: 43.0389, longitude: -87.9065, date: "2014" },
+  { id: "kansas-city", label: "Kansas City", state: "Missouri", latitude: 39.0997, longitude: -94.5786, date: "2013" },
+  { id: "dallas", label: "Dallas", state: "Texas", latitude: 32.7767, longitude: -96.797, date: "2013" },
+  { id: "houston", label: "Houston", state: "Texas", latitude: 29.7604, longitude: -95.3698, date: "2013" },
+  { id: "new-york", label: "New York City", state: "New York", latitude: 40.7128, longitude: -74.006, date: "2012" },
+  { id: "west-point", label: "West Point", state: "New York", latitude: 41.3915, longitude: -73.9559, date: "2011" },
+  { id: "san-francisco", label: "San Francisco", state: "California", latitude: 37.7749, longitude: -122.4194, date: "2011" },
+  { id: "yosemite", label: "Yosemite", state: "California", latitude: 37.7456, longitude: -119.5936, date: "2011" },
+  { id: "branson", label: "Branson", state: "Missouri", latitude: 36.6437, longitude: -93.2185, date: "2008" },
+];
+
+export function placesForState(state: string): readonly PlaceRecord[] {
+  return places.filter((place) => place.state === state);
+}
+
+/** Every state holding a place, in the order the places were authored. */
+export function visitedStates(): readonly string[] {
+  return [...new Set(places.map((place) => place.state))];
 }

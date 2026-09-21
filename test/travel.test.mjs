@@ -6,6 +6,7 @@ import { feature } from "topojson-client";
 
 import {
   fitVerticalFov,
+  formatPlaceDate,
   greatCirclePoints,
   groupTripsByCountry,
   isHomelandPolygon,
@@ -14,6 +15,7 @@ import {
   ringWrapOffsets,
   validateTravelData,
 } from "../src/scripts/globe-utils.mjs";
+import { stateShapes } from "../src/content/us-states.mjs";
 import { frameBounds, makeProjector, placeLabels, uniqueStops } from "../src/scripts/trip-map.mjs";
 import {
   isPhotoTripPublished,
@@ -222,6 +224,83 @@ test("travel data validation rejects duplicate, unknown, and incomplete records"
   assert.ok(errors.some((error) => error.includes("Invalid latitude")));
   assert.ok(errors.some((error) => error.includes("at least two")));
   assert.ok(errors.some((error) => error.includes("Route color")));
+});
+
+test("place validation rejects duplicates, bad coordinates, and invented dates", () => {
+  const place = {
+    id: "seattle",
+    label: "Seattle",
+    state: "Washington",
+    latitude: 47.6062,
+    longitude: -122.3321,
+  };
+  const errors = validateTravelData([], [], [
+    place,
+    { ...place },
+    { ...place, id: "nowhere", state: "", latitude: 95 },
+    { ...place, id: "someday", date: "summer 2019" },
+    { ...place, id: "wordy", note: "x".repeat(161) },
+  ]);
+  assert.ok(errors.some((error) => error.includes("Duplicate place id: seattle")));
+  assert.ok(errors.some((error) => error.includes("needs a state")));
+  assert.ok(errors.some((error) => error.includes("Invalid latitude in nowhere")));
+  assert.ok(errors.some((error) => error.includes("Invalid date in someday")));
+  assert.ok(errors.some((error) => error.includes("Note in wordy")));
+});
+
+test("a place keeps whatever date precision it was remembered with", () => {
+  assert.equal(formatPlaceDate("2011"), "2011");
+  assert.equal(formatPlaceDate("2017-07"), "July 2017");
+  assert.equal(formatPlaceDate("2026-08-19"), "August 19, 2026");
+  // A place with no date is a place all the same, so it renders as nothing
+  // rather than as a guess.
+  assert.equal(formatPlaceDate(undefined), "");
+});
+
+test("a place with no date passes validation, since some are only places", () => {
+  const errors = validateTravelData([], [], [
+    { id: "st-louis", label: "St. Louis", state: "Missouri", latitude: 38.627, longitude: -90.1994 },
+  ]);
+  assert.deepEqual(errors, []);
+});
+
+test("a misspelled state stops the build rather than quietly unvisiting itself", () => {
+  const { shapes, errors } = stateShapes(["Missouri", "Missourri"]);
+  assert.deepEqual(shapes.map((state) => state.name), ["Missouri"]);
+  assert.deepEqual(errors, ["Unknown state: Missourri"]);
+});
+
+test("state outlines are thinned without losing the shape of the state", () => {
+  const topology = JSON.parse(
+    readFileSync(new URL("../node_modules/us-atlas/states-10m.json", import.meta.url)),
+  );
+  const atlas = feature(topology, topology.objects.states);
+  const raw = atlas.features.find((state) => state.properties.name === "Missouri");
+  const rawRing = raw.geometry.coordinates[0];
+  const [thinned] = stateShapes(["Missouri"]).shapes;
+  const thinnedRing = thinned.polygons[0][0];
+
+  assert.ok(thinnedRing.length < rawRing.length / 2, "the outline should lose most of its vertices");
+
+  const bounds = (ring) => ring.reduce((box, [longitude, latitude]) => [
+    Math.min(box[0], longitude), Math.min(box[1], latitude),
+    Math.max(box[2], longitude), Math.max(box[3], latitude),
+  ], [Infinity, Infinity, -Infinity, -Infinity]);
+  bounds(rawRing).forEach((edge, index) => {
+    // Dropping a vertex can pull an edge in by as much as the tolerance it was
+    // dropped under — a fifth of a degree, which the 2048-pixel texture draws
+    // as less than a single pixel. Anything beyond that is a lost shape.
+    assert.ok(Math.abs(edge - bounds(thinnedRing)[index]) <= 0.15, `edge ${index} moved`);
+  });
+
+  assert.deepEqual(thinnedRing.at(0), thinnedRing.at(-1), "a fill needs a closed ring");
+});
+
+test("a state too small to thin keeps its whole outline", () => {
+  const [capital] = stateShapes(["District of Columbia"]).shapes;
+  const ring = capital.polygons[0][0];
+  assert.ok(ring.length >= 4);
+  assert.deepEqual(ring.at(0), ring.at(-1));
 });
 
 test("unpublished route coordinates are removed from every public payload", () => {

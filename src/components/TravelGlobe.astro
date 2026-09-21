@@ -1,11 +1,16 @@
 ---
-import { countries, trips, tripsForCountry } from "../content/trips.ts";
+import { countries, places, placesForState, trips, tripsForCountry, visitedStates } from "../content/trips.ts";
 import { hasPublishedPhotos } from "../content/photos.ts";
 import { tripsForPublication } from "../content/publication.mjs";
-import { validateTravelData } from "../scripts/globe-utils.mjs";
+import { stateShapes } from "../content/us-states.mjs";
+import { formatPlaceDate, validateTravelData } from "../scripts/globe-utils.mjs";
 
-const globeData = { countries, trips: tripsForPublication(trips) };
-const contentErrors = validateTravelData(countries, trips);
+const { shapes: states, errors: stateErrors } = stateShapes(visitedStates());
+// The globe wants the states in the order the places were written; a reader
+// scanning a list of twenty-three wants them alphabetical.
+const statesByName = [...visitedStates()].sort();
+const globeData = { countries, trips: tripsForPublication(trips), places, states };
+const contentErrors = [...validateTravelData(countries, trips, places), ...stateErrors];
 if (contentErrors.length > 0) throw new Error(`Invalid travel content:\n${contentErrors.join("\n")}`);
 ---
 
@@ -19,6 +24,7 @@ if (contentErrors.length > 0) throw new Error(`Invalid travel content:\n${conten
     <div class="atlas-stats" aria-label="Travel archive summary">
       <div><strong>{countries.length.toString().padStart(2, "0")}</strong><span>{countries.length === 1 ? "country" : "countries"}</span></div>
       <div><strong>{trips.length.toString().padStart(2, "0")}</strong><span>{trips.length === 1 ? "journey" : "journeys"}</span></div>
+      <div><strong>{places.length.toString().padStart(2, "0")}</strong><span>{places.length === 1 ? "place" : "places"}</span></div>
     </div>
   </div>
 
@@ -56,6 +62,12 @@ if (contentErrors.length > 0) throw new Error(`Invalid travel content:\n${conten
     <p class="globe-hint" aria-hidden="true">drag to turn · scroll to approach · select a light</p>
     <p id="globe-status" class="sr-only" aria-live="polite">Loading the interactive travel atlas.</p>
 
+    <div class="place-label" data-place-label hidden aria-hidden="true">
+      <p class="place-label-name" data-place-name></p>
+      <p class="place-label-meta" data-place-meta></p>
+      <p class="place-label-note" data-place-note hidden></p>
+    </div>
+
     {countries.map((country, countryIndex) => {
       const countryTrips = tripsForCountry(country.iso2);
       return (
@@ -67,6 +79,26 @@ if (contentErrors.length > 0) throw new Error(`Invalid travel content:\n${conten
         >
           <button class="journey-close" type="button" data-close-country aria-label={`Close ${country.name} details`}>×</button>
           <p class="eyebrow"><span class="country-dot"></span> Visited / {country.name}</p>
+          {country.shadeBy === "states" && (
+            <div class="place-index">
+              {statesByName.map((state) => (
+                <section>
+                  <h3>{state}</h3>
+                  <ul>
+                    {placesForState(state).map((place) => (
+                      <li>
+                        <button type="button" data-place={place.id}>
+                          <span>{place.label}</span>
+                          <small>{formatPlaceDate(place.date)}</small>
+                        </button>
+                        {place.note && <p class="place-note">{place.note}</p>}
+                      </li>
+                    ))}
+                  </ul>
+                </section>
+              ))}
+            </div>
+          )}
           {countryTrips.map((trip, tripIndex) => {
             const photosPublished = hasPublishedPhotos(trip.slug);
             return (
@@ -97,7 +129,9 @@ if (contentErrors.length > 0) throw new Error(`Invalid travel content:\n${conten
       return (
         <button type="button" data-country={country.iso2} aria-controls="globe-canvas">
           <span class="country-number">{String(index + 1).padStart(2, "0")}</span>
-          <span><strong>{country.name}</strong><small>{countryTrips.length} {countryTrips.length === 1 ? "journey" : "journeys"} · {countryTrips[0]?.dateLabel}</small></span>
+          <span><strong>{country.name}</strong><small>{country.shadeBy === "states"
+            ? `${places.length} places · ${statesByName.length} states`
+            : `${countryTrips.length} ${countryTrips.length === 1 ? "journey" : "journeys"} · ${countryTrips[0]?.dateLabel}`}</small></span>
           <i aria-hidden="true">↗</i>
         </button>
       );

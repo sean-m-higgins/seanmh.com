@@ -99,7 +99,28 @@ export function groupTripsByCountry(trips) {
   return grouped;
 }
 
-export function validateTravelData(countries, trips) {
+const MONTHS = [
+  "January", "February", "March", "April", "May", "June",
+  "July", "August", "September", "October", "November", "December",
+];
+
+/**
+ * Renders whatever precision a place date carries: a bare year stays a year,
+ * and a fuller date is set the way the journeys set theirs.
+ */
+export function formatPlaceDate(date) {
+  if (!date) return "";
+  const [year, month, day] = date.split("-");
+  const name = month ? MONTHS[Number(month) - 1] : undefined;
+  if (!name) return year;
+  return day ? `${name} ${Number(day)}, ${year}` : `${name} ${year}`;
+}
+
+// A place note is a caption, not a journal entry: the journeys carry the prose.
+const NOTE_LIMIT = 160;
+
+/** @param {readonly any[]} [places] */
+export function validateTravelData(countries, trips, places = []) {
   const errors = [];
   const countryCodes = new Set(countries.map((country) => country.iso2));
   const slugs = new Set();
@@ -131,6 +152,29 @@ export function validateTravelData(countries, trips) {
       errors.push(`Published route ${trip.route.id} needs at least two waypoints`);
     }
   }
+
+  const placeIds = new Set();
+  for (const place of places) {
+    if (placeIds.has(place.id)) errors.push(`Duplicate place id: ${place.id}`);
+    placeIds.add(place.id);
+    if (!place.label) errors.push(`Place ${place.id} needs a label`);
+    if (!place.state) errors.push(`Place ${place.id} needs a state`);
+    if (!Number.isFinite(place.latitude) || place.latitude < -90 || place.latitude > 90) {
+      errors.push(`Invalid latitude in ${place.id}: ${place.latitude}`);
+    }
+    if (!Number.isFinite(place.longitude) || place.longitude < -180 || place.longitude > 180) {
+      errors.push(`Invalid longitude in ${place.id}: ${place.longitude}`);
+    }
+    // A place is remembered to the year, the month, or the day, and a date is
+    // allowed to be missing entirely rather than invented.
+    if (place.date !== undefined && !/^\d{4}(-\d{2}(-\d{2})?)?$/.test(place.date)) {
+      errors.push(`Invalid date in ${place.id}: ${place.date}`);
+    }
+    if (place.note && place.note.length > NOTE_LIMIT) {
+      errors.push(`Note in ${place.id} runs past ${NOTE_LIMIT} characters`);
+    }
+  }
+
   return errors;
 }
 
