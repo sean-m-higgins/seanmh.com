@@ -1,6 +1,7 @@
-// The three portfolio versions. a-scroll is canonical: it is what every
-// visitor arriving without a preference gets. The other two stay reachable by
-// an explicit ?v= (the version switcher) or a sticky pv= cookie.
+// The portfolio versions. a-scroll is canonical: it is what every
+// visitor arriving without a preference gets. Other versions stay reachable by
+// an explicit ?v= or a sticky pv= cookie. Casa Higgins is discovered through
+// the Nexus rather than the shared version switcher.
 //
 // This was previously a weighted random rotation (34/33/33). Serving three
 // different pages from the same URL left the canonical content
@@ -12,6 +13,7 @@ const VERSIONS = [
   { name: 'a-scroll',   origin: 'https://seanmh-scroll.pages.dev' },
   { name: 'b-card',     origin: 'https://seanmh-card.pages.dev' },
   { name: 'c-terminal', origin: 'https://seanmh-terminal.pages.dev' },
+  { name: 'h-gaudi',    origin: 'https://seanmh-gaudi.pages.dev' },
 ];
 
 // Served when there is no ?v= and no cookie. Keep a-scroll first in VERSIONS.

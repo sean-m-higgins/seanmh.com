@@ -14,6 +14,7 @@ const VERSION_BRANCHES = [
   "version/c-terminal",
   "version/d-3d-game",
   "version/e-2d-game",
+  "version/h-gaudi",
 ];
 
 const sharedFiles = [
@@ -39,7 +40,7 @@ const sharedFiles = [
   },
   {
     path: "src/content/projects.ts",
-    branches: ["version/c-terminal"],
+    branches: ["version/c-terminal", "version/h-gaudi"],
   },
 ];
 

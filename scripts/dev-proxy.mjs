@@ -13,6 +13,7 @@
 //        e-2d-game:  npm run preview -- --port 4326
 //        f-blueprint: npm run preview -- --port 4327
 //        g-travel:   npm run preview -- --port 4328
+//        h-gaudi:    npm run preview -- --port 4329
 //   2. node scripts/dev-proxy.mjs
 //   3. Open http://localhost:8787 in Chrome/Edge and use the dial.
 import http from "node:http";
@@ -22,6 +23,7 @@ const VERSIONS = [
   { name: "a-scroll", origin: "http://localhost:4321" },
   { name: "b-card", origin: "http://localhost:4322" },
   { name: "c-terminal", origin: "http://localhost:4323" },
+  { name: "h-gaudi", origin: "http://localhost:4329" },
 ];
 
 // Mirror worker.js: a-scroll is the default everyone gets without a ?v= or a

@@ -5,6 +5,26 @@ import worker from '../worker.js';
 
 const originalFetch = globalThis.fetch;
 
+test('Gaudí selection preserves the mosaic seed and routes returning assets', async (t) => {
+  const urls = [];
+  const restore = mockFetch(async (url) => {
+    urls.push(String(url));
+    return new Response('gaudi');
+  });
+  t.after(restore);
+  const forced = await worker.fetch(request('/?v=h-gaudi&seed=42', {
+    headers: { Accept: 'text/html', Cookie: 'pv=b-card' },
+  }));
+  assert.equal(urls[0], 'https://seanmh-gaudi.pages.dev/?seed=42');
+  assert.equal(forced.headers.get('X-Portfolio-Version'), 'h-gaudi');
+  assert.match(forced.headers.get('Set-Cookie'), /pv=h-gaudi/);
+  const asset = await worker.fetch(request('/_astro/art.js', { headers: { Cookie: 'pv=h-gaudi' } }));
+  assert.equal(urls[1], 'https://seanmh-gaudi.pages.dev/_astro/art.js');
+  assert.equal(asset.headers.get('Set-Cookie'), null);
+  await worker.fetch(request('/?v=a-scroll', { headers: { Cookie: 'pv=h-gaudi', Accept: 'text/html' } }));
+  assert.equal(urls[2], 'https://seanmh-scroll.pages.dev/');
+});
+
 function request(path = '/', init = {}) {
   return new Request(`https://seanmh.com${path}`, init);
 }
