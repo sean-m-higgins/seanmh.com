@@ -1,0 +1,54 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Film Prompts</title>
+<style>
+  :root { color-scheme: dark; --bg:#0d1117; --panel:#161b22; --border:#30363d; --text:#e6edf3; --muted:#8b949e; --accent:#58a6ff; --done:#3fb950; --next:#d29922; }
+  * { box-sizing: border-box; }
+  body { max-width: 900px; margin: 0 auto; padding: 3rem 1rem 5rem; background: var(--bg); color: var(--text);
+         font: 16px/1.6 ui-sans-serif, system-ui, -apple-system, sans-serif; }
+  h1 { margin: 0 0 .4rem; } h2 { margin: 2.4rem 0 .8rem; font-size: 1.3rem; }
+  .muted { color: var(--muted); } a { color: var(--accent); }
+  code { padding: .1rem .35rem; border-radius: .3rem; background: rgba(110,118,129,.18); font: .88em ui-monospace, monospace; }
+  pre { padding: .9rem 1rem; border: 1px solid var(--border); border-radius: .6rem; background: var(--panel); overflow-x: auto; font: .85rem/1.55 ui-monospace, monospace; }
+  table { width: 100%; border-collapse: collapse; } th, td { padding: .6rem; border: 1px solid var(--border); text-align: left; vertical-align: top; }
+  th { background: var(--panel); } .done { color: var(--done); } .next { color: var(--next); }
+  @media (max-width: 640px) { table { display: block; overflow-x: auto; } }
+</style>
+</head>
+<body>
+<h1>Film prompts — from life</h1>
+<p class="muted">Created 2026-11-13. Prompts for future sessions that draw the three films. The series design is <a href="../plans/films-plan.html">plans/films-plan.html</a>.</p>
+
+<h2>The prompts</h2>
+<table>
+  <tr><th>file</th><th>what it is</th></tr>
+  <tr><td><a href="00-shared-brief.md"><code>00-shared-brief.md</code></a></td><td>Read first by every film session: the series, an annotated inspiration catalogue, the verified toolchain, the workflow gates, deliverables and budgets, guardrails.</td></tr>
+  <tr><td><a href="01-coffee-table.md"><code>01-coffee-table.md</code></a></td><td><strong>grain</strong>: how-to, 45–60 s. Story, facts, a 16-photo log, 8 open questions, 12 beats, 3 candidate looks.</td></tr>
+  <tr><td><a href="02-canvas.md"><code>02-canvas.md</code></a></td><td><strong>gesso</strong>: how-to, 45–60 s. Story, facts, a 14-photo log (three builds, two finished paintings), 8 open questions, 12 beats, 3 candidate looks.</td></tr>
+  <tr><td><a href="03-eagle-ramp.md"><code>03-eagle-ramp.md</code></a></td><td><strong>ramp</strong>: story, ~85 s in five acts. Story, facts, a 22-photo log, 8 open questions, 16 beats, 3 candidate looks.</td></tr>
+</table>
+
+<h2>How to start a film session</h2>
+<p>Open Claude Code in <code>~/SoftLot/MyWebsite</code> and say:</p>
+<pre>Read seanmh.com/prompts/00-shared-brief.md, then seanmh.com/prompts/01-coffee-table.md, and follow them.</pre>
+<p class="muted">Start with grain: films-plan.html makes it film 1, and its first session also builds the toolkit and render pipeline (films-plan step 1) that the other two reuse.</p>
+
+<h2>Local setup status</h2>
+<table>
+  <tr><th>item</th><th>status</th></tr>
+  <tr><td>Reference copies: oriented, ≤1568 px, metadata stripped, with contact sheets, in <code>MyWebsite/film-refs/{grain,gesso,ramp}/</code> (outside git)</td><td class="done">done — 16 / 14 / 22, matching the sources</td></tr>
+  <tr><td>Inspiration keyframe sheets and mid frames for all 7 videos, plus a stills sheet, in <code>inspiration/_frames/</code></td><td class="done">done</td></tr>
+  <tr><td>gifski 1.34 (high-quality GIF encoder)</td><td class="done">installed</td></tr>
+  <tr><td>ffmpeg (Homebrew upgraded it from 7.0.1 to 9.0.2 as a gifski dependency); x264, SVT-AV1, VP9 and animated WebP all present</td><td class="done">verified</td></tr>
+  <tr><td>Smoke test: headless Chrome canvas → PNG frames → ffmpeg H.264 → gifski GIF</td><td class="done">passed (~1.5 s per frame when launching Chrome per frame, so the pipeline must use one persistent CDP session)</td></tr>
+  <tr><td>npm: <code>~/.zprofile</code> puts <code>~/.asdf/shims</code> first, ahead of the stale <code>/usr/local/bin/npm</code> 7.7.6 (backup at <code>~/.zprofile.bak-2026-11-13</code>)</td><td class="done">fixed — npm 10.9.8, Node 22.23.2 in a fresh shell</td></tr>
+  <tr><td>Blender 5.3.0, headless Python scripting with EEVEE</td><td class="done">installed and verified</td></tr>
+  <tr><td>Finished-painting photos for gesso (wildflower field, wedge)</td><td class="done">added and logged</td></tr>
+  <tr><td>Disk: ~24 GB free (95% full)</td><td class="next">workable; the pipeline pipes frames instead of writing them to disk</td></tr>
+  <tr><td>Answers to each prompt's open questions</td><td class="next">needed from Sean before drawing; the film session asks them at gate 1</td></tr>
+</table>
+</body>
+</html>
