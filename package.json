@@ -1,16 +1,19 @@
 {
-  "name": "seanmh.com",
+  "name": "seanmh-films",
   "type": "module",
   "version": "0.0.1",
   "engines": {
-    "node": ">=22"
+    "node": ">=22.12"
   },
   "scripts": {
     "dev": "astro dev",
     "build": "astro build",
     "check": "astro check",
     "preview": "astro preview",
-    "astro": "astro"
+    "astro": "astro",
+    "test": "node --test",
+    "film:preview": "node scripts/film-server.mjs",
+    "film:render": "node scripts/render-film.mjs"
   },
   "dependencies": {
     "@astrojs/sitemap": "^3.7.3",

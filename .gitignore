@@ -22,3 +22,9 @@ pnpm-debug.log*
 
 # jetbrains setting folder
 .idea/
+
+# Film work. Reference photos and storyboards stay local, and only release
+# renders are committed (to public/). Drafts go to renders/.
+incoming/
+renders/
+.wrangler/

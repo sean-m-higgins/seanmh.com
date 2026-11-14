@@ -1,0 +1,5 @@
+# The production Worker strips /films before this origin. These rewrites make
+# the direct Pages production/preview hosts usable too, including base-prefixed
+# Astro assets, without changing their noindex posture.
+/films /films/ 301
+/films/* /:splat 200
