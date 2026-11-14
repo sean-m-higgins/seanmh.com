@@ -21,11 +21,21 @@ light passing through its glass.
 - Sean already had power tools in the garage: power saws, power sanders,
   clamps, a drill, etc.
 - It is hard work. Hands are often raw after a session and sore later.
-- Many long days and some nights, over a month or two one summer.
-- Built for himself, so the cost was only the materials.
-- The glass top was ordered from a local glass shop, cut to the design's exact
-  dimensions.
-- Finish: dark brown stain, then a polyurethane coat.
+- About **six solid days of work, spread over a few weeks** one summer,
+  including long days and some nights.
+- Built for himself, so the cost was only the materials: **under $200**.
+- **Wood:** mostly **oak**.
+- **Size:** about **1 ft tall × 3 ft long × 2 ft wide** (12 × 36 × 24 in).
+- **Glass:** about **30 × 14 in**, ordered from a local glass shop, cut to
+  the design, and set into a routed rabbet so it sits flush with the wood.
+- **Joinery:** wooden dowels and glue; small screws at the corner pieces of
+  the lower level, connecting and securing the four legs.
+- **Order of finishing:** the table was dry-fit raw, taken apart, **stained in
+  pieces**, then assembled and glued for good.
+- **Finish:** dark brown stain (the exact colour isn't remembered; sample it
+  from IMG_0978 and IMG_1038), then **two coats of polyurethane**.
+- No Sunny in this film. ("feat. Sunny" belongs to the Scroll version only;
+  he wasn't born when the table was built, though he uses it now.)
 
 ## The story (Sean's words, lightly edited; keep its substance)
 
@@ -59,11 +69,14 @@ and more. Once the four legs were ready, it was time for the top. Its wood had
 to be cut and routed so the glass sits in it, flush with the wood, making the
 top one flat surface: glass in the middle, a wood border all the way around.
 
-With that done, the table could be fully assembled, but there was still raw
-sanded wood, leftover glue and small gaps. Finishing touches smoothed
-everything out and made sure it was sturdy, tight and level. Finally the wood
-was stained a deep dark brown and given a coat of polyurethane to protect it
-for the long run. Once it dried, the table was done and could come indoors.
+With that done, the whole table could be dry-fit, but there was still raw
+sanded wood, small gaps, and every joint still to fix for good. So I took it
+apart and stained each piece a deep dark brown. Then I assembled it one last
+time: dowels and glue, small screws to lock the legs to the lower level, and
+anything heavy I had as a clamp. Finishing touches smoothed everything out and
+made sure it was sturdy, tight and level. Two coats of polyurethane went on to
+protect it for the long run. Once it dried, the table was done and could come
+indoors.
 
 ## Photo log (from `film-refs/grain/`; verify each yourself)
 
@@ -73,7 +86,7 @@ for the long run. Once it dried, the table was done and could come indoors.
 | IMG_0912 | Tape measure stretched along the boards. | measure twice |
 | IMG_0914 | Mitre saw on the bench; a cut board beside it. | cut |
 | IMG_0916 | Cut pieces laid out side by side, top-down, with a tape and pencil. | cut list realised |
-| IMG_0922 | Four thick leg blanks marked **B1–B4** in marker; open grain (looks like oak; confirm). A pencil and a drilled board alongside. | legs |
+| IMG_0922 | Four thick oak leg blanks marked **B1–B4** in marker, open grain. A pencil and a drilled board alongside. | legs |
 | IMG_0923 | Pieces on the bench with drilled holes and a corded power tool. | joinery / drilling |
 | IMG_0929 | The top frame assembled flat, pale wood, with a routed **rabbet** lip inside for the glass. | the routed top |
 | IMG_0933 | Legs and aprons assembled in raw wood, in the garage. | assembly |
@@ -86,39 +99,34 @@ for the long run. Once it dried, the table was done and could come indoors.
 | IMG_0985 | The stained top frame with the glass seated. | glass in finished frame |
 | IMG_1038 | The finished table outdoors on a sidewalk, a tree reflected in the glass, slatted shelf below. | the reveal |
 
-**What the photos add that the story doesn't:** dowel joinery; the rabbeted
-top frame; the table was dry-fit raw, then **taken apart, stained in pieces,
-and reglued** (the story says staining came last); a weight plate pressed into
-service as a clamp; staining done across a truck bed. These are the
-human, specific details that make a how-to feel real. Use them once confirmed.
+**What the photos add, all confirmed by Sean:** dowel joinery; the rabbeted
+top frame; the dry fit, then **taken apart, stained in pieces, and reglued**;
+a weight plate pressed into service as a clamp; staining done across a truck
+bed. These are the human, specific details that make a how-to feel real.
 
-## Open questions for Sean (ask before drawing these)
+## Facts status
 
-1. Wood species: legs look like oak; are the slats and frame a different wood (maple, poplar)? (confirm)
-2. Final dimensions of the table and of the glass pane. (confirm)
-3. Joinery: dowels and glue, plus screws where? Pocket screws? (confirm)
-4. Order of finishing: stained in pieces before the final glue-up, as the photos suggest? (confirm)
-5. Stain colour name, and how many coats of polyurethane. (confirm)
-6. Roughly how many days or weekends, and the total materials cost (for the page, not the film). (confirm)
-7. Where the table lives now. Is there a photo of it indoors? (optional)
-8. Is "feat. Sunny" (used on the site's Scroll version) part of this story, and should Sunny appear? (confirm)
+Every open question was answered by Sean on 2026-11-13 and folded into the
+Facts above. Still unknown, and fine to leave generic: the stain's colour name
+(draw the colour from the photos). There are no good photos of the table
+indoors, so the final room is drawn simply and generically.
 
 ## Beats (draft, ~52 s; the storyboard gate refines it)
 
 | # | beat | register | caption (≤4 words) | ~s |
 |---|------|----------|--------------------|----|
 | 1 | Blank cream sheet. A carpenter's pencil lays one mark: the **anchor**. | drawing | — | 3 |
-| 2 | The idea becomes a dimensioned sketch: two-level table, glass top, cut list scribbled in `aword`. | drawing | *draw it first* | 5 |
+| 2 | The idea becomes a dimensioned sketch: two-level table, 36 × 24 × 12 in, a 30 × 14 in glass inset; cut list scribbled in `aword`. | drawing | *draw it first* | 5 |
 | 3 | The store: a lumber rack, a hand sorting boards and rejecting warped ones. | bench | *pick good boards* | 4 |
 | 4 | Driveway, boards on the bench, tape stretched along. | bench | *measure twice* | 4 |
 | 5 | Mitre saw cut; sawdust bursts in the sunlight; pieces fan out top-down. | bench | *cut* | 4 |
 | 6 | Legs B1–B4 marked; dowel holes drilled. | bench | — | 3 |
 | 7 | Sanding: long, rhythmic, hypnotic, light raking across the grain; time passes (sun to dusk). | bench | — | 5 |
-| 8 | Frame and legs rise; the slatted shelf drops in. | bench | — | 5 |
-| 9 | Router cuts the rabbet; the glass arrives and lowers in, flush. Use the refraction idea from `video-realistic.mov`. | bench | — | 5 |
-| 10 | Glue-up: the weight plate presses down. Clamp and wait; night falls in the garage. | bench | *clamp and wait* | 4 |
-| 11 | Stain: **colour enters for the first time**, dark brown sweeping over pale wood. | bench | — | 4 |
-| 12 | The finished table, light through the glass. Close on the anchor mark, now under the finish. Signature. | bench | — | 6 |
+| 8 | Dry fit: frame and legs rise in raw oak; the slatted shelf drops in. | bench | — | 5 |
+| 9 | Router cuts the rabbet; the glass is test-fit, flush. Use the refraction idea from `video-realistic.mov`. | bench | — | 5 |
+| 10 | It comes apart into pieces. Stain: **colour enters for the first time**, dark brown sweeping over pale oak, piece by piece across the truck bed. | bench | — | 4 |
+| 11 | Final glue-up: dowels, small screws at the lower corners, the weight plate pressing down. Clamp and wait; night falls in the garage. Two coats of poly gleam. | bench | *clamp and wait* | 5 |
+| 12 | The finished table, indoors in a simple room, light through the glass. Close on the anchor mark, now under the finish. Signature. | bench | — | 6 |
 
 **Anchor (proposal):** the carpenter's pencil mark, as in films-plan. It sits
 on the workpiece in every scene and ends visible through the finish.
@@ -140,13 +148,14 @@ Render one style frame of each and let Sean pick:
 first colour land harder.
 
 **Palette seed:** cream paper `#f3ead8`, graphite with a blue in it `#2b2a4c`,
-raw maple `#e2c79a`, oak `#c49a64`, stain `#4a2a1c`, sawdust `#f0dcae`, glass
-`#a9c9c4`; accent: sunlight `#f2b544`.
+raw oak `#e2c79a`, oak grain `#c49a64`, stain `#4a2a1c` (refine it from
+IMG_0978 / IMG_1038), sawdust `#f0dcae`, glass `#a9c9c4`; accent: sunlight
+`#f2b544`.
 
 ## Deliverables
 
 As in brief §7: `grain.mp4` (≤ 20 MiB), `grain-poster.webp`, `grain.vtt`
-chapters (steps: design, buy, measure, cut, sand, assemble, glass, glue,
-stain, done), and a 4–8 s loop (suggested: the sanding beat, or the glass
+chapters (steps: design, buy, measure, cut, sand, dry fit, glass, stain,
+glue-up, finish), and a 4–8 s loop (suggested: the sanding beat, or the glass
 lowering in) as `grain-loop.mp4` + `grain-loop.gif`. The page under the film
 lists materials, tools and steps.

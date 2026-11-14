@@ -128,7 +128,7 @@ Cite the entry or principle a decision echoes.
 |---|---|---|
 | grain | `MyWebsite/film-diy-coffee-table-pics/` (16) | `MyWebsite/film-refs/grain/` |
 | gesso | `MyWebsite/film-diy-canvas-pics/` (14) | `MyWebsite/film-refs/gesso/` |
-| ramp | `MyWebsite/film-eagle-project-pics/` (22) | `MyWebsite/film-refs/ramp/` |
+| ramp | `MyWebsite/film-eagle-project-pics/` (22), plus `wt/h-gaudi/tmp-eagle-scout-ramp.jpeg` | `MyWebsite/film-refs/ramp/` (that photo is `h-gaudi-ramp.jpg`) |
 
 The references are auto-oriented, stripped of metadata, and at most 1568 px.
 Each folder has `_contact-sheet.jpg`. The originals carry **no EXIF dates**, so
@@ -143,8 +143,10 @@ from these images; check it against the photos yourself.
    frame index, never `requestAnimationFrame`), the local preview page with a
    scrubber, and `scripts/render-film.mjs`. Prove it with the 5-second test
    film and measure the bitrate against the budget.
-1. **Photo log and facts.** Confirm the photo log and present the film
-   prompt's open questions to Sean. No fact is drawn until Sean confirms it.
+1. **Photo log and facts.** Check the photo log against the photos. Sean
+   answered every open question on 2026-11-13; the answers are in each film
+   prompt's Facts and "Facts status" sections. Ask Sean only about anything
+   new you find. No fact is drawn until Sean has confirmed it.
 2. **Storyboard.** Scene list with duration, register, caption (or none),
    anchor position, source photo filenames, and what moves. Write it as a
    self-contained HTML page (Sean prefers HTML for plans) with a thumbnail
@@ -184,8 +186,9 @@ Per film, in the films worktree:
   and product names, flags, signs, posters, licence plates, house numbers.
   Tools are drawn generically (a mitre saw, not a brand).
 - No invented facts. Anything marked **(confirm)** in a film prompt must be
-  confirmed by Sean before it is drawn. Imagined scenes (for example the ramp's
-  closing image) are allowed only as clearly poetic moments and only if Sean
-  agrees.
+  confirmed by Sean before it is drawn. Imagined scenes are allowed only as
+  clearly poetic moments that Sean has approved (the ramp's closing at the
+  stable is approved). The coffee table's simple indoor room follows the
+  story's last line and has no photo, so keep it generic.
 - Commit only when Sean asks, straight to the branch you are on (no feature
   branches). Pushing a `version/*` branch deploys it: confirm first.

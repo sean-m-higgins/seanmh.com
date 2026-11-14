@@ -46,6 +46,22 @@ story told through one object. It is the most emotional film of the three.
   hitch attachments → wire-brush → paint matte black → plywood floor → sheet
   metal over it → railings → traction strips.
 - Tested with a wheelchair in Sean's driveway, then delivered on two trailers.
+- **When:** roughly 2014–2016. No troop number on screen.
+- **The organisation stays unnamed**: "a therapeutic riding centre".
+- **Dimensions:** about **25 ft long and 5 ft wide** in total. A square **top
+  platform about 5 × 5 ft**, plus **two sloped ramp sections about 10 ft
+  each**. Slope per the ADA spec (1:12 maximum, so at most about 20 in of rise
+  over 20 ft of slope; this is derived from the spec, not measured).
+- **Connection:** the sections are pushed until they physically touch, then
+  joined by **metal pins through matching holes**.
+- At the bottom, a **hinged toe plate** (plywood with a sheet-metal lip)
+  folds down to meet the ground (see `h-gaudi-ramp.jpg`).
+- **Towing:** draw an **ATV** in the film, even though the home photos show a
+  riding mower.
+- Hours, volunteers and the donated vs. self-funded split are not recorded:
+  "countless". Don't put numbers on screen.
+- **People:** who is who doesn't matter. Draw generic, simplified figures with
+  no likeness.
 
 ## The story (Sean's words, lightly edited; keep its substance)
 
@@ -118,9 +134,9 @@ organisation in need.
 | photo | what it shows | beat |
 |---|---|---|
 | IMG_1862 | Long steel angle stock lying on a garage floor; a clear sheet with glare. | raw steel |
-| IMG_2105 | An adult (Sean's dad? confirm) cutting steel angle with a reciprocating saw on sawhorses in the driveway. | cutting |
+| IMG_2105 | An adult cutting steel angle with a reciprocating saw on sawhorses in the driveway. | cutting |
 | IMG_2230 | Two cut angle pieces laid in an L on cracked asphalt, part numbers chalked on ("6", "3"). | numbered parts |
-| IMG_2231 | A woman (Sean's mother? confirm) kneeling, measuring and marking a frame layout on the driveway. | lay out + measure |
+| IMG_2231 | A woman kneeling, measuring and marking a frame layout on the driveway. | lay out + measure |
 | IMG_2243 | Night in the garage: welding sparks, two work lights on a yellow tripod, frames laid on the floor, spare wheels stacked. | welding |
 | IMG_2310 | One section's welded frame on wheels with a tow tongue and hitch; a riding mower nearby. | axles + hitch |
 | IMG_2334 | Welded frames lined up on the driveway: the full length visible for the first time. | scale revealed |
@@ -137,26 +153,30 @@ organisation in need.
 | IMG_2700 | A man pushing a person in a wheelchair up the ramp: the driveway test. | test |
 | IMG_2729 | From the top: a person in a wheelchair at the bottom of the ramp. | test |
 | IMG_2733 | A section loaded onto a red tandem-axle flatbed trailer for delivery. | delivery |
+| `h-gaudi-ramp.jpg` | **The best single view of the whole ramp** (from Casa Higgins, `wt/h-gaudi`): the full length assembled down the driveway to the garage, the two sloped sections and the top platform; cedar posts, black pipe rails, sheet-metal deck with black traction strips; the **hinged plywood toe plate with a sheet-metal lip** at the bottom; wheels under each section. | the whole ramp / design reference |
 
 **What the photos add:** the railing is wooden 4×4 posts with black steel pipe
 handrails; the deck is bright sheet metal with black traction pads; sections
-join at hinged plates; a riding mower appears where the story says ATV; the
-driveway test used a real person, who must be drawn as a simplified figure
-with no likeness (brief §8).
+join with pins, and the bottom has a hinged toe plate; a riding mower appears
+where the story says ATV (the film draws an ATV); the driveway test used a
+real person, who must be drawn as a simplified figure with no likeness
+(brief §8).
 
 **Background details to leave out:** beer and brand signs, flags, the truck
 and car makes, licence plates, house details.
 
-## Open questions for Sean (ask before drawing these)
+## Facts status
 
-1. The organisation's name, and whether to name it or say "a therapeutic riding centre". (confirm; the default is unnamed)
-2. Year(s) of the project; troop number only if Sean wants it shown. (confirm)
-3. Total length, rise, and slope of the assembled ramp (ADA's maximum is 1:12). Width and the length of each section. (confirm)
-4. Who is in each photo (dad, mother, welder neighbour, Sean), so roles are drawn correctly, as figures without faces. (confirm)
-5. Towed by an ATV or a riding mower at the centre? The photos show a mower at home. (confirm)
-6. How the sections connect (hinged plates? pins?) and whether the railings come off for transport. (confirm)
-7. Rough hours, number of volunteers, and how much was donated vs. self-funded (for the page). (confirm)
-8. **The closing image:** may the film end on an imagined (poetic) scene, the ramp indoors at the stable, rain on the windows, a rider mounting a horse from it? There is no photo of this. (confirm)
+Every open question was answered by Sean on 2026-11-13 and folded into the
+Facts above. Notes:
+
+- **The imagined closing is approved:** the ramp indoors at the stable, rain
+  outside, someone using it to mount a horse. There is no photo of it, so draw
+  it as the film's one poetic scene, consistent with the confirmed ramp.
+- **Railings stay on in transit**, as observed in IMG_2733: the section rides
+  the trailer with its posts and rails attached. Sean didn't say either way.
+- The exact rise isn't recorded. Use the ADA-derived maximum (about 20 in) for
+  any drawn callout, or leave the rise unlabelled.
 
 ## Beats (draft, ~85 s, in five acts; the storyboard gate refines it)
 
@@ -168,7 +188,7 @@ and car makes, licence plates, house details.
 | 3 | A calendar's pages riffle from 16 toward 18: the deadline. | drawing | *before eighteen* | 4 |
 | **II** | **The design** | | | |
 | 4 | Old trailers sketched, X'd out one by one. | drawing | — | 4 |
-| 5 | The breakthrough: three sections, each on wheels, joining into one ramp. Trig triangles, the 1:12 slope, a materials list in `aword`. HUD-style callouts, as in `pixel-art.mov`. | drawing | *three pieces* | 7 |
+| 5 | The breakthrough: three sections, each on wheels and towable by an ATV, joining into one ramp: a 5 × 5 ft platform plus two 10 ft slopes, 25 ft long and 5 ft wide. Trig triangles, the 1:12 slope, pin holes lining up, a materials list in `aword`. HUD-style callouts, as in `pixel-art.mov`. | drawing | *three pieces* | 7 |
 | 6 | Advice: two figures lean over the plan; a pencil checkmark. | drawing | — | 3 |
 | **III** | **The steel** | | | |
 | 7 | Ten-foot steel angles; the reciprocating saw; spent blades pile up; weeks pass. | bench | — | 6 |
@@ -178,11 +198,11 @@ and car makes, licence plates, house details.
 | **IV** | **Becoming a ramp** | | | |
 | 11 | Wire brush, then matte black paint. | bench | — | 4 |
 | 12 | Plywood, then sheet metal; posts, rails, traction strips. | bench | — | 6 |
-| 13 | The three sections join on the driveway: first full view (IMG_2692 / IMG_2695). | bench | — | 5 |
+| 13 | The three sections roll together until they touch; pins drop through the holes; the toe plate folds down. First full view (`h-gaudi-ramp.jpg`, IMG_2692, IMG_2695). | bench | — | 5 |
 | 14 | The test: a wheelchair rolls up, slowly, safely. | bench | *it holds* | 5 |
 | **V** | **Delivery** | | | |
-| 15 | Sections on two trailers, pulling away down the road. | bench | — | 4 |
-| 16 | Closing (if approved): indoors at the stable, rain on the windows, the ramp beside a horse, a rider mounting. The ground line anchor completes the rhyme with beat 1, now dry and inside. Signature. | bench | — | 7 |
+| 15 | Sections on two trailers, pulling away down the road. At the centre an ATV tows a section indoors. | bench | — | 4 |
+| 16 | Closing (approved, imagined): indoors at the stable, rain on the windows, the ramp beside a horse, a rider using it to mount. The ground line anchor completes the rhyme with beat 1, now dry and inside. Signature. | bench | — | 7 |
 
 **Anchor (proposal):** the ground line, which becomes the ramp's slope line.
 It starts flat under the rain, tilts to 1:12 in the design, and ends as the
