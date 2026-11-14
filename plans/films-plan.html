@@ -1,0 +1,557 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Films — From Life</title>
+<style>
+  :root {
+    color-scheme: dark;
+    --bg: #0d1117;
+    --panel: #161b22;
+    --border: #30363d;
+    --text: #e6edf3;
+    --muted: #8b949e;
+    --accent: #58a6ff;
+    --done: #3fb950;
+    --next: #d29922;
+    --later: #bc8cff;
+    --bad: #f85149;
+    --info: #79c0ff;
+  }
+
+  * { box-sizing: border-box; }
+
+  body {
+    max-width: 1080px;
+    margin: 0 auto;
+    padding: 3rem 1.25rem 5rem;
+    background: var(--bg);
+    color: var(--text);
+    font: 16px/1.65 ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  }
+
+  h1, h2, h3 { line-height: 1.2; }
+  h1 { margin: 0 0 .5rem; font-size: clamp(2rem, 6vw, 3.25rem); }
+  h2 { margin: 2.75rem 0 1rem; font-size: 1.5rem; }
+  h3 { margin: 1.5rem 0 .6rem; font-size: 1.08rem; }
+  p { margin: .75rem 0; }
+  a { color: var(--accent); }
+  ul { margin: .65rem 0; }
+  li { padding: .15rem 0; }
+  code {
+    padding: .12rem .35rem;
+    border-radius: .3rem;
+    background: rgba(110, 118, 129, .18);
+    font: .9em ui-monospace, SFMono-Regular, Consolas, monospace;
+  }
+  pre {
+    margin: .9rem 0;
+    padding: .9rem 1.05rem;
+    border: 1px solid var(--border);
+    border-radius: .6rem;
+    background: var(--panel);
+    overflow-x: auto;
+    font: .86rem/1.6 ui-monospace, SFMono-Regular, Consolas, monospace;
+  }
+  pre code { padding: 0; background: none; font-size: 1em; }
+  .muted { color: var(--muted); }
+  .stamp { margin-bottom: 2rem; }
+  .done { color: var(--done); }
+  .blocked { color: var(--bad); }
+  .warning { color: var(--next); }
+  .info { color: var(--info); }
+
+  .status-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(245px, 1fr));
+    gap: .85rem;
+  }
+  .status-card,
+  .callout,
+  .guardrail,
+  details {
+    border: 1px solid var(--border);
+    border-radius: .75rem;
+    background: var(--panel);
+    padding: 1rem 1.1rem;
+  }
+  .status-card h3 { margin: 0 0 .35rem; font-size: 1rem; }
+  .status-card p { margin: 0; color: var(--muted); }
+  .guardrail {
+    border-color: rgba(248, 81, 73, .45);
+    background: rgba(248, 81, 73, .06);
+  }
+  .guardrail strong { color: var(--bad); }
+
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    margin: 1rem 0;
+  }
+  th, td {
+    padding: .75rem;
+    border: 1px solid var(--border);
+    text-align: left;
+    vertical-align: top;
+  }
+  th { background: var(--panel); }
+
+  .todo {
+    padding: 1.15rem 1.15rem 1.15rem 3.25rem;
+    border: 1px solid rgba(210, 153, 34, .5);
+    border-radius: .75rem;
+    background: rgba(210, 153, 34, .07);
+  }
+  .todo > li { padding: .35rem 0 1.2rem .25rem; }
+  .todo > li:last-child { padding-bottom: .25rem; }
+  .todo strong { color: var(--next); }
+  .criteria {
+    margin-top: .55rem;
+    padding-left: .8rem;
+    border-left: 3px solid rgba(63, 185, 80, .65);
+    color: var(--muted);
+  }
+  .priority {
+    display: inline-block;
+    min-width: 2rem;
+    margin-right: .35rem;
+    padding: 0 .35rem;
+    color: var(--bg);
+    background: var(--next);
+    border-radius: 999px;
+    text-align: center;
+    font-size: .72rem;
+    font-weight: 800;
+    line-height: 1.6;
+  }
+  .priority.later { background: var(--later); }
+  .priority.done { background: var(--done); }
+  .priority.info { background: var(--info); }
+  details { margin: 1rem 0; }
+  summary { cursor: pointer; font-weight: 700; color: var(--info); }
+
+  @media (max-width: 640px) {
+    body { padding-top: 2rem; }
+    table { display: block; overflow-x: auto; }
+    .todo { padding-left: 2.7rem; }
+  }
+</style>
+</head>
+<body>
+
+<h1>Films — <em>from life</em></h1>
+<p class="muted stamp">Design plan, September 21, 2026. Temporary feature plan for <code>version/films</code> (created 2026-11-14; worktree <code>wt/films</code>).</p>
+
+<div class="callout">
+  <p><strong>Goal:</strong> a series of short animated films, drawn by a frontier model the way the Kengo Works films are drawn, but drawn from Sean's own photos. It starts with three:</p>
+  <ol>
+    <li>a coffee table, built by hand (a how-to);</li>
+    <li>a canvas, built and then painted (a how-to);</li>
+    <li>the Eagle Scout project, a portable wheelchair ramp, from idea to delivery (a story, not a how-to).</li>
+  </ol>
+  <p class="warning"><strong>Status:</strong> designed, nothing built yet. The first thing to build is the pipeline proof (step 1 below).</p>
+  <p><strong>Temporary:</strong> this file exists only while the work is being done. When it ships, the durable facts go to the wiki (a new <code>Films.md</code>, plus updates to <code>Nexus.md</code>), the open items go to <code>plan.html</code>, and this file is deleted. <code>plan.html</code> stays the only standing plan.</p>
+</div>
+
+<h2>What the inspiration actually is</h2>
+
+<p>
+  <code>.inspiration</code> entry 1 covers the Kengo Works websites in depth but not the films. Both films were
+  opened over CDP on September 21, 2026 and sampled at eight points each. What was measured:
+</p>
+
+<table>
+  <tr><th></th><th><a href="https://www.kengoworks.com/work/dew">dew</a></th><th><a href="https://www.kengoworks.com/work/answer">answer</a></th></tr>
+  <tr><td>Format</td><td>1080×1080, 0:27</td><td>1080×1080, 0:28</td></tr>
+  <tr><td>Look</td><td>Etching and hatched coloured pencil, with wood grain and tile drawn line by line. <strong>Top-down tabletop</strong> scenes (a fly on an orange, a kitchen table) intercut with navy <strong>diagram</strong> scenes (an embryo, a lineage tree, measuring ticks).</td><td>Risograph: cream paper, two or three spot inks (blue, pink, yellow), halftone dots, misregistration.</td></tr>
+  <tr><td>Structure</td><td>Circular: it ends where it began, back at the egg.</td><td><strong>One dot holds a fixed screen position through every scene</strong> (jellyfish, telephone, whale, wave, planet). Every cut is a match cut on it.</td></tr>
+  <tr><td>Words</td><td>None until the signature, <code>opus 5</code>, bottom right.</td><td>None until the signature card, <code>opus 5 ●● claude</code>.</td></tr>
+</table>
+
+<ul>
+  <li><strong>Made entirely in code.</strong> Every frame is drawn in JavaScript. <code>answer</code> is one HTML file of about 506 KB, with no images, video, audio or base64. The MP4 is an export.</li>
+  <li><strong>Served plainly.</strong> The film is an MP4 at <code>/films/&lt;slug&gt;.mp4</code> with a poster PNG and a small custom player. It sits on the museum-wall frame: an index sidebar, a wall label reading “Short film, 2026”, a one-sentence caption, and a <code>01/13 ‹ ›</code> counter.</li>
+  <li><strong>Pacing.</strong> About 8–10 scenes of about 3 seconds each.</li>
+</ul>
+
+<p>
+  <strong>What this series takes:</strong> the gallery frame, the anchor match cut, the top-down and diagram
+  registers, the signature, and the rationed words.
+  <br><strong>What it changes:</strong> the subjects are not invented. These films are drawn <em>from life</em>,
+  from photos of real things Sean made.
+</p>
+
+<h2>What exists today</h2>
+<div class="status-grid">
+  <div class="status-card">
+    <h3 class="done">✓ One Casa Higgins room per film</h3>
+    <p>
+      <code>wt/h-gaudi</code> (uncommitted, not released) has a <strong>Woodshop</strong> whose four pieces include
+      the coffee table: “glass inset top and a slatted lower shelf”. It has an <strong>Art Room</strong> with seven
+      empty frames (“artwork is on its way”), and an <strong>Eagle</strong> room that shows the portable ramp only as
+      a “conceptual drawing”.
+    </p>
+  </div>
+  <div class="status-card">
+    <h3 class="warning">↻ The toolkit is only a spec</h3>
+    <p>
+      <code>.inspiration</code> lines 293–363 specify <code>mul32</code>, <code>wob</code>, <code>chaikin</code>,
+      <code>hatchFill</code>, <code>aword</code>, <code>tornPath</code> and <code>emit</code>. Nothing in any worktree
+      implements them. h-gaudi's <code>geometry.mjs</code> has a seeded PRNG but draws precise SVG, not by hand.
+    </p>
+  </div>
+  <div class="status-card">
+    <h3 class="warning">↻ The Nexus has one ring</h3>
+    <p>
+      There are 8 destinations in <code>src/content/versions.ts</code>. Picking only tests the active orb
+      (<code>activePortalAt</code>, <code>nexus.ts:1501</code>), and entering always navigates away
+      (<code>beginEnter</code> at 1756 calls <code>navigate</code> at 1779). There are no nested scenes, panels or
+      video.
+    </p>
+  </div>
+  <div class="status-card">
+    <h3 class="blocked">! No video anywhere</h3>
+    <p>
+      No <code>&lt;video&gt;</code>, MP4, <code>VideoTexture</code> or render pipeline exists in any branch. All
+      media lives in git, and there is no R2 binding. Cloudflare Pages rejects files over 25 MiB. ffmpeg 7.0.1 is
+      installed locally.
+    </p>
+  </div>
+</div>
+
+<h2>Decisions</h2>
+
+<table>
+  <tr><th>Question</th><th>Decision</th><th>Why</th></tr>
+  <tr>
+    <td>Sound?</td>
+    <td>Silent. A few short, lowercase, hand-lettered captions.</td>
+    <td>This matches the source, and a silent film autoplays muted anywhere with no audio work. The how-to detail lives on the page instead.</td>
+  </tr>
+  <tr>
+    <td>Do the real photos appear?</td>
+    <td><strong>Never.</strong> They are reference only, never committed and never deployed.</td>
+    <td>The film is the drawing. The photos stay private.</td>
+  </tr>
+  <tr>
+    <td>Format?</td>
+    <td>1080×1080 square, 45–90 s. The how-tos run about 45–60 s; <code>ramp</code> can run up to about 90 s.</td>
+    <td>It matches the source frame and suits the gallery, social posts and phones. A how-to needs longer than 27 s to show its steps.</td>
+  </tr>
+  <tr>
+    <td>How does the Nexus show a series?</td>
+    <td>One <strong>Films</strong> orb in the main ring, circled by <strong>film moons</strong>, one per film, orbiting beneath it.</td>
+    <td>The ring grows from 8 to 9 once and never again, so the front orb keeps its size. The moons show the series and its count from across the ring. See <em>The Nexus</em>.</td>
+  </tr>
+  <tr>
+    <td>Where do the films live?</td>
+    <td>A new path app at <code>/films/*</code>, with a museum-wall gallery. The matching Casa Higgins rooms link to their film.</td>
+    <td>Every film gets a stable URL it can be shared by, and the series can launch before Casa Higgins does. A <code>?v=</code> version would set the sticky <code>pv</code> cookie; a path app never touches it.</td>
+  </tr>
+  <tr>
+    <td>Which build is film 1?</td>
+    <td>The coffee table.</td>
+    <td>It is already in the Woodshop and on Scroll (“designed and built from scratch. (feat. Sunny)”).</td>
+  </tr>
+</table>
+
+<h2>The series</h2>
+
+<p>
+  <strong>Series title: <code>from life</code>.</strong> In drawing, <em>from life</em> means drawn from direct
+  observation. These films are drawn from photos of Sean's life. The work titles are lowercase, following
+  <code>.inspiration</code>'s “lowercase titles against sentence-case chrome”. The working titles are:
+</p>
+
+<table>
+  <tr><th>#</th><th>Title</th><th>Subject</th><th>Kind</th><th>Draft sentence (Sean edits)</th></tr>
+  <tr><td>01</td><td><code>grain</code></td><td>Coffee table</td><td>How-to</td><td>“Opus 5: a coffee table, from rough boards to the glass going in, drawn from my build photos.”</td></tr>
+  <tr><td>02</td><td><code>gesso</code></td><td>Canvas and painting</td><td>How-to</td><td>“Opus 5: stretcher bars, canvas, gesso, then paint — building a canvas and filling it.”</td></tr>
+  <tr><td>03</td><td><code>ramp</code></td><td>Eagle Scout project</td><td>Story</td><td>“Opus 5: my Eagle Scout project, from a problem at a door to the first roll across it.”</td></tr>
+</table>
+
+<p>
+  <strong>Credit.</strong> Each sentence opens with the model's name, the way Kengo Works does
+  (principle 10). Every film signs itself on its last frame in hand lettering:
+  <code>&lt;title&gt; · claude &lt;model&gt; · &lt;year&gt;</code> (principle 13). The model defaults to Opus 5
+  and is set per film.
+</p>
+
+<h3>The grammar — what makes three films one series</h3>
+<ul>
+  <li><strong>Frame.</strong> 1080², 24 fps, drawn <em>on twos</em>: the <code>wob</code> seed changes every second frame, so lines “boil” the way hand-drawn animation does. 45–90 s, silent.</li>
+  <li><strong>The anchor.</strong> One element holds a fixed screen position for the whole film, and every cut is a match cut on it, as with <code>answer</code>'s dot. This is principle 16's “one thing crosses every seam”, applied over time instead of space.
+    <ul>
+      <li><code>grain</code>: a carpenter's pencil mark on the workpiece.</li>
+      <li><code>gesso</code>: the canvas rectangle itself.</li>
+      <li><code>ramp</code>: the threshold line of the door the ramp serves.</li>
+    </ul>
+  </li>
+  <li><strong>Two registers</strong>, from <code>dew</code>.
+    <ul>
+      <li><em>Bench</em> scenes are warm, top-down and hatched. They show the making.</li>
+      <li><em>Drawing</em> scenes are navy diagrams. They carry the measurements, the cut list, and the plan or the paperwork.</li>
+    </ul>
+  </li>
+  <li><strong>One print technique per film, one shared toolkit.</strong>
+    <ul>
+      <li><code>grain</code>: etching and hatching.</li>
+      <li><code>gesso</code>: risograph halftone with painterly daubs.</li>
+      <li><code>ramp</code>: a field notebook — pencil, watercolour wash, and <code>tornPath</code> paper scraps. Deckle edges read as memory, as they do in <code>fable</code>.</li>
+    </ul>
+  </li>
+  <li><strong>Palette.</strong> Eight “pens” per film, on a cream paper ground with an ink that has a hue in it. One accent, rationed (principles 7, 8 and 19).</li>
+  <li><strong>Words.</strong> At most 12 real words per film, lowercase, and at most four per caption. The how-to captions are step verbs: <em>measure twice</em>, <em>clamp and wait</em>. Everything else is <code>aword</code> scribble (principle 15). Dimensions are allowed as drawn callouts.</li>
+  <li><strong>Shape.</strong> The last frame rhymes with the first. Each film is built backwards from its final image (principle 14).</li>
+  <li><strong>Film and page split the job.</strong> The film carries the sequence and the feeling. The <strong>page carries the recipe</strong>: materials, tools and steps, with each step linked to its moment in the film.</li>
+</ul>
+
+<h2>The three films</h2>
+<p class="muted">Beat lists are drafts, and every beat is a single scene. A fact marked <em>(confirm)</em> must come from Sean before it is drawn — nothing is invented. That rule is carried over from h-gaudi's <code>docs/photographs.md</code>.</p>
+
+<details open>
+  <summary>01 · grain — coffee table (how-to, about 50 s, etching)</summary>
+  <ol>
+    <li>Blank sheet. One pencil stroke lays down the anchor mark.</li>
+    <li>Drawing register: the dimensioned sketch and the cut list <em>(confirm dimensions)</em>.</li>
+    <li>Rough boards laid out, top-down <em>(confirm species; Scroll says oak, h-gaudi avoids naming it)</em>.</li>
+    <li>Measure and mark — <em>measure twice</em>.</li>
+    <li>Cut.</li>
+    <li>Joinery <em>(confirm method)</em>.</li>
+    <li>Dry fit.</li>
+    <li>Glue and clamp — <em>clamp and wait</em>. The light swings across the bench to show time passing.</li>
+    <li>Sand.</li>
+    <li>Finish. Colour enters the hatching for the first time.</li>
+    <li>The slatted lower shelf, then the glass set into the top.</li>
+    <li>The table in its room, feat. Sunny. It closes on the pencil mark, now under the finish. Signature.</li>
+  </ol>
+</details>
+
+<details>
+  <summary>02 · gesso — canvas and painting (how-to, about 50 s, risograph)</summary>
+  <ol>
+    <li>The canvas rectangle is fixed on screen for the whole film.</li>
+    <li>Stretcher bars cut and squared (drawing register: corner angles, size <em>(confirm)</em>).</li>
+    <li>Fabric pulled taut and stapled, the staples landing in rhythm around the frame.</li>
+    <li>Gesso, coat by coat, drying between.</li>
+    <li>Sketch.</li>
+    <li>Paint layers build up.</li>
+    <li>The finished painting — one of Sean's (flower, orange, red or space) <em>(confirm which)</em>, redrawn in halftone.</li>
+    <li>Hung on a wall. Signature.</li>
+  </ol>
+</details>
+
+<details>
+  <summary>03 · ramp — Eagle Scout project (story, up to about 90 s, field notebook)</summary>
+  <ol>
+    <li>The problem: steps up to a door, and a wheelchair at the bottom. The threshold is the anchor.</li>
+    <li>The idea, as a notebook sketch.</li>
+    <li>The plan (drawing register): the rise and the slope. The ADA standard is 1:12 <em>(confirm the actual figures)</em>.</li>
+    <li>Approvals and fundraising: stamps, signatures, scribbled paperwork <em>(confirm what happened)</em>.</li>
+    <li>Build days: many hands <em>(confirm who helped, and the hours)</em>.</li>
+    <li>The portable beat: it folds, or loads into a vehicle <em>(confirm how)</em>.</li>
+    <li>Delivery <em>(confirm to whom and when)</em>.</li>
+    <li>The first roll across the threshold.</li>
+    <li>The opening door again, now with a ramp. Signature.</li>
+  </ol>
+</details>
+
+<h2>Pipeline — photos to film</h2>
+
+<ol>
+  <li><strong>Intake.</strong> Photos go in gitignored <code>incoming/&lt;slug&gt;/</code> on the films branch. A script sorts them by their EXIF capture time and writes reference copies no larger than 1568 px for the model to read. It reuses the orientation and resize handling from h-gaudi's <code>scripts/prepare-woodworking.mjs</code>, minus the WebP output. Nothing leaves <code>incoming/</code>.</li>
+  <li><strong>Photo log and facts.</strong> The model looks at each photo and records the step and what it shows. Sean confirms every fact.</li>
+  <li><strong>Storyboard.</strong> Scenes, each with its duration, register, caption, anchor position and source photo filenames. The storyboard stays local, and <strong>Sean approves it before anything is drawn</strong>.</li>
+  <li><strong>Style frames.</strong> Three finished stills drawn with the toolkit. Sean approves the look.</li>
+  <li><strong>Film module.</strong> One deterministic module per film. Time comes from the frame index, never from <code>requestAnimationFrame</code> — an occluded or headless Chrome throttles it to nothing.
+<pre><code>// src/films/grain/film.js
+export default {
+  slug: "grain", title: "grain", model: "Opus 5", year: 2026,
+  fps: 24, size: 1080, seed: 190926,
+  scenes: [
+    { id: "sketch", dur: 4.0, caption: null, step: "Draw it and cut list",
+      ref: ["IMG_2041.jpg"],                 // filenames only; photos stay in incoming/
+      draw(ctx, t, R) { /* t: 0..1 through the scene, R: seeded, reseeded on twos */ } },
+    // …
+  ],
+};</code></pre>
+  </li>
+  <li><strong>Preview.</strong> A local-only page with a scrubber, a <code>?t=</code> parameter and a frame counter.</li>
+  <li><strong>Render.</strong> <code>scripts/render-film.mjs &lt;slug&gt;</code>. It uses Node 22 and headless Chrome over CDP, with no dependencies — the pattern already used for the kengoworks survey. It sets an exact 1080² viewport with <code>Emulation.setDeviceMetricsOverride</code>, then renders each frame by index and pipes the PNGs into ffmpeg:
+<pre><code>ffmpeg -f image2pipe -framerate 24 -i - \
+  -c:v libx264 -preset slow -tune animation -crf 20 \
+  -pix_fmt yuv420p -movflags +faststart public/grain.mp4</code></pre>
+    The same run writes the poster (WebP) and a WebVTT chapters track generated from the scenes that have a <code>step</code>.
+  </li>
+  <li><strong>Budget.</strong> Each MP4 must be <strong>20 MiB or less</strong> (Pages rejects files over 25 MiB), and the render script enforces it. Only release renders are committed; drafts stay in gitignored <code>renders/</code>. If a film cannot fit at acceptable quality, the fallback is an R2 bucket behind the Worker. That is a decision to make once the pipeline proof has measured the real bitrate, not a default.</li>
+</ol>
+
+<h2>Architecture — <code>version/films</code> at <code>/films/*</code></h2>
+
+<ul>
+  <li><strong>Branch and stack.</strong> Astro, like its siblings. From g-travel it copies <code>base: '/films'</code>, <code>site: 'https://seanmh.com'</code>, the sitemap integration, the <code>noindex</code> header in <code>public/_headers</code>, and the <code>_redirects</code> contract (<code>wiki/Travel.md</code>, <code>wiki/Cloudflare-Worker.md</code>). The Pages project is <code>seanmh-films</code> and the dev port is 4330.</li>
+  <li><strong>Layout.</strong>
+    <ul>
+      <li>The toolkit goes in <code>src/lib/draw/</code>: the <code>.inspiration</code> spec plus <code>halftone</code>, <code>misregister</code>, <code>boil</code> and paper grain.</li>
+      <li>Films go in <code>src/films/&lt;slug&gt;/</code>.</li>
+      <li>The catalog is <code>src/content/films.ts</code>.</li>
+      <li>Media goes in <code>public/&lt;slug&gt;.mp4</code>, <code>.vtt</code> and <code>-poster.webp</code>, served at <code>/films/&lt;slug&gt;.mp4</code> as Kengo Works does.</li>
+    </ul>
+  </li>
+  <li><strong>Catalog shape.</strong>
+<pre><code>interface Film {
+  slug: string; title: string; kind: "how-to" | "story";
+  model: string; year: number; duration: number;   // seconds
+  sentence: string;                                 // one sentence, concrete (principle 3)
+  materials?: string[]; tools?: string[];
+  steps?: { t: number; label: string }[];           // also generates the chapters track
+  room?: "woodshop" | "art" | "eagle";              // Casa Higgins link target
+}</code></pre>
+  </li>
+  <li><strong>Pages.</strong> <code>/films/</code> shows the newest film. <code>/films/&lt;slug&gt;/</code> is the same wall with that film selected. It is one template, not a page tree. A URL per film is worth it because each film gets shared on its own and needs its own OG card.</li>
+  <li><strong>The wall.</strong> This is the Kengo Works frame, with neutral chrome so the film supplies all the colour (principle 1).
+    <ul>
+      <li>An index sidebar: <code>from life</code>, <code>01–03</code>, and the year.</li>
+      <li>A wall label: “Short film, 2026 · 0:52 · drawn by Opus 5”.</li>
+      <li>The video: <code>&lt;video playsinline muted controls preload="metadata" poster&gt;</code> with the chapters track.</li>
+      <li>A footer with the title, the one sentence, and <code>‹ 01/03 ›</code>.</li>
+      <li>For the how-tos, the section below the film lists materials, tools and steps, and every step seeks the video to its moment. <code>ramp</code> gets a synopsis and the confirmed facts instead.</li>
+    </ul>
+  </li>
+  <li><strong>Main-repo integration</strong>, done at release:
+    <ul>
+      <li><code>worker.js:40-43</code>: add <code>{ name: 'films', origin: 'https://seanmh-films.pages.dev', prefix: '/films' }</code>.</li>
+      <li><code>worker.js:69</code>: add the films sitemap to the index string.</li>
+      <li><code>scripts/dev-proxy.mjs:41-44</code>: add port 4330.</li>
+      <li><code>test/worker.test.js</code>: copy the Travel block (280–335) and extend the SEO test (337–369).</li>
+      <li>Add a README table row and a Blueprint inventory entry.</li>
+    </ul>
+    The Worker already forwards request headers, so MP4 Range requests pass through untouched.
+  </li>
+</ul>
+
+<h2>The Nexus — a Films orb with film moons</h2>
+
+<pre><code>   ○        ○    main ring: 9 orbs, and it stays at 9    ○        ○
+
+                 ╭────────────╮
+                 │   FILMS    │   click the orb  → /films/
+                 │  ◖▷ reel ◗ │
+                 ╰────────────╯
+              ·  ●      ●      ●  ·   one moon per film, orbiting beneath
+               grain  gesso  ramp     click a moon  → /films/&lt;slug&gt;/
+
+   label:  Films — from life
+           01 grain · 02 gesso · 03 ramp      (real links)</code></pre>
+
+<ul>
+  <li><strong>Catalog</strong> (<code>wt/nexus/src/content/versions.ts</code>): append an entry, so Scroll stays in front on load, and add <code>"films"</code> to the <code>interior</code> union. Also add an optional <code>children</code> field. It holds a static copy of the films catalog, which can drift from the original: update both when a film ships.
+<pre><code>{ name: "films", label: "Films", glyph: "▷", href: "/films/",
+  branch: "version/films", blurb: "short films drawn from life",
+  color: "#d98cff", interior: "films",
+  children: [{ slug: "grain", label: "grain", href: "/films/grain/", color: "…" }] }</code></pre>
+    <code>#d98cff</code> sits at about 280°, in the unused violet–magenta gap. Check it in the scene against Scroll (<code>#7c83ff</code>) and the saucer's violet ring (<code>#9f8cff</code>).
+  </li>
+  <li><strong>Miniature.</strong> <code>buildFilms</code> is registered in <code>INTERIOR_BUILDERS</code> (<code>nexus.ts:830</code>). Like every other interior it is code geometry only, with no textures: two reels, a film strip looping between them, and a light cone thrown onto a tiny screen.</li>
+  <li><strong>Moons.</strong>
+    <ul>
+      <li>One glass bead per child, using the orb's fresnel shell shader at a radius of about 0.2.</li>
+      <li>The beads orbit on a ring about 1.75 across, tilted about 18° below the orb's equator, and they follow the orb's scale.</li>
+      <li>They are always visible, so the count reads from across the ring.</li>
+      <li>They respond only while Films is the active, settled orb: <code>activePortalAt</code> also tests that orb's moons.</li>
+      <li><em>Hovering</em> a moon pauses its orbit, brightens it, and sets the label to that film.</li>
+      <li><em>Clicking</em> a moon flies into it and opens <code>/films/&lt;slug&gt;/</code>. That needs <code>beginEnter</code> to take a target position and an href. Clicking the orb opens <code>/films/</code>.</li>
+    </ul>
+  </li>
+  <li><strong>Without a mouse.</strong>
+    <ul>
+      <li>The active label lists the films as real links. That is the main path for keyboard and phone users, since a moon is too small to rely on as a tap target.</li>
+      <li>ArrowUp and ArrowDown move the moon highlight.</li>
+      <li>Both fallbacks (the no-WebGL list and the <code>&lt;noscript&gt;</code> list) nest the film links under Films.</li>
+      <li>With reduced motion, the moons hold still and entering uses the veil fade.</li>
+    </ul>
+  </li>
+  <li><strong>Back-button fix, which comes first.</strong> Nothing resets <code>entering</code> or the veil. A visitor who returns with Back from the back/forward cache is left facing the veil colour. Films make that round trip the normal case, so add a <code>pageshow</code> handler that resets the entry state, the veil and the camera when <code>event.persisted</code> is true.</li>
+  <li><strong>Docs.</strong> <code>wiki/Nexus.md</code> still lists seven destinations and is missing Casa Higgins. Fix that in the same change. <code>plan.html</code> still says “seventh destination” too.</li>
+</ul>
+
+<h2>Casa Higgins links</h2>
+<p>
+  After h-gaudi is released, and never before its origin is live (the <code>Gaudi.md</code> release order):
+</p>
+<ul>
+  <li>the Woodshop's coffee-table piece links to <code>grain</code>;</li>
+  <li>the Art Room links to <code>gesso</code>;</li>
+  <li>the Eagle room's conceptual drawing gains the <code>ramp</code> poster and a link.</li>
+</ul>
+<p>
+  These are links, not embedded copies, because the film lives in one place. Add an optional <code>film</code> slug to
+  <code>Piece</code> in <code>src/content/making.ts</code> to carry the link.
+</p>
+
+<h2>Steps</h2>
+
+<ol class="todo">
+  <li>
+    <span class="priority">1</span><strong>Toolkit and pipeline proof.</strong>
+    Create <code>version/films</code> and its worktree. Build the drawing toolkit, the film runtime, the preview
+    page and <code>render-film.mjs</code>. Render a 5-second test film: a pencil line crossing paper, then a
+    signature.
+    <p class="criteria"><strong>Done when:</strong> the test film renders to an MP4 that plays in Chrome and Safari. Rendering the same frame twice gives the same pixel hash. The bitrate with boiling lines is measured and projected against the 20 MiB budget for a 60-second film, which decides whether R2 is needed.</p>
+  </li>
+  <li>
+    <span class="priority">2</span><strong><code>grain</code>.</strong>
+    Intake, photo log and facts, storyboard, style frames, then the film and the render.
+    <p class="criteria"><strong>Done when:</strong> Sean has approved the storyboard and the style frames, every fact on screen is confirmed, and the final MP4 is under budget with its poster and chapters track.</p>
+  </li>
+  <li>
+    <span class="priority">3</span><strong>The <code>/films/</code> wall and its release.</strong>
+    Build the wall template and the catalog. Sean creates the git-connected Pages project <code>seanmh-films</code> in the dashboard (<code>wrangler</code> can only create direct-upload projects). Verify the origin, then land the Worker path app, the sitemap and the tests, then deploy.
+    <p class="criteria"><strong>Done when:</strong> <code>npm test</code> passes. <code>/films/</code> and <code>/films/grain/</code> return 200 with <code>X-Portfolio-Version: films</code> and no <code>pv</code> cookie. A seek request for the MP4 returns 206. The page works at 390 px. The deployment IDs and the rollback target are recorded.</p>
+  </li>
+  <li>
+    <span class="priority">4</span><strong>Nexus Films orb and moons.</strong>
+    The back-button fix first, then the catalog entry, <code>buildFilms</code>, the moons, the label links, the fallbacks and the wiki.
+    <p class="criteria"><strong>Done when:</strong> the moon count comes from <code>children</code>, so the orb ships with one moon. A moon can be reached by mouse, keyboard and touch. Back from a film returns to a live Nexus. The no-WebGL list shows the films. At 9 orbs the front orb is no smaller than the layout formula predicts (about 0.835 scale).</p>
+  </li>
+  <li>
+    <span class="priority later">5</span><strong><code>gesso</code></strong>, then <span class="priority later">6</span><strong><code>ramp</code></strong>.
+    The same pipeline. Each film adds a catalog entry on <code>version/films</code> and a <code>children</code> entry in the Nexus.
+    <p class="criteria"><strong>Done when:</strong> the wall reads <code>03/03</code> and there are three moons.</p>
+  </li>
+  <li>
+    <span class="priority later">7</span><strong>Casa Higgins links</strong>, gated on h-gaudi's release.
+    <p class="criteria"><strong>Done when:</strong> each of the three rooms links to its film, and no link was published before its target was live.</p>
+  </li>
+</ol>
+
+<h2>What Sean provides, per film</h2>
+<ul>
+  <li><strong>Photos.</strong> 15–40, in order, covering every step: materials laid out, measurement close-ups, joints and details, and the finished piece from three angles and in place. Top-down and consistent angles translate best. For <code>ramp</code>, old phone photos and pictures of the paperwork both count.</li>
+  <li><strong>A facts sheet.</strong>
+    <ul>
+      <li><code>grain</code>: wood species, dimensions, joinery, finish, time and cost, tools.</li>
+      <li><code>gesso</code>: canvas size, materials, and which painting.</li>
+      <li><code>ramp</code>: year, who it was for, troop, hours, helpers, funding, how it is portable, rise and slope.</li>
+    </ul>
+  </li>
+  <li><strong>The model to credit.</strong> Opus 5 unless Sean says otherwise.</li>
+</ul>
+
+<div class="guardrail">
+  <p><strong>Guardrails.</strong></p>
+  <ul>
+    <li>Reference photos never enter git or any deploy.</li>
+    <li>No fact is drawn until Sean confirms it.</li>
+    <li>No link to <code>/films/</code> is published before <code>seanmh-films</code> is live.</li>
+    <li><code>a-scroll</code> stays the canonical default.</li>
+    <li>The path app never reads or sets <code>pv</code>.</li>
+    <li>Every committed MP4 stays within its budget.</li>
+  </ul>
+</div>
+
+<p class="muted">When this ships: move the series grammar, the pipeline and the budget into <code>wiki/Films.md</code>, and the Films orb and moons into <code>wiki/Nexus.md</code>. Fold anything still open into <code>plan.html</code>, and delete this file.</p>
+
+</body>
+</html>
