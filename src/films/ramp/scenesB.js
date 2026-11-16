@@ -103,7 +103,7 @@ function drawPlan(ctx, s, env, words = true) {
     scribble(ctx, R, 150, 124 + i * 40, 150 + ((i * 53) % 60), 15, { color: INKB, alpha: 0.4 });
     ctx.restore();
   }
-  if (words) caption(ctx, env.still('three-cap'), 'three pieces', easeInOut(span(s, 5.6, 6.5)), SIZE, { color: C.cream, y: 1000, x: 96, scale: 0.03 });
+  if (words) caption(ctx, env.still('three-cap'), 'three pieces', easeInOut(span(s, 5.6, 6.5)), SIZE, { color: C.cream, y: 1000, x: 610, scale: 0.03 });
 }
 
 export const three = scene('three', 7, (ctx, s, { env }) => drawPlan(ctx, s, env));

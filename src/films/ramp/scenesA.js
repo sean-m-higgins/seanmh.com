@@ -1,4 +1,4 @@
-// Act I · the ask: rain, ask, eighteen. No photos: these come from Sean's story.
+// Act I · the ask: rain, arrive, shake, ask. No photos: these come from Sean's story.
 
 import { mul32, rd } from '../../lib/draw/rng.js';
 import { mix, rgba } from '../../lib/draw/color.js';
@@ -6,7 +6,7 @@ import { pencil } from '../../lib/draw/line.js';
 import { hand } from '../../lib/draw/hand.js';
 import { C, GY, SIZE, dark, lite, piece, rect, bar, circle, capsule, blob, strip, cached, scene, tremor, scratch, bloom } from './kit.js';
 import { WIDE, cam, human, walker, horse, lump, tree, asphalt, tint, rain as rainFall } from './parts.js';
-import { caption, span, easeOut, easeInOut, easeIn, lerp } from '../common.js';
+import { caption, span, easeOut, easeInOut, lerp } from '../common.js';
 
 const INK = [42, 43, 49];
 const DUSK = [178, 182, 214];
@@ -130,7 +130,7 @@ export const shake = scene('shake', 4.5, (ctx, s, { k, env }) => {
     piece(g, rect(96, 230, 236, 250), { color: dark(C.coal, 0.2), h: 5, seed: 411 });
     piece(g, rect(112, 246, 204, 218), { color: mix(C.navy, C.steel, 0.4), h: -0, edge: 1.4, seed: 412 });
     for (const [a, b] of [[[214, 246], [214, 464]], [[112, 355], [316, 355]]]) piece(g, bar(a, b, 9), { color: dark(C.coal, 0.2), h: 2, rough: 0.3 });
-    piece(g, strip(circle(880, 300, 34, 16).slice(1, 13), 11), { color: C.steel, h: 3, rough: 0.3, seed: 413 });
+    piece(g, strip(Array.from({ length: 13 }, (_, i) => { const a = (-56 + i * 24.3) * Math.PI / 180; return [880 + 34 * Math.cos(a), 300 + 34 * Math.sin(a)]; }), 11), { color: C.steel, h: 3, rough: 0.3, seed: 413 });
     asphalt(g, mix(dark(C.cedar, 0.5), C.coal, 0.4));
   }), 0, 0);
   ctx.save(); ctx.beginPath(); ctx.rect(112, 246, 204, 218); ctx.clip();
@@ -149,7 +149,7 @@ export const shake = scene('shake', 4.5, (ctx, s, { k, env }) => {
   fig(lerp(56, 84.5, step), 1, 0.8, BOY, 6);
   fig(lerp(152, 124.5, step), -1, 1, GROWN, 5);
   tint(ctx, [255, 240, 222]);
-  caption(ctx, env.still('shake-cap'), 'an eagle scout project', easeInOut(span(s, 2.3, 3.6)), SIZE, { color: C.cream, y: 950, x: 96, scale: 0.03 });
+  caption(ctx, env.still('shake-cap'), 'agree on a service project', easeInOut(span(s, 2.3, 3.6)), SIZE, { color: C.cream, y: 950, x: 96, scale: 0.03 });
 });
 
 export const ask = scene('ask', 4, (ctx, s, { k, env }) => {
@@ -182,44 +182,4 @@ export const ask = scene('ask', 4, (ctx, s, { k, env }) => {
     piece(ctx, blob([[wr[0] - 50, wr[1] + 50], [wr[0] - 54, wr[1] - 30], [wr[0] - 20, wr[1] - 56], [wr[0] + 30, wr[1] - 50], [wr[0] + 54, wr[1] - 10], [wr[0] + 50, wr[1] + 50]], 2), { color: skin, h: 7, rough: 0, seed: 182 + d });
     piece(ctx, capsule([wr[0] - d * 30, wr[1] + 6], [wr[0] - d * 84, wr[1] - 34], 34, 28), { color: skin, h: 5, rough: 0, seed: 184 + d }); // thumb over the note
   }
-});
-
-export const eighteen = scene('eighteen', 4, (ctx, s, { env }) => {
-  ctx.drawImage(cached('eighteen-back', (g) => {
-    piece(g, rect(-10, -10, 1100, 1100), { color: dark(C.slate, 0.18), h: 0, rough: 0, seed: 190, comb: { angle: Math.PI / 2, gap: 46, a: 0.2 } });
-    piece(g, rect(-10, GY + 14, 1100, 320), { color: dark(C.slate, 0.34), h: 0, rough: 0, seed: 191, comb: { angle: Math.PI / 2, gap: 46, a: 0.2 } });
-    for (const x of [250, 800]) piece(g, [[x, GY + 14], [x + 22, GY + 14], [x + 22, GY + 40], [x, GY + 96]], { color: dark(C.cedar, 0.5), h: 4, seed: 192 + x });
-    piece(g, rect(150, GY, 780, 17), { color: dark(C.cedar, 0.2), h: 8, rough: 0.8, seed: 193, comb: { angle: 0, gap: 4, a: 0.2 } });
-    // what else is on the shelf: pencils in a tin, a few books lying flat
-    piece(g, rect(232, GY - 74, 56, 74), { color: C.steel, h: 4, seed: 197 });
-    for (const [x, a, c] of [[244, -0.16, C.cedar], [262, 0.05, dark(C.cream, 0.2)], [276, 0.2, mix(C.cedar, C.coal, 0.4)]]) piece(g, bar([x, GY - 70], [x + a * 60, GY - 132], 7), { color: c, h: 2, rough: 0.2, seed: 198 + x });
-    [[760, 92, C.navy], [770, 80, dark(C.grass, 0.3)], [764, 86, dark(C.cedar, 0.35)]].forEach(([x, w, c], i) => piece(g, rect(x, GY - 22 * (i + 1), w, 21), { color: mix(c, C.slate, 0.35), h: 3, seed: 199 + i }));
-    // the pad's backing and binding
-    piece(g, rect(376, 366, 328, 414), { color: dark(C.coal, 0.1), h: 6, seed: 194 });
-  }), 0, 0);
-  const R = env.still('eighteen');
-  const page = (num, tone = 0) => {
-    piece(ctx, rect(390, 426, 300, 354), { color: lite(C.cream, 0.3 - tone), h: 3, rough: 0.9, seed: 195 });
-    hand(ctx, R, num, 540, 700, 92, { align: 'center', color: INK, width: 12, alpha: 0.95, amp: 2, slant: 0.06 });
-  };
-  const tears = [['16', 0.45], ['17', 1.65]];
-  // what is left on the pad
-  const top = s < tears[0][1] ? 0 : s < tears[1][1] ? 1 : 2;
-  page(['16', '17', '18'][Math.min(2, top + (top < 2 ? 1 : 0))], 0.06);
-  if (top < 2 && s < tears[top][1]) page(tears[top][0]);
-  piece(ctx, rect(376, 366, 328, 66), { color: C.steel, h: 5, rough: 0.5, seed: 196 });
-  for (const x of [470, 610]) piece(ctx, circle(x, 399, 13, 16), { color: dark(C.coal, 0.2), h: -0, rough: 0, edge: 1.3 });
-  // pages torn off, falling past the shelf, lying where they land
-  tears.forEach(([num, t0], i) => {
-    const u = span(s, t0, t0 + 0.85);
-    if (u <= 0) return;
-    const fall = easeIn(u), rot = (i ? -1 : 1) * (10 + 62 * easeOut(u)) * (Math.PI / 180);
-    const x = lerp(0, i ? -170 : 210, easeOut(u)), y = lerp(0, 900, fall) - 40 * Math.sin(Math.PI * Math.min(1, u * 2.2));
-    ctx.save();
-    if (u >= 1) return;
-    ctx.translate(540 + x, 603 + y); ctx.rotate(rot); ctx.translate(-540, -603);
-    page(num);
-    ctx.restore();
-  });
-  caption(ctx, env.still('eighteen-cap'), 'before eighteen', easeInOut(span(s, 2.4, 3.4)), SIZE, { color: C.cream, y: 950, x: 96, scale: 0.03 });
 });

@@ -2,7 +2,7 @@
 // Storyboard approved and look C (cut-paper relief, lit) chosen 2026-11-14
 // (incoming/ramp/storyboard.html, local). 18 scenes, 89 s.
 // After the first cut (Sean, 2026-11-15): the note says only "a ramp", and the
-// calendar scene (eighteen, still in scenesA.js) is out. Then two scenes went in
+// calendar scene (eighteen) is out. Then two scenes went in
 // after the rain: arrive (the centre and its sign) and shake (the agreement).
 // The anchor is the ground line (GY in kit.js): every cut is a match cut on it.
 

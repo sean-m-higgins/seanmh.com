@@ -40,7 +40,7 @@ Draft options: `--from <s> --to <s>` renders a range, `--crf <n>` (default
 | `src/films/common.js` | Easing, caption, signature. |
 | `src/films/<slug>/film.js` | One module per film. `test` is the pipeline proof. |
 | `src/films/grain/` | Film 01. `film.js` (scene list), `scenes1–3.js` (scenes 1–11), `home.js` (scene 12's geometry), `looks.js` (the three candidate looks; C is used), `ink.js` (look C's materials, the V, shared helpers), `geom.js` (the table in inches, a pinhole camera, near-plane clipping). |
-| `src/films/ramp/` | Film 03. Cut-paper relief, lit. `kit.js` (the paper piece, light, sparks, the jointed puppet, scenes on twos), `parts.js` (the ramp in inches, wheelchair, horse, ATV, trailer, sets, the plotter and dot-matrix), `weld.js` (scene 9), `scenesA–E.js` (the other 17, plus the cut calendar scene `eighteen`), `film.js` (scene list). |
+| `src/films/ramp/` | Film 03. Cut-paper relief, lit. `kit.js` (the paper piece, light, sparks, the jointed puppet, scenes on twos), `parts.js` (the ramp in inches, wheelchair, horse, ATV, trailer, sets, the plotter and dot-matrix), `weld.js` (scene 9), `scenesA–E.js` (the other 17), `film.js` (scene list). |
 | `src/films/gesso/` | Film 02. `paint.js` (paint with body: every stroke lays colour and height, then `light()` rakes a lamp across the height map), `field.js` and `painting.js` (the wildflower painting as an ordered list of marks), `kit.js` and `parts.js` (the apartment, tools, people and shared scene helpers), `scenes1–3.js` (all 17 scenes), `film.js` (scene list). |
 | `tools/stage.html` | Preview (scrubber, frame counter, `?t=`) and the page the renderer drives. |
 | `scripts/film-server.mjs` | Localhost static server; also serves `/refs/` from `~/SoftLot/MyWebsite/film-refs`. |
