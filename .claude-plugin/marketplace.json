@@ -1,0 +1,15 @@
+{
+  "$schema": "https://anthropic.com/claude-code/marketplace.schema.json",
+  "name": "seanmh",
+  "description": "Agent tooling for seanmh.com",
+  "owner": {
+    "name": "Sean Higgins"
+  },
+  "plugins": [
+    {
+      "name": "seanmh",
+      "description": "Skills, a design review agent, and guard hooks for the seanmh.com multi-version site",
+      "source": "./plugin"
+    }
+  ]
+}

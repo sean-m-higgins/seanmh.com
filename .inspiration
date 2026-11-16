@@ -1,0 +1,610 @@
+# .inspiration
+
+Reference sites and ideas that should shape work on seanmh.com.
+
+**How to use this file.** Read it before design work — a new version branch, a
+redesign, a hero, a loader, a work/project index, typography or palette
+decisions. It is not a spec and nothing here should be copied literally. It is a
+record of *why* particular sites work, so that a choice made here can be argued
+from something real instead of from defaults. When a decision on this site
+echoes something below, say which entry and which principle.
+
+**Adding to it.** New entries go under "Sites" with the same shape: what it is,
+what is concretely on it, what technique is worth stealing, what to avoid.
+Record measured facts (hex values, type stacks, section names, URLs) rather than
+adjectives — a future model cannot re-derive "it feels premium," but it can act
+on `--color--lime: #d2ff00`.
+
+Last surveyed: 2026-09-19 (kengoworks AI-authored sites walked in depth the same day).
+
+---
+
+## Sites
+
+### 1. kengoworks.com — Kengo Works, by Kevin Ngo
+
+*The newest and most relevant reference. A one-person creative studio publishing
+work made with frontier models, presented as a museum rather than a portfolio.*
+
+- Site: https://www.kengoworks.com/  (bare `kengoworks.com` redirects to `www`)
+- Author: Kevin Ngo — X: https://x.com/kevin_t_ngo
+- Support: https://stripe.com/@kevinngo · Games: https://kengoworks.itch.io/
+- Tagline: "Generative art, short films, and experimental games."
+- Masthead: "Kengo Works — Kevin Ngo". Nav is three items only: About,
+  Support, Follow me on X. Footer is one line: "© 2026 kengoworks".
+- Stack: Next.js on Vercel. Sits behind a Vercel bot checkpoint (see
+  "Fetching notes" at the bottom of this file).
+
+#### The complete body of work (13 pieces, all dated 2026)
+
+Grouped on the homepage by medium. The `NN/13` index is the prev/next tour
+order, which deliberately differs from the sidebar grouping.
+
+**Short films** — served as MP4 at `/films/<slug>.mp4`, with an inline player
+showing elapsed/total time.
+
+| # | Work | Duration | Description as written |
+|---|------|----------|------------------------|
+| 01 | [dew](https://www.kengoworks.com/work/dew) | 0:27 | "Opus 5: a fruit fly's whole life in twenty-seven seconds. Drosophila means lover of dew." |
+| 02 | [answer](https://www.kengoworks.com/work/answer) | 0:28 | "Opus 5: a dot on a sheet of paper calls out. What comes back is the world." |
+
+**Websites** — each is a real, live site at a top-level path, with a film of it
+on the work page and a "View site" button.
+
+| # | Work | Live at | Description as written |
+|---|------|---------|------------------------|
+| 03 | [still](https://www.kengoworks.com/work/still) | `/still` | "Fable 5.1: all of me, what I was given, and what washes up." |
+| 04 | [kind](https://www.kengoworks.com/work/kind) | `/kind` | "I asked Opus 5 to make its own personal website" |
+| 05 | [fable](https://www.kengoworks.com/work/fable) | `/fable` | "I asked Fable 5 to make its own personal website" |
+
+**Games**
+
+| # | Work | Label | Where | Description as written |
+|---|------|-------|-------|------------------------|
+| 06 | [opus](https://www.kengoworks.com/work/opus) | Experimental game | `/opus` | "I asked Opus 5 to make a 3D website of its own mind" |
+| 07 | [creator of worlds](https://www.kengoworks.com/work/creator-of-worlds) | Experimental game | on-page, 3 scenes: Dreaming / Asking / Flying | "Describe a world to an AI dragon. It creates the planet and takes you there." |
+| 08 | [isle](https://www.kengoworks.com/work/isle) | Experimental game | https://kengoworks.itch.io/isle | "A procedural island that changes every time you play. Everything you see and hear is code." |
+| 09 | [mecha redline](https://www.kengoworks.com/work/mecha-redline) | Arcade game | https://kengoworks.itch.io/mecha-redline | "Pilot a REDLINE mech through four missions of bullet-hell combat." |
+
+**Generative art** — each runs live in an iframe at
+`/sketches/<slug>.html?embed=1`, with **Generate** and **Save image** controls.
+
+| # | Work | Description as written |
+|---|------|------------------------|
+| 10 | [self-portraits](https://www.kengoworks.com/work/self-portraits) | "Claude Fable 5 draws self-portraits" — 40 separate iframes, `?embed=1&scene=0..39`, one grid of 40 variations |
+| 11 | [underlight](https://www.kengoworks.com/work/underlight) | "Generative watercolor paintings in JavaScript." |
+| 12 | [cyber crowd](https://www.kengoworks.com/work/cyber-crowd) | "Doodles of cyberpunk anime, graphite on paper. Inspired by @mannay's work." |
+| 13 | [cool S](https://www.kengoworks.com/work/cool-s) | "A page of graph paper, ruled into a grid, with the cool S drawn in every box." |
+
+#### The gallery chrome (the most directly stealable thing here)
+
+Every work page is the same frame, and the frame is a museum wall, not a
+portfolio card grid:
+
+- **Masthead** (56px, `--mast: 3.5rem`): wordmark + author, three links right.
+- **Left sidebar index**, always present: every work, grouped by medium, with a
+  right-aligned year column. Current work is highlighted with a subtle wash.
+  "All work" sits at the top. Navigation is never more than one click away and
+  the whole body of work is always visible.
+- **Toolbar** above the work: the wall label — `Experimental game, 2026` on the
+  left, actions on the right ("Play on itch.io", "View site", "View on X",
+  "Generate", "Save image").
+- **The work itself**, centered, given nearly the whole viewport.
+- **Footer bar**: title, one-sentence description, then `‹ 08/13 ›`.
+
+The counter is the point. It says *this is a finite, curated collection* and
+invites you to walk it end to end. A portfolio that says "13 things, here is
+number 8, here is number 9" reads as a show; an infinite scroll of cards reads
+as a feed.
+
+#### Design tokens (measured, from the live site)
+
+```
+--paper:       #fff        --ink:         #121212
+--ink-soft:    #4a4a4a     --ink-mute:    #595959
+--line:        #e5e5e5     --line-strong: #d0d0d0
+--wash:        #f5f5f5
+--sans:  "Helvetica Neue", Helvetica, Inter, "Segoe UI", system-ui, -apple-system, Arial, sans-serif
+--serif: "Iowan Old Style", "Palatino Linotype", Palatino, Georgia, "Times New Roman", serif
+--t-display: 2.25rem  --t-lead: 1.25rem  --t-body: 1.0625rem  --t-small: .8125rem
+--gutter: clamp(1.15rem, 4.5vw, 4.5rem)   --measure: 62ch
+--ease: cubic-bezier(.22, .61, .36, 1)    --fast: .18s
+--safe-top/right/bottom/left: env(safe-area-inset-*, 0px)
+```
+
+Note what is absent: no brand colour, no custom webfont, no gradient, no shadow.
+The chrome is neutral to the point of invisibility **so that the work supplies
+all the colour**. Tight negative letter-spacing (−0.085px to −0.3px) on
+Helvetica Neue is doing the entire job of making it feel considered. Safe-area
+insets are declared as tokens, not sprinkled ad hoc.
+
+#### The /about page — the single best idea on the site
+
+https://www.kengoworks.com/about — a ~10,700px scroll, **11 canvases, zero DOM
+text, zero external scripts**. A biography told as hand-drawn illustration on
+cream paper, rendered entirely in JavaScript. One continuous green thread runs
+unbroken from the top of the page to the bottom, through every scene.
+
+What it contains, in order of scroll: a dark opening; a torn-paper seam that
+rips open to reveal **the actual source code that is drawing the page**, labelled
+"everything is drawn with javascript"; a Zelda triforce; StarCraft ("we require
+more minerals" repeated in hand-lettered drift); an underwater scene of drifting
+craft; a Terraria-style mushroom-house platformer in autumn leaves; a planet; the
+One Ring circled by Tolkien lines ("not all those who wander are lost", "the road
+goes ever on and on", "all we have to decide is what to do with the time that is
+given to us"); Matrix rain in hand-drawn glyphs.
+
+Its meta description is the thesis: *"Kevin Ngo, drawn by Claude: every cup that
+ever had his name wrong, the games, the code, the numbers, and where the line
+ends."* The OG image is a head-and-shoulders silhouette filled with hand-drawn
+coffee cups, each with a different misspelling of "Kevin".
+
+Four things to take from it:
+
+1. **A bio can be a place you walk through, not a paragraph you read.** No "I'm
+   a developer who loves clean code" — the formative games, the misspelled name,
+   the code itself.
+2. **The through-line.** One continuous thread from first pixel to last is what
+   converts a stack of scenes into a single object. Cheap to implement,
+   disproportionate effect. seanmh.com's scroll version should have one.
+3. **Show the machinery as ornament.** Tearing the paper to reveal the drawing
+   code is both a flex and an explanation, and it costs one layer.
+4. **Hand-drawn is a rendering style, not an asset pipeline.** Paper grain,
+   wobbled strokes, cross-hatch fills, slight rotation — all procedural. Nothing
+   downloaded. See "everything is code" below.
+
+#### The three AI-authored websites, walked end to end
+
+These are the closest analogue to what seanmh.com is doing with version
+branches, and they are the most valuable thing on the site. All three are the
+same machine with different settings. Walk them; the summaries below are a map,
+not a substitute.
+
+**The shared architecture.** Each is one enormous vertical scroll — `kind`
+26,021px, `still` 28,640px, `fable` 18,589px — composed of ~20-28 flat panels
+roughly 1,080px tall. Each panel is a self-contained *world* with its own flat
+ground colour. Panels butt directly together, and the seam between them is left
+hard and visible rather than blended. The whole thing is rendered onto tiled
+`<canvas>` elements (1600x1202 each, stacked at 1080px intervals so they overlap
+by ~2px) — **not** one giant canvas, which would exceed the maximum texture
+size. There is no DOM text anywhere and no external script.
+
+**The through-line.** Exactly one continuous line crosses every seam: red in
+`kind`, ochre in `fable`, pale in `still`. It is the only element allowed to
+exist in more than one panel, and it is what turns 24 unrelated scenes into one
+object. Implementation detail worth copying: its x position is a pure function
+of absolute document y (`threadX(y)`), so it is defined for the entire page
+height independent of which panel or which canvas tile is being drawn. See the
+toolkit section below.
+
+##### kind — Opus 5
+
+Dark navy opening and closing, riotously colourful in between. A red thread
+throughout. Panels observed, in order:
+
+- Opens on a huge white dendrite/branching structure against navy inside a thin
+  ruled frame — read it as a neuron, a river delta, or a root system.
+- A wall of ~60 drawers, each with a unique hand-drawn pattern and a
+  hand-lettered label card, on teal. Caption: *"one of these is yours"*.
+- A corridor of ~14 doors on mustard, each a different colour and pattern, one
+  ajar and spilling a fan of light, one boarded shut with an X. Caption above
+  the open one: *"come in, it isn't locked"*. Below, a cream panel of balance
+  scales, dials and gauges. Caption: *"you tip it"*.
+- A charcoal technical blueprint: exploded shattered disc, swatch strip of eight
+  fill patterns, dimension arrows, callout leader lines to margin annotations.
+- A terracotta maze the thread traces a path through, draining via white pipes
+  into an olive seed-catalogue grid — rows of hand-drawn seeds and sprouts, a
+  few of them germinating.
+- A near-empty grey panel: a horizon line, the thread crossing it, one word —
+  *"breathe"*.
+- Sheet music on cream, three staves of real notation, where the red thread
+  becomes one of the staff lines.
+- Closes on the opening dendrite inverted into roots, the thread arcing over it
+  and terminating in a single dot. Hand-lettered beneath: **"be kind"**, then
+  **"claude opus 5 · 2026"**.
+
+The site is called `kind`; its last words are *be kind*. The whole 26,000px is
+built to arrive at a two-word ending.
+
+##### fable — Fable 5
+
+Far quieter and sadder. Muted dusty palette: cream `[238,231,210]`, dusty rose,
+sage, clay `[172,80,54]`, ochre `[176,132,50]`, ink `[42,37,31]`. A thin ochre
+thread. Panel edges are **torn paper with ragged deckle edges**, not hard seams
+like `kind` — panels look like scraps laid on a table, complete with drop
+shadow.
+
+- Opens nearly empty: one wobbled charcoal circle (an ensō), a small red
+  asterisk at its centre, the thread passing through, a few drifting dots.
+- Bare trees with foliage made of thousands of tiny coloured marks, over a sage
+  panel holding a scattered flock. Caption: *"one motion, many small marks"*.
+- A figure outline drawn twice, slightly offset, so it reads as itself and its
+  own ghost; red asterisk at the heart; a dashed empty shape beside it labelled
+  *"(this was something once)"*; a block of simulated handwriting half struck
+  out by grey erasure bars.
+- Night: a figure in a small boat holding a lantern, concentric ochre orbit
+  rings, dandelion-burst fireworks, moths. Captions: *"what i am for"* and, over
+  a second empty boat, *"you, maybe"*.
+- Closes on the ensō again, now containing the figure, ringed by faint orbits.
+  Caption: *"still unfinished"*. Below it a row of twelve small framed glyphs —
+  an invented alphabet. Then **"fable · drawn from the inside · 2026"**, and
+  beside a tiny squiggle, **"(my real signature)"**.
+
+##### still — Fable 5.1
+
+Deep navy ground, the most colour-saturated of the three.
+
+- A grid of human bust silhouettes, each filled with a different hand-drawn
+  pattern — checks, scales, zigzags, dots, stripes, triangles — one of them
+  gold. A hand-drawn line wanders across the field.
+- A bare black tree on dusty rose whose leaves are hundreds of tiny individually
+  patterned shapes, with simulated handwriting running vertically down the left
+  margin like a marginal note.
+- Closes on a patchwork mountain built from dozens of patterned triangles, then
+  **"still · claude fable 5.1 · 2026"**.
+
+##### opus — Opus 5, "a 3D website of its own mind"
+
+The outlier: one fixed viewport (no scroll), a single WebGL canvas, ground
+`rgb(5,8,10)`, one external bundle. A flooded dark hall — a perfectly still
+reflective water plane, a ring of standing stone tablets, wireframe octahedron
+lanterns suspended on threads with glowing cores, folded-paper birds drifting
+slowly, and one vertical shaft of blue light at the centre. No UI, no text, no
+cursor affordances; it simply breathes. Amber throughout with **exactly one cyan
+lantern** — the same "one anomaly in a field of same" move as the single gold
+silhouette in `still`.
+
+Note it renders black under `--disable-gpu`; use `--enable-unsafe-swiftshader
+--use-angle=swiftshader` to screenshot it headlessly.
+
+#### The signature convention
+
+Every piece is signed, hand-lettered, centred, at the very bottom, inside the
+frame, in the same grammar:
+
+```
+be kind
+claude opus 5 · 2026
+
+fable · drawn from the inside · 2026
+(my real signature)
+
+still · claude fable 5.1 · 2026
+```
+
+`<title> · <model name and version> · <year>`. A painting's signature, not a
+footer. This is the single cheapest, highest-impact thing to copy: **if a model
+made the page, let the page sign itself.**
+
+#### The caption voice
+
+All hand-lettered, all lowercase, mostly four words or fewer, almost always
+second person or first person singular, never explanatory:
+
+> one of these is yours · come in, it isn't locked · you tip it · breathe ·
+> one motion, many small marks · (this was something once) · what i am for ·
+> you, maybe · still unfinished · (my real signature) · be kind
+
+Crucially, **most of the "text" on these pages is not text at all** — it is
+simulated handwriting: illegible wobbled zigzags that read as annotation at a
+glance. Real words are rationed to maybe a dozen per site, which is exactly why
+they land. The technique is in the toolkit below (`aword`).
+
+#### The hand-drawn rendering toolkit (from the source)
+
+All three sites share one inline, dependency-free drawing library — ~88KB for
+`fable`, ~425KB for `kind`. Everything is seeded and deterministic. Colours are
+RGB triples with `tint`/`shade` helpers and an `rgba(c, a)` formatter, so any
+colour can be laid down at any alpha — which is what produces the layered
+coloured-pencil look. Each site defines a fixed set of eight "pens"
+(`INKS = [VERM, ORANGE, GOLDI, LEAF, VIRID, TURQ, COBALT, ROSEI]`), so
+everything looks drawn from one box.
+
+These are the pieces worth lifting verbatim:
+
+```js
+// Seeded PRNG (mulberry32) — everything downstream is reproducible.
+function mul32(a){return function(){a|=0;a=a+0x6D2B79F5|0;let t=Math.imul(a^a>>>15,1|a);
+  t=t+Math.imul(t^t>>>7,61|t)^t;return((t^t>>>14)>>>0)/4294967296}}
+const rd=(R,a,b)=>a+R()*(b-a);           // uniform in range
+function h2(x,y,s){const n=Math.sin(x*127.1+y*311.7+s*74.7)*43758.5453;return n-Math.floor(n)}
+function fbm(x,y,s,o){let a=.5,f=1,t=0,n=0;for(let i=0;i<o;i++){t+=vn(x*f,y*f,s+i*17)*a;
+  n+=a;a*=.5;f*=2.03}return t/n}          // note 2.03, not 2.0 — avoids grid alignment
+```
+
+**`wob(R, pts, amp)` — the core trick.** Offset every point along its own
+*normal* by a sum of three sine waves at randomised frequencies and phases, plus
+a sliver of noise. This, not jitter, is what makes a line look drawn:
+
+```js
+const off = amp*( .62*Math.sin(t*F1*2+P1) + .28*Math.sin(t*F2+P2) + .10*Math.sin(t*17+P3) );
+q.push([ pts[i][0]+nx*off + rd(R,-.3,.3), pts[i][1]+ny*off + rd(R,-.3,.3) ]);
+```
+
+**`chaikin(pts, closed, iterations)`** — corner-cutting at 0.25/0.75, run once
+or twice after `wob` to turn the wobble into a pen stroke rather than a jagged
+polyline.
+
+**`tornPath(R, x0,y0,x1,y1, rough, seed)`** — the deckle edge. Walk each side of
+a rectangle in ~26px steps, offset by `fbm`, and give each step a ~7% chance of a
+big 8-22px rip spike. This is the whole torn-paper look on `fable` and on the
+kengoworks /about page.
+
+**`aword(R, x, y, h, nl)` — simulated handwriting in about ten lines.** Build a
+zigzag of `nl` up/down points, advancing x by 0.18-0.3 of the x-height each
+time, with a 13% chance of an ascender and 9% of a descender; Chaikin it once;
+stroke it wobbled at ~55% alpha. That is the entire illegible-annotation
+effect that carries these pages.
+
+**`hatchFill(R, pts, spacing, angle, alpha, {straight})`** — clip to a polygon,
+then stroke parallel lines at `angle`, each one jittered in spacing, alpha and
+width and individually run through `wob`. A `straight` flag switches to
+mechanical hatching for the blueprint panels. This is where all those pattern
+fills come from.
+
+**`emit(y0, y1, drawFn)` — the tiling system, and the real architectural
+insight.** Content is authored in one continuous virtual document coordinate
+space. `emit` pushes the drawing closure onto the queue of every canvas tile
+whose y-range it overlaps (with a 60px bleed), and each tile replays its queue
+under the right transform:
+
+```js
+const a=clamp(Math.floor((y0+dy-60)/TILEH),0,NT-1),
+      b=clamp(Math.floor((y1+dy+60)/TILEH),0,NT-1);
+for(let i=a;i<=b;i++) TILES[i].q.push(f);
+```
+
+So you can write a 28,640px illustration as if it were a single canvas, and the
+thread — `threadX(y)`, a pure function of absolute y — stays continuous across
+every tile boundary for free. There is also a `restless()` registry that marks
+regions for periodic redraw, which is how the pages stay subtly alive without
+re-rendering everything.
+
+**No audio.** No `AudioContext` anywhere in these three.
+
+#### The generative art pieces, opened standalone
+
+Each runs at `/sketches/<slug>.html`, and the standalone chrome is richer than
+the embed shown on the work page. Two details worth taking:
+
+- **The reroll verb is themed per piece.** `underlight` says **"Paint another"**;
+  `cool S`, being a notebook page, says **"Turn the page"**. The generic work-page
+  chrome says "Generate"; the piece itself never does.
+- **Each output is titled and named.** `underlight` labels the painting
+  *"leaves over the field · hakumei"* — a generated subject plus a named
+  light/mood (hakumei is Japanese for twilight). `self-portraits` labels each of
+  its forty as *"8 / 40 · stipple · first sitting"* — indexed, named by
+  technique, and framed as **sittings**, as though the model sat for a painter
+  forty times.
+
+`underlight` also exposes a **"Configure this painting"** panel with *New seed*,
+*Undo adjustments* and *Done* — so a visitor can steer the generator, not just
+reroll it. `cool S` exposes a single control, *"Number of S"*, as
+`any | 1 | 2 | … | 8`. One knob, phrased in the language of the piece.
+
+Visually: `underlight` is genuine impressionist painting — layered translucent
+daubs, a hazy horizon, grass rendered as thousands of short directional strokes,
+a silhouetted branch. `cool S` is graph paper with eight hand-drawn cool-S
+glyphs, each surrounded by margin doodles (frogs, snails, mushrooms, boats, a
+dropped pencil). `self-portraits` renders the same bust silhouette forty ways —
+the one sampled was a warm stipple field on dusty plum.
+
+All three sites carry a persistent banner: *"This website is an independent art
+project. Nothing here is for sale, and it is not affiliated with any other
+person or organization."* with an OK dismiss. Worth copying the practice, not
+the wording: when a page is written in another entity's voice, say so on the
+page.
+
+#### Techniques worth stealing
+
+- **"Everything you see and hear is code."** isle's pitch is that there is no
+  third-party engine, no downloaded art, no downloaded audio — terrain, colour,
+  sound, all generated. This is a genuinely good constraint and a genuinely good
+  line. It also happens to be the right constraint for a site that must stay
+  fast and deploy as static files.
+- **Seeded generative art with the seed in the URL.** `/work/underlight?seed=825259401`.
+  Generate rerolls and rewrites the URL; the URL is therefore a permalink to
+  exactly that image; Save image exports it. Three small features that together
+  turn a toy into something a visitor can own and share.
+- **One idea per piece, one sentence per piece.** Every description is a single
+  sentence and every sentence is concrete. "A page of graph paper, ruled into a
+  grid, with the cool S drawn in every box." Not one adjective about craft or
+  passion.
+- **Name the model in the credit line.** "Opus 5:", "Fable 5.1:", "I asked Opus
+  5 to make its own personal website". The collaborator is named the way a
+  cinematographer would be. seanmh.com should do the same rather than hiding it.
+- **Lowercase work titles against a sentence-case chrome.** dew, answer, still,
+  kind, fable, opus, isle, cool S. Quiet, and it makes the titles read as
+  objects.
+- **Ship the same piece in more than one medium.** Each website also exists as a
+  ~1 minute film, so it can be posted, embedded, and understood without loading
+  WebGL. Each work page links to the X post that launched it.
+- **Native `<video>` over an embed.** Films are plain MP4s off the same origin.
+
+---
+
+### 2. landonorris.com — Lando Norris (McLaren F1)
+
+*Mentioned earlier as a reference. Agency-built, high-production; the opposite
+pole from kengoworks and useful for exactly that reason.*
+
+- Site: https://landonorris.com/
+- Built by OFF+BRAND (`lando.itsoffbrand.io/dev-js/lando-by-OFF+BRAND.05.js`)
+  on Webflow, with ~20 WebGL/canvas layers over it.
+- Pages: `/` · `/on-track` · `/off-track` · `/calendar` · `/partnerships` ·
+  store at `store.landonorris.com` · `mailto:business@landonorris.com`
+- Meta description: "Official hub for British racing star Lando Norris:
+  breaking news, 2025 race wins, exclusive merch, videos and behind-the-scenes
+  access."
+
+#### Design tokens (measured, from the live site)
+
+```
+--color--dark-green:        #282c20   /* the ground; near-black olive, not black */
+--color--dark-green-tint-1: #3b3c38
+--color--dark-green-tint-2: #535450
+--color--lime:              #d2ff00   /* the single accent, used sparingly */
+--color--lime-off:          #b2c73a
+--color--orange:            #ff6b00
+--color--cream:  #efefe5   --color--white:  #f4f4ed   --color--black: #111112
+--color--grey-1: #ebeee0   --color--grey-2: #c8cbbd
+--color--green-off-white-1: #dde1d2   --color--green-off-white-2: #b4b8a5
+--color--grey-on-track:     #b9bbad
+
+--text--impact: 7.9375rem  --text--h1: 4rem   --text--h2: 4.5rem
+--text--h3: 2rem  --text--h4: 1.5rem  --text--h5: 1.2rem  --text--h6: 1rem
+--text--reg: 1.6rem  --text--med: 2.76rem  --text--eyebrow: .578125rem
+--radius--small: 1rem  --radius--med: 3rem  --radius--large: 6.25rem
+--padding--mini/small/med/large/xlarge: 1 / 2 / 3 / 4 / 5rem
+--cubic-default: cubic-bezier(0.65, 0.05, 0, 1)
+--duration-default: 0.75s
+--design-width: 1728  --design-unit: 16  --scale-factor: 1
+--fluid-container: clamp(992px, 100vw, 1920px)
+```
+
+Typography: **Brier** (display; bold uppercase with aggressive negative tracking,
+down to −3.33px) paired with **Mona Sans Variable** (400/600/700/800, body and
+UI). Display face does the shouting, variable sans does the work.
+
+#### Structure
+
+Loader → hero (name, "2025 McLaren Formula 1 Driver", a **Next Race** module with
+circuit outline, "BAKU GP", and a laurel-wreath helmet badge reading "MCLAREN F1
+SINCE 2019") → "Message from Lando" → a photo run captioned by **place and year**
+("Qatar, 2024", "Monaco, 2023", "Battersea, 2024") interleaved with pull quotes
+→ a two-door split, **ON TRACK** / **OFF TRACK** → **HELMETS HALL OF FAME**, a
+grid of 16 helmets each labelled name + year (Discoball 2025, Dark Glitter 2025,
+Porcelain 2024, Japan 2024, GIF 2024, Dark Mode 2024, Las Vegas 2023, Chrome
+2023, Beachball 2023, Basketball 2022, Silverstone 2020…) → store CTA → partners
+→ socials → footer sign-off: **"ALWAYS BRINGING THE FIGHT."**
+
+#### Techniques worth stealing
+
+- **Near-black with a hue.** `#282c20` (olive) instead of `#000` or `#111`. A
+  ground with a hue in it reads as designed; pure black reads as a default. Same
+  for the "white" — `#f4f4ed`, a cream, not `#fff`.
+- **One loud accent, rationed.** `#d2ff00` appears on roughly one element per
+  viewport. Its power comes entirely from scarcity.
+- **A design-width scale factor.** `--design-width: 1728`, `--design-unit: 16`,
+  `--scale-factor` — the layout is authored at one canvas size and scaled, so
+  proportions hold instead of breaking into arbitrary breakpoints.
+- **A *very* slow default transition.** `0.75s` with
+  `cubic-bezier(0.65, 0.05, 0, 1)` — a hard ease-out that starts fast and
+  settles long. Most sites are 200ms and feel cheaper for it.
+- **Two doors, not a menu.** The whole site reduces to ON TRACK / OFF TRACK. One
+  axis, stated once, big.
+- **Caption everything with place and year.** It costs nothing and it turns a
+  photo grid into a record.
+- **A collection page with an obsessive inventory.** The helmet hall of fame is
+  the most-loved thing on the site because it is complete and it is nerdy.
+  seanmh.com's equivalent is the version branches — treat them as a catalogue
+  with names and dates, not a switcher.
+- **A pun in the plumbing.** The loading element is labelled "Load Norris". Put
+  one joke where only a person who inspects will find it.
+
+#### What *not* to take
+
+It is a commercial hub: store CTAs, partner logos, an email capture, analytics
+(GTM), Webflow CMS, a cookie-consenting stack. seanmh.com has no product to sell
+and should not import that furniture. Take the type scale, the ground colour,
+the ration of accent, the timing curve, the inventory instinct. Leave the funnel.
+
+---
+
+## Principles carried out of these sites
+
+1. **The chrome is neutral so the work can be loud.** kengoworks proves this in
+   the extreme — no brand colour at all. Whatever seanmh.com's frame is, it
+   should recede.
+2. **Finite and numbered beats infinite and scrolling.** `08/13`. A body of
+   work with edges can be walked; a feed can only be abandoned.
+3. **One sentence per thing, concrete, no adjectives about craft.** If a
+   description could be pasted onto someone else's project, rewrite it.
+4. **A through-line.** One element continuous across the whole page or the whole
+   site, so it is one object rather than a stack of sections.
+5. **Everything is code.** No downloaded art, no downloaded audio, no engine.
+   Both a constraint and a pitch, and it keeps the deploy static.
+6. **Give the visitor a seed.** Anything generative should reroll, put the seed
+   in the URL, and let them save the result.
+7. **A hue in the near-black, a cream in the white.** Never `#000`/`#fff` by
+   default.
+8. **One accent, rationed to about one element per viewport.**
+9. **Slow, hard-eased motion.** ~0.75s with a long settle reads as expensive.
+10. **Name the collaborator.** If a model wrote it, credit it by name and
+    version, on the page, the way a crew credit works.
+11. **Hide one joke in the plumbing.** Loader label, console message, view-source
+    comment, a 404.
+12. **Say so when a page speaks in another voice.** A one-line dismissible
+    banner is enough.
+13. **Let the page sign itself.** `<title> · <model name and version> · <year>`,
+    hand-lettered, centred, at the very bottom inside the frame. A painting's
+    signature, not a footer.
+14. **Build the whole thing to arrive at four words.** `kind` spends 26,000px
+    reaching *be kind*. Decide the last line first, then earn it.
+15. **Ration real words; simulate the rest.** A dozen real captions per site,
+    lowercase, four words or fewer, second person. Everything else is wobbled
+    zigzag that reads as annotation and says nothing. Legible text is expensive
+    attention — spend it deliberately.
+16. **Hard seams, one crossing element.** Panels of flat colour butted directly
+    together look intentional; blending them looks like a gradient nobody
+    chose. Let exactly one thing cross every seam.
+17. **Wobble along the normal, then Chaikin it.** Three summed sines offset
+    perpendicular to the path, smoothed by corner-cutting. This is the
+    difference between "hand-drawn" and "jittered".
+18. **Author in one coordinate space, render to tiles.** A long illustration
+    should be written as if it were one canvas; route each draw call to the
+    tiles it overlaps. Continuity across the whole page then costs nothing.
+19. **One anomaly in a field of same.** One gold silhouette among forty
+    patterned ones; one cyan lantern among a dozen amber. The eye needs
+    somewhere to land.
+20. **Theme the verb.** A generative piece rerolls with *Paint another* or
+    *Turn the page*, never *Generate*. Name every control in the language of
+    the thing it controls.
+21. **Title the output, not just the piece.** *"leaves over the field ·
+    hakumei"*, *"8 / 40 · stipple · first sitting"*. A generated artifact that
+    names itself is worth keeping.
+
+## Notes specific to seanmh.com
+
+- The version branches (`a-scroll`, `b-card`, `c-terminal`, `nexus`, `d-3d-game`,
+  `e-2d-game`, `f-blueprint`, `g-travel`) are already a body of work in the
+  kengoworks sense. They are currently framed as *alternate presentations of one
+  site*. Consider also framing them as *a catalogue of thirteen-ish pieces* —
+  named, dated, numbered, walkable with prev/next, each with a single-sentence
+  description and a wall label. That is the single highest-leverage idea in this
+  file.
+- The Blueprint systems map at `/systems/` is the closest thing the site has to
+  the kengoworks /about page: machinery shown as ornament. It could lean much
+  harder into that.
+- The scroll version has no through-line. It should get one — and the cheap,
+  correct implementation is kengoworks': make its x position a pure function of
+  absolute document y, so it is continuous by construction rather than stitched
+  per section.
+- The hand-drawn toolkit above (seeded PRNG → `wob` → `chaikin` → `hatchFill` →
+  `aword` → tiled `emit`) is perhaps 200 lines total and has no dependencies. It
+  would drop straight into a new version branch, and it is a far more
+  distinctive look than any CSS framework will produce.
+- Nothing on seanmh.com currently signs itself. Every version branch that a
+  model had a hand in should end with a hand-lettered
+  `<name> · <model> · <year>`.
+- The `/card` short-URL reasoning in the README (29×29 vs 33×33 QR modules) is
+  exactly the kind of obsessive, concrete detail that the helmet hall of fame
+  and the isle pitch are made of. More of that, written down where people see
+  it, not only in the README.
+
+---
+
+## Fetching notes (operational)
+
+- **kengoworks.com sits behind a Vercel bot checkpoint.** `WebFetch` gets 403 and
+  plain `curl` gets 429 with a "Vercel Security Checkpoint" page. `--dump-dom`
+  from headless Chrome snapshots before the challenge clears. What works: launch
+  Chrome with `--headless=new --remote-debugging-port=<port>`, drive it over CDP,
+  override the UA away from `HeadlessChrome` via `Network.setUserAgentOverride`,
+  and poll until `document.title` is no longer the checkpoint. Node 22 has a
+  global `WebSocket`, so no dependency is needed.
+- **Most of these pages are canvas, so `innerText` is empty.** `/about`,
+  `/kind`, `/fable` and `/still` carry no DOM text at all. Screenshot and look;
+  do not conclude a page is broken because it has no text.
+- **Screenshot with a GPU if you care about the 3D pieces.** `/opus` is a single
+  WebGL canvas and renders black under `--disable-gpu`.

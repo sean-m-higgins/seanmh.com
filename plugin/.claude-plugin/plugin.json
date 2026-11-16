@@ -1,0 +1,9 @@
+{
+  "name": "seanmh",
+  "version": "0.1.0",
+  "description": "Skills, a design review agent, and guard hooks for the seanmh.com multi-version site",
+  "author": {
+    "name": "Sean Higgins"
+  },
+  "repository": "https://github.com/sean-m-higgins/seanmh.com"
+}

@@ -54,3 +54,20 @@ stickers survives the redirect, and it is deliberately a 302 — printed codes
 outlive routing decisions, and a permanent redirect would be cached by every
 browser that ever scanned an old sticker. The artwork and print files live in
 `qr-codes/` on `version/b-card`.
+
+## Agent tooling
+
+Every branch carries an `AGENTS.md` (read by any coding agent) and a
+`CLAUDE.md` that imports it. This one on `main` is the hub: the branch map,
+where the docs live, and the rules that hold on every branch.
+
+`plugin/` is a Claude Code plugin for the site, published from this repo:
+skills for craft, motion, verification, shared-file sync, and launching a new
+version; a `design-reviewer` agent; and guard hooks that confirm before a
+version push, keep `wrangler deploy` on `main`, and keep shared files on
+`content`. Each branch's `.claude/settings.json` enables it along with the
+Playwright and Cloudflare plugins. To install it by hand:
+
+```
+/plugin install seanmh --marketplace sean-m-higgins/seanmh.com
+```
