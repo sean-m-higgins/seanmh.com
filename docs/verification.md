@@ -119,3 +119,9 @@ No commit, push, Pages provisioning, Worker deployment, or production publicatio
 - Chrome film review passes at 375/768/1440px: all three loops play, full-film links work, manual pause, reduced motion, no-JS controls, and overflow checks pass; zero page errors or automated WCAG A/AA violations. Phone, tablet, and desktop screenshots visually reviewed.
 - WebKit sizing and hover screenshots pass for all three films at 375×812, 768×1024, and 1440×900, with no horizontal overflow or page errors. Representative WebKit screenshot visually reviewed. This is engine testing, not a direct Safari UI test.
 - Browser launches initially failed inside the sandbox; Chrome and WebKit passed after escalation. Firefox still cannot launch outside the sandbox: “Could not find profile folder.” Firefox overlays remain unverified. Screenshots: `artifacts/film-*.png` and `artifacts/film-enlarged-webkit-*.png`. No commit or deployment performed.
+
+## November 16, 2026 — square film frames
+
+- Confirmed all three MP4 loops are 480×480 with ffprobe. Replaced the 16:9 player frame with a square frame and explicit intrinsic dimensions, removing the empty side bands without cropping. The visible film now fills 360×360px on desktop/tablet and 323×323px at the checked phone width.
+- Node 22.23.2; Astro check, all 13 tests, and production build pass. Existing browser-review typing hint and optional Three.js chunk advisory remain.
+- Chrome film review passes playback, links, manual pause, reduced motion, no-JS, overflow, axe, and page-error checks at 375/768/1440px. Inspected phone, tablet, and desktop screenshots: square films fill the frames, captions fit, and no side bands remain. Safari and Firefox UI were not rechecked in this pass. No commit or deployment performed.

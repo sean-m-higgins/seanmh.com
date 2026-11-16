@@ -3,7 +3,7 @@ interface Props { slug: 'grain' | 'gesso' | 'ramp'; description: string }
 const { slug, description } = Astro.props;
 ---
 <figure class="film-preview">
-  <video controls loop muted playsinline preload="none" poster={`/film-previews/${slug}-poster.webp`} aria-label={`${slug}: animated short film preview`} data-film-preview>
+  <video width="480" height="480" controls loop muted playsinline preload="none" poster={`/film-previews/${slug}-poster.webp`} aria-label={`${slug}: animated short film preview`} data-film-preview>
     <source src={`/film-previews/${slug}-loop.mp4`} type="video/mp4" />
   </video>
   <figcaption>
@@ -13,7 +13,7 @@ const { slug, description } = Astro.props;
 </figure>
 <style>
   .film-preview { display: grid; grid-template-columns: minmax(0, 360px) minmax(0, 1fr); align-items: center; gap: 1.5rem; max-width: 720px; margin: 2.5rem 0 0; padding-top: 1.5rem; border-top: 1px solid currentColor; }
-  video { display: block; width: 100%; aspect-ratio: 16 / 9; object-fit: contain; background: #e8ddc7; }
+  video { display: block; width: 100%; height: auto; aspect-ratio: 1; object-fit: contain; background: #e8ddc7; }
   figcaption { display: flex; align-items: flex-start; flex-direction: column; gap: .5rem; }
   p { margin: 0 0 .5rem; }
   a { flex-shrink: 0; }
