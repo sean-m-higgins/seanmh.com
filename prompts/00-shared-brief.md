@@ -96,7 +96,7 @@ Cite the entry or principle a decision echoes.
   7.7.6 still sits in `/usr/local/bin`. If `npm -v` ever prints 7.x, call
   `~/.asdf/shims/npm` directly.
 - **ffmpeg 9.0.2** (Homebrew) with libx264, libx265, SVT-AV1, libaom, VP9,
-  animated WebP, ProRes, VideoToolbox; filters `palettegen`, `paletteuse`,
+  ProRes, VideoToolbox (no WebP encoder: write WebP with ImageMagick, `magick in.png -quality 90 webp:out.webp`); filters `palettegen`, `paletteuse`,
   `xfade`, `zscale`, `drawtext`.
 - **gifski 1.34** for high-quality GIFs (better than ffmpeg's palette GIFs).
 - ImageMagick 7.1 (`magick`), `sips`, Python 3.12.
