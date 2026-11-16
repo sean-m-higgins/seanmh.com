@@ -1,10 +1,10 @@
 export const currentFocus = {
-  lead: "Currently, core contributor on the API Gateway Platform, and owner and subject-matter expert for its Authorization Server — the enterprise OAuth 2.0 implementation handling workforce and consumer authorization flows.",
+  lead: "I work on the API Gateway Platform and own its Authorization Server, the enterprise OAuth 2.0 service that handles workforce and consumer authorization.",
   // Figures carry inline <b class="stat"> emphasis, so this one renders through
   // set:html in About.astro. Authored here, never user input.
   scale:
-    "The platform is the front door every internal and external API call at the bank flows through, carrying <b class='stat'>40B+ requests</b> and <b class='stat'>200TB+</b> of data a day across <b class='stat'>100k+ clients</b>, peaking at <b class='stat'>200k req/sec</b> and reliably up <b class='stat'>99.99%</b> of the time. The Authorization Server issues and revokes every OAuth token behind it: <b class='stat'>2B+</b> a day, at a <b class='stat'>25k/sec</b> production peak.",
-  body: "Active ownership keeps this security-critical system covered and spreads the institutional knowledge that keeps it resilient, reinforced by peer recognition on several high-stakes partner releases.",
+    "Every internal and external API call at the bank goes through this platform. It handles <b class='stat'>40B+ requests</b> and <b class='stat'>200TB+</b> of data a day for <b class='stat'>100k+ clients</b>, with peaks of <b class='stat'>200k req/sec</b> and <b class='stat'>99.99%</b> uptime. The Authorization Server issues and revokes <b class='stat'>2B+</b> OAuth tokens a day, peaking at <b class='stat'>25k/sec</b> in production.",
+  body: "Alongside the engineering work, I train teammates and document how the system works so others can support it. My peers have recognized that work on several critical partner releases.",
 } as const;
 
 export interface Differentiator {
@@ -14,32 +14,32 @@ export interface Differentiator {
 
 export const differentiators: Differentiator[] = [
   {
-    title: "Full-lifecycle ownership",
-    body: "Takes projects from incident response through design, mentorship, implementation, testing, production rollout, documentation, and stakeholder communication — not just the code.",
+    title: "Seeing projects through",
+    body: "I handle design, implementation, testing, and production rollout, including projects that start with an incident. I also mentor teammates, write documentation, and keep stakeholders informed.",
   },
   {
-    title: "Force multiplier through AI adoption",
-    body: "Requested early access to Claude Code and fundamentally transformed personal workflow. Leads weekly AI Lunch & Learns and organized a hackathon built around an AI coding-agent challenge.",
+    title: "Helping teammates use AI tools",
+    body: "I requested early access to Claude Code and changed how I work with it. I lead weekly AI Lunch & Learns and organized a hackathon around an AI coding-agent challenge.",
   },
   {
-    title: "Turns incidents into platform improvements",
-    body: "Converted a Sev3 action item into a resilient circuit breaker pattern for the shared library, then mentored the team through adopting it.",
+    title: "Learning from incidents",
+    body: "After a Sev3 incident, I added a circuit breaker pattern to the shared library and helped the team adopt it.",
   },
   {
-    title: "Breadth of concurrent ownership",
-    body: "Simultaneously owns multiple critical services for the platform, spanning Python, Lua, and Angular, along with their surrounding infrastructure.",
+    title: "Working across the stack",
+    body: "I own several critical platform services written in Python, Lua, and Angular, along with the infrastructure they run on.",
   },
   {
-    title: "Cost-conscious engineering leadership",
-    body: "Leading a deployment projected to save $100k+ annually in Transit Gateway charges — initiative beyond feature delivery.",
+    title: "Reducing infrastructure costs",
+    body: "I'm leading a deployment projected to save over $100k a year in Transit Gateway charges.",
   },
   {
-    title: "Conference-to-action pipeline",
-    body: "Attended the MCP Dev Summit in NYC, focusing on sessions at the crossroads of MCP and OAuth — including emerging patterns like AI agents as OAuth clients.",
+    title: "Keeping up with MCP and OAuth",
+    body: "I attended the MCP Dev Summit in NYC to learn how MCP and OAuth work together, including how AI agents act as OAuth clients.",
   },
   {
-    title: "Proactive knowledge sharing",
-    body: "Reduces key-person risk through training presentations, comprehensive documentation, knowledge-transfer sessions, AI Lunch & Learns, and CODA DOJO mentorship.",
+    title: "Sharing what I know",
+    body: "I write documentation, run training and knowledge-transfer sessions, and mentor through CODA DOJO so more teammates can support the systems I work on.",
   },
 ];
 
