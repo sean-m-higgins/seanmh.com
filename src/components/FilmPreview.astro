@@ -12,12 +12,12 @@ const { slug, description } = Astro.props;
   </figcaption>
 </figure>
 <style>
-  .film-preview { display: grid; grid-template-columns: minmax(0, 240px) minmax(0, 1fr); align-items: center; gap: 1.5rem; max-width: 720px; margin: 2.5rem 0 0; padding-top: 1.5rem; border-top: 1px solid currentColor; }
+  .film-preview { display: grid; grid-template-columns: minmax(0, 360px) minmax(0, 1fr); align-items: center; gap: 1.5rem; max-width: 720px; margin: 2.5rem 0 0; padding-top: 1.5rem; border-top: 1px solid currentColor; }
   video { display: block; width: 100%; aspect-ratio: 16 / 9; object-fit: contain; background: #e8ddc7; }
   figcaption { display: flex; align-items: flex-start; flex-direction: column; gap: .5rem; }
   p { margin: 0 0 .5rem; }
   a { flex-shrink: 0; }
-  @media (max-width: 540px) { .film-preview { grid-template-columns: minmax(0, 160px) minmax(0, 1fr); gap: 1rem; } figcaption { font-size: .8rem; } a { flex-shrink: 1; } }
+  @media (max-width: 600px) { .film-preview { grid-template-columns: minmax(0, 1fr); gap: 1rem; } }
 </style>
 <script>
   const reduced = window.matchMedia('(prefers-reduced-motion: reduce)');

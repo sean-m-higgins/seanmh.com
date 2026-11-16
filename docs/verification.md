@@ -111,3 +111,11 @@ No commit, push, Pages provisioning, Worker deployment, or production publicatio
 - Chrome film review: 375/768/1440 widths, playback, manual pause, reduced motion, no-JS, links, overflow, axe, and page errors pass. Screenshots inspected at all three sizes.
 - Full Chrome visual QA: all five studies, keyboard carousel, reproducible mosaic and export, no-JS, reduced motion, touch fallback, responsive overflow pass; zero page errors and axe violations.
 - Local mobile Lighthouse: performance 95, LCP 2.6s, CLS 0.024. Lab measurement, not deployed field data; no before/after timing claim.
+
+## November 16, 2026 — larger film previews
+
+- Increased desktop/tablet video width from 240px to 360px (203px tall). At 600px and below, videos fill the available width with captions underneath; measured 323×182px at a 375px viewport, previously 160×90px. Native controls and playback behavior remain available.
+- Node 22.23.2; Astro check passes with the existing film-review typing hint; all 13 tests and production build pass. Existing optional Three.js chunk-size advisory remains.
+- Chrome film review passes at 375/768/1440px: all three loops play, full-film links work, manual pause, reduced motion, no-JS controls, and overflow checks pass; zero page errors or automated WCAG A/AA violations. Phone, tablet, and desktop screenshots visually reviewed.
+- WebKit sizing and hover screenshots pass for all three films at 375×812, 768×1024, and 1440×900, with no horizontal overflow or page errors. Representative WebKit screenshot visually reviewed. This is engine testing, not a direct Safari UI test.
+- Browser launches initially failed inside the sandbox; Chrome and WebKit passed after escalation. Firefox still cannot launch outside the sandbox: “Could not find profile folder.” Firefox overlays remain unverified. Screenshots: `artifacts/film-*.png` and `artifacts/film-enlarged-webkit-*.png`. No commit or deployment performed.
