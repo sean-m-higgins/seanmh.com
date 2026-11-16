@@ -111,16 +111,16 @@ export const hang = scene('hang', 4.5, (L, t, env) => {
 
 // ---------- 17 · yours ----------
 
-const O = [-120, 470], FAR = 0.7; // the pull-back: about a point left of frame, so the painting makes room
+const O = [0, 470], FAR = 0.7; // the pull-back: about the left edge, so the painting makes room
 const SWAY = FIELD.map((m, i) => [m, i]).filter(([m]) => m.part === 'stem' || m.part === 'flower');
-const WEDGE = [[[650, 566], [1010, 566]], [[1010, 566], [1010, 380]], [[1010, 380], [650, 566]], [[770, 504], [770, 380]], [[890, 442], [890, 380]]];
+const WEDGE = [[[650, 566], [1010, 566]], [[1010, 566], [1010, 380]], [[1010, 380], [650, 566]]];
 // where each butterfly goes, in the painting's own space; the third settles inside the empty shape
-const GOAL = [[-420, -260], [1500, -260], [1180, 318], [1560, 240]];
+const GOAL = [[-420, -260], [1500, -260], [1106, 316], [1560, 240]];
 
 export const yours = scene('yours', 6, (L, t, env) => {
   const S = L.S, s = lerp(1, FAR, easeInOut(span(t, 0, 0.36)));
   const W = (g) => { g.translate(O[0], O[1]); g.scale(s, s); g.translate(-O[0], -O[1]); };
-  put(S, layer(env, 'wide', (B) => { wallSet(B, 799, FAR); brushTool(B.k('left'), 846, 872, 1.42, OIL.green, 15, 0.5); }), { about: O, s: s / FAR });
+  put(S, layer(env, 'wide', (B) => { wallSet(B, 799, FAR); brushTool(B.k('left'), 950, 872, 1.42, OIL.green, 15, 0.5); }), { about: O, s: s / FAR });
   L.xf(W, () => { spill(S, env, 0.3); L.shade(rect(A.x + 12, A.y + 16, A.w, A.h), 0.3, 12); });
   put(S, layer(env, 'still', (B) => { face(B.k('face'), 'gesso'); FIELD.forEach((m, i) => { if (m.part !== 'stem' && m.part !== 'flower' && m.part !== 'fly') drawMark(brush(B.S, markRng(env, i), env), m); }); }), { about: O, s });
   // wind: a slow wave across the field, stronger the taller the flower
@@ -149,11 +149,11 @@ export const yours = scene('yours', 6, (L, t, env) => {
   let tip = null;
   WEDGE.forEach(([a, b], i) => {
     const u = easeInOut(clamp((t - 0.42 - i * 0.045) / 0.05));
-    if (u > 0) L.k(`w${i}`).line([a, b], { upTo: u, alpha: i < 3 ? 0.72 : 0.5, width: i < 3 ? 2 : 1.6, amp: 1.2 });
+    if (u > 0) L.k(`w${i}`).line([a, b], { upTo: u, alpha: 0.72, width: 2, amp: 1.2 });
     if (u > 0 && u < 1) tip = [lerp(a[0], b[0], u), lerp(a[1], b[1], u)];
   });
   if (tip) { arm(L, tip[0] + 96, tip[1] + 104, -2.35, 0.3); pencilTool(L.k('pencil'), tip[0], tip[1], 0.82); }
   letter(L.k('yours'), 'yours', 830, 646, 32, { align: 'center', upTo: span(t, 0.67, 0.78) });
-  letter(L.k('sig'), `${env.film.title} · ${env.film.model} · ${env.film.year}`, 540, 1042, 19, { align: 'center', upTo: easeInOut(span(t, 0.78, 0.96)) });
+  letter(L.k('sig'), `${env.film.title} · ${env.film.model} · ${env.film.year}`, 540, 1042, 21, { align: 'center', upTo: easeInOut(span(t, 0.78, 0.96)) });
   return day(1);
 });

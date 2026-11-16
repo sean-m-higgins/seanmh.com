@@ -52,7 +52,7 @@ export function wildflowers(seed = 1584) {
   // Grass first: green blades pulled upward, spreading out from the very first stroke.
   stroke([[300, 432], [307, 384], [296, 322]], O.green, 9, 0.6, 'grass');
   const blades = [];
-  for (let i = 0; i < 560; i++) {
+  for (let i = 0; i < 380; i++) {
     const x = rd(R, 2, W - 2), y = HORIZON + 26 + Math.pow(R(), 0.75) * (H - HORIZON - 16), l = rd(R, 26, 62), lean = rd(R, -9, 9);
     blades.push({ d: Math.hypot(x - 300, (y - 400) * 0.6) + rd(R, -40, 40), pts: [[x, y], [x + lean * 0.4, y - l * 0.5], [x + lean, Math.max(HORIZON + 2, y - l)]], c: jit(pick([O.green, O.green, O.deep, [70, 140, 110], [96, 156, 96]]), 0.18), w: rd(R, 3, 5.2) });
   }
@@ -78,8 +78,8 @@ export function wildflowers(seed = 1584) {
       }
     }
   };
-  for (let i = 0; i < 30; i++) {
-    const x = 14 + (i + rd(R, -0.35, 0.35)) * (W - 28) / 30;
+  for (let i = 0; i < 20; i++) {
+    const x = 14 + (i + rd(R, -0.35, 0.35)) * (W - 28) / 20;
     stem(x, H + 4, rd(R, HORIZON + 30, H - 90), R() < 0.3 ? O.deep : O.green, Math.floor(rd(R, 5, 10)));
     g++;
   }
@@ -161,7 +161,7 @@ export function wildflowers(seed = 1584) {
   };
   // The big ones sit where they sit in the real painting; the rest are scattered.
   const placed = [];
-  const put = (kind, x, y, r) => { placed.push([x, y, r]); if (r > 25) BIG.push([x, y, r]); if (!['bush', 'ball'].includes(kind)) stem(x, y + r * 0.6, Math.min(H + 4, y + rd(R, 70, 170)), O.green, 4); F[kind](x, y, r); g++; };
+  const put = (kind, x, y, r) => { placed.push([x, y, r]); if (r > 25) BIG.push([x, y, r]); if (!['bush', 'ball'].includes(kind)) stem(x, y + r * 0.6, Math.min(H + 4, y + rd(R, 60, 130)), O.green, 3); F[kind](x, y, r); g++; };
   put('bush', 78, 76, 62);
   put('ball', 660, 52, 42);
   put('daisy', 172, 132, 32); put('sunflower', 244, 114, 28); put('daisy', 302, 132, 29);

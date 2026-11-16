@@ -173,7 +173,7 @@ export function plane(S, R, poly, o = {}) {
  * the whole frame (time of day). wet (0..1) adds the shine of fresh paint.
  */
 export function light(S, out, o = {}) {
-  const { dir = -2.2, gain = 1, warm = [255, 244, 222], cool = [70, 76, 120], spec = 0.18, wet = 0, soft = 0.9, tint = [1, 1, 1] } = o;
+  const { dir = -2.2, gain = 1, warm = [255, 244, 222], cool = [100, 103, 132], spec = 0.18, wet = 0, soft = 0.9, tint = [1, 1, 1] } = o;
   const n = S.size, lx = Math.cos(dir), ly = Math.sin(dir);
   const img = S.col.getImageData(0, 0, n, n), d = img.data;
   S.tmp ??= mk(n);

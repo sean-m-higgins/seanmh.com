@@ -93,11 +93,11 @@ export function put(S, lay, o = {}) {
  */
 export function day(k) {
   const dir = k < 0.75 ? lerp(-2.9, -2.2, k / 0.75) : lerp(-2.2, -0.62, (k - 0.75) / 0.25);
-  const stops = [[0, [0.95, 0.98, 1.04]], [0.4, [1, 1, 1]], [0.75, [1.02, 1, 0.97]], [1, [1.03, 0.995, 0.94]]];
+  const stops = [[0, [0.985, 0.995, 1.02]], [0.4, [1, 1, 1]], [0.75, [1.02, 1, 0.97]], [1, [1.02, 1, 0.972]]];
   let i = 0;
   while (i < stops.length - 2 && k > stops[i + 1][0]) i++;
   const u = clamp((k - stops[i][0]) / (stops[i + 1][0] - stops[i][0]));
-  return { dir, tint: stops[i][1].map((v, c) => lerp(v, stops[i + 1][1][c], u)), warm: [255, lerp(246, 238, k), lerp(232, 206, k)] };
+  return { dir, tint: stops[i][1].map((v, c) => lerp(v, stops[i + 1][1][c], u)), warm: [255, lerp(246, 240, k), lerp(232, 214, k)] };
 }
 
 /** A scene: on twos, on raw canvas, lit at the end. draw returns the lamp. */

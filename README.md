@@ -85,7 +85,7 @@ no `Date`, no `Math.random`, no `requestAnimationFrame`.
 - **Render time grows with the drawing.** grain renders at about 1.2 frames/s
   (17 min for 53 s), against 6.3 frames/s for the sparse proof.
 - **Dense paint can still compress well when it holds.** gesso (74 s, 17
-  scenes, CRF 20) is 13.3 MiB (1.5 Mb/s); the impasto shading stays fixed while
+  scenes, CRF 20) is 12.6 MiB (1.4 Mb/s); the impasto shading stays fixed while
   the drawn marks move.
 
 ## Rules for films
