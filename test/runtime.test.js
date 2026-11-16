@@ -35,7 +35,7 @@ test('scenes are laid end to end and frames map onto them', () => {
 
 test('lines boil on twos: R repeats for frame pairs and changes between pairs', () => {
   const first = [];
-  const probe = { ...film, scenes: [{ id: 'p', dur: 1, draw: (ctx, t, R) => first.push(R()) }] };
+  const probe = { ...film, scenes: [{ id: 'p', dur: 1, draw: (_ctx, _t, R) => first.push(R()) }] };
   const ctx = { save() {}, restore() {} };
   for (const f of [0, 1, 2, 3]) renderFrame(ctx, probe, f, {});
   assert.equal(first[0], first[1]);

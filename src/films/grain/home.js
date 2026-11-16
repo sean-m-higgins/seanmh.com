@@ -15,7 +15,7 @@ const SUN = [0.7, -0.45, 0.55];
 const onFloor = ([x, y, z]) => { const t = y / -SUN[1]; return [x + SUN[0] * t, 0, z + SUN[2] * t]; };
 
 export function homeCamera() {
-  return camera({ eye: [20, 36, 46], target: [-1, 5, -4], f: 980, pin: PIN, at: A });
+  return camera({ eye: [24, 30, 60], target: [-4, 10, -16], f: 1180, pin: PIN, at: A });
 }
 
 /** The V mark's three points, lying on the oak, pointing at the front edge. */
@@ -54,15 +54,23 @@ export function buildHome(P) {
     add('shadow', [P([x - g / 2, 0, z]), P([x + g / 2, 0, z]), P(onFloor([x + g / 2, H, z])), P(onFloor([x - g / 2, H, z]))], { clip: patch });
   }
 
-  // The couch: base, seat cushions, back, two arms. Soft, so its faces get rounded corners.
+  // The couch, a large white sofa: back frame, padded arms, a base on short
+  // feet, thick seat cushions, two back cushions and two throw pillows. Soft
+  // parts get rounded corners in the look. Drawn back to front for this camera.
   const cz0 = -76, cz1 = -40, cx = 46;
   add('contact', [P([-cx - 3, 0, cz0]), P([cx + 3, 0, cz0]), P([cx + 3, 0, cz1 + 4]), P([-cx - 3, 0, cz1 + 4])]);
-  faces('couch', boxFaces(P, -cx, cx, 0, 34, cz0, cz0 + 10), ['top', 'front']);
-  faces('couch', boxFaces(P, -cx, cx, 0, 16, cz0 + 8, cz1), ['top', 'front']);
-  faces('cushion', boxFaces(P, -cx + 8, -0.5, 16, 21, cz0 + 11, cz1 + 1), ['top', 'front', 'right']);
-  faces('cushion', boxFaces(P, 0.5, cx - 8, 16, 21, cz0 + 11, cz1 + 1), ['top', 'front', 'right']);
-  faces('couch', boxFaces(P, -cx, -cx + 8, 0, 25, cz0, cz1), ['top', 'front', 'right']);
-  faces('couch', boxFaces(P, cx - 8, cx, 0, 25, cz0, cz1), ['top', 'front', 'right']);
+  for (const [fx, fz] of [[-cx + 3, cz1 - 3], [cx - 3, cz1 - 3]]) faces('foot', boxFaces(P, fx - 1.5, fx + 1.5, 0, 3, fz - 1.5, fz + 1.5), ['front', 'right']);
+  faces('couch', boxFaces(P, -cx, cx, 3, 30, cz0, cz0 + 8), ['top', 'front']);
+  faces('couch', boxFaces(P, -cx, -cx + 8, 3, 25, cz0, cz1), ['top', 'front', 'right']);
+  faces('cushion', boxFaces(P, -cx + 8, -0.4, 11, 33, cz0 + 8, cz0 + 17), ['top', 'front', 'right']);
+  faces('cushion', boxFaces(P, 0.4, cx - 8, 11, 33, cz0 + 8, cz0 + 17), ['top', 'front', 'right']);
+  faces('couch', boxFaces(P, -cx + 8, cx - 8, 3, 11, cz0 + 8, cz1), ['front']);
+  faces('cushion', boxFaces(P, -cx + 8, -0.4, 11, 18, cz0 + 17, cz1 + 1.5), ['top', 'front', 'right']);
+  faces('cushion', boxFaces(P, 0.4, cx - 8, 11, 18, cz0 + 17, cz1 + 1.5), ['top', 'front', 'right']);
+  const pillow = (x0, w, tilt) => add('pillow', [P([x0, 18, cz0 + 21]), P([x0 + w, 18, cz0 + 21 + tilt]), P([x0 + w + 1, 31, cz0 + 17.5 + tilt]), P([x0 - 1, 31, cz0 + 17.5])]);
+  pillow(-34, 15, 0.5);
+  pillow(20, 15, -0.5);
+  faces('couch', boxFaces(P, cx - 8, cx, 3, 25, cz0, cz1), ['top', 'front', 'right']);
 
   for (const [x, z] of [[-L + g / 2, -D + g / 2], [L - g / 2, -D + g / 2], [L - g / 2, D - g / 2], [-L + g / 2, D - g / 2]]) {
     add('contact', [P([x - 2.2, 0, z - 2.2]), P([x + 2.2, 0, z - 2.2]), P([x + 2.2, 0, z + 2.2]), P([x - 2.2, 0, z + 2.2])]);
@@ -71,11 +79,11 @@ export function buildHome(P) {
   // Back legs, then the lower shelf and its books, then the front legs.
   const leg = (x, z) => boxFaces(P, x - g / 2, x + g / 2, 0, H - T.top, z - g / 2, z + g / 2);
   const lx = L - g / 2, lz = D - g / 2;
-  faces('oak', leg(-lx, -lz), ['front', 'right']);
-  faces('oak', leg(lx, -lz), ['front', 'right']);
+  faces('oak', leg(-lx, -lz), ['front', 'right'], { part: 'leg' });
+  faces('oak', leg(lx, -lz), ['front', 'right'], { part: 'leg' });
 
   const sy = T.shelfY;
-  faces('oak', boxFaces(P, -L + g, L - g, sy - 1.5, sy, -D + g / 2 - 0.75, -D + g / 2 + 0.75), ['top', 'front']);
+  faces('oak', boxFaces(P, -L + g, L - g, sy - 1.5, sy, -D + g / 2 - 0.75, -D + g / 2 + 0.75), ['top', 'front'], { part: 'apron' });
   const n = T.slats, pitch = (T.L - 2 * g) / n, sw = pitch * 0.62;
   for (let i = 0; i < n; i++) {
     const x0 = -L + g + (pitch - sw) / 2 + i * pitch;
@@ -88,9 +96,9 @@ export function buildHome(P) {
   book(-13, -1, -6, 5, s0, 1.2, 0);
   book(-12, -2.5, -5, 3.5, s0 + 1.2, 0.9, 1);
   book(4, 14, -5, 5, s0, 1.5, 2);
-  faces('oak', boxFaces(P, -L + g, L - g, sy - 1.5, sy, D - g / 2 - 0.75, D - g / 2 + 0.75), ['top', 'front']);
-  faces('oak', leg(-lx, lz), ['front', 'right']);
-  faces('oak', leg(lx, lz), ['front', 'right']);
+  faces('oak', boxFaces(P, -L + g, L - g, sy - 1.5, sy, D - g / 2 - 0.75, D - g / 2 + 0.75), ['top', 'front'], { part: 'apron' });
+  faces('oak', leg(-lx, lz), ['front', 'right'], { part: 'leg' });
+  faces('oak', leg(lx, lz), ['front', 'right'], { part: 'leg' });
 
   // The top: an oak frame (two long rails, two end rails) around the glass.
   const y0 = H - T.top, gx = T.glass.L / 2, gz = T.glass.D / 2;

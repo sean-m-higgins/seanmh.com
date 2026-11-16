@@ -7,6 +7,7 @@
 //   node scripts/render-film.mjs <slug> --hash 0,60     same frame twice (fresh page each time) -> same hash?
 //   options: --from <s> --to <s> (draft range) · --crf <n> (default 20) · --poster <s>
 //            --look <name> (passed to scenes as env.look; stills are named <slug>-<look>-<t>s.png)
+//   node scripts/render-film.mjs <slug> --loop <scene>  one scene, env.loop set -> public/<slug>-loop.mp4 + .gif (720 px)
 
 import { spawn } from 'node:child_process';
 import { createHash } from 'node:crypto';
@@ -106,7 +107,8 @@ function probe(file) {
 
 const server = await startServer(0);
 const look = opt('look');
-const base = `http://127.0.0.1:${server.address().port}/tools/stage.html?film=${slug}&render=1${look ? `&look=${look}` : ''}`;
+const loopScene = opt('loop');
+const base = `http://127.0.0.1:${server.address().port}/tools/stage.html?film=${slug}&render=1${look ? `&look=${look}` : ''}${loopScene ? '&loop=1' : ''}`;
 const tag = look ? `${slug}-${look}` : slug;
 const chrome = await launchChrome();
 try {
@@ -130,6 +132,27 @@ try {
       await writeFile(out, await png(page, Math.min(info.frames - 1, Math.round(s * info.fps))));
       console.log(out);
     }
+  } else if (loopScene) {
+    // The sharing loop: one scene, rendered with env.loop so it has no seam.
+    const sc = info.scenes.find((x) => x.id === loopScene);
+    if (!sc) throw new Error(`no scene "${loopScene}" in ${slug}`);
+    const from = Math.round(sc.start * info.fps), to = Math.round((sc.start + sc.dur) * info.fps);
+    const mp4 = join(ROOT, 'public', `${slug}-loop.mp4`), gif = join(ROOT, 'public', `${slug}-loop.gif`);
+    const frameDir = await mkdtemp(join(tmpdir(), 'film-loop-'));
+    const enc = ffmpeg(['-f', 'image2pipe', '-framerate', String(info.fps), '-i', '-', '-c:v', 'libx264', '-preset', 'slow', '-tune', 'animation',
+      '-crf', String(opt('crf') ?? 20), '-pix_fmt', 'yuv420p', '-movflags', '+faststart', mp4]);
+    for (let i = from; i < to; i++) {
+      const buf = await png(page, i);
+      await writeFile(join(frameDir, `${String(i - from).padStart(4, '0')}.png`), buf);
+      if (!enc.stdin.write(buf)) await new Promise((ok) => enc.stdin.once('drain', ok));
+    }
+    enc.stdin.end();
+    await enc.done;
+    const frames = Array.from({ length: to - from }, (_, k) => join(frameDir, `${String(k).padStart(4, '0')}.png`));
+    await new Promise((ok, bad) => spawn('gifski', ['--quiet', '--fps', String(info.fps), '--width', '720', '--quality', '80', '-o', gif, ...frames], { stdio: 'inherit' })
+      .on('exit', (c) => (c === 0 ? ok() : bad(new Error(`gifski exited ${c}`)))));
+    await rm(frameDir, { recursive: true, force: true });
+    for (const f of [mp4, gif]) console.log(`${f}  ${((await stat(f)).size / 1048576).toFixed(2)} MiB`);
   } else {
     const release = !!opt('release');
     const out = release ? join(ROOT, 'public', `${slug}.mp4`) : join(ROOT, 'renders', `${slug}.mp4`);
@@ -152,9 +175,11 @@ try {
     if (release) {
       if (p.size > BUDGET) throw new Error(`over budget: ${mib.toFixed(2)} MiB > 20 MiB. Raise --crf or simplify the boil.`);
       const posterAt = Math.round((+opt('poster') || info.duration * 0.8) * info.fps);
-      const poster = ffmpeg(['-f', 'png_pipe', '-i', '-', '-c:v', 'libwebp', '-quality', '90', join(ROOT, 'public', `${slug}-poster.webp`)]);
+      // Homebrew's ffmpeg has no WebP encoder; ImageMagick's libwebp writes the poster.
+      const poster = spawn('magick', ['png:-', '-quality', '90', `webp:${join(ROOT, 'public', `${slug}-poster.webp`)}`], { stdio: ['pipe', 'inherit', 'inherit'] });
+      const posterDone = new Promise((ok, bad) => poster.on('exit', (c) => (c === 0 ? ok() : bad(new Error(`magick exited ${c}`)))));
       poster.stdin.end(await png(page, Math.min(info.frames - 1, posterAt)));
-      await poster.done;
+      await posterDone;
       await writeFile(join(ROOT, 'public', `${slug}.vtt`), info.vtt);
       console.log(`  + public/${slug}-poster.webp, public/${slug}.vtt`);
     }

@@ -53,12 +53,12 @@
     frame = Math.max(0, Math.min(frames - 1, i));
     ctx.setTransform(1, 0, 0, 1, 0, 0);
     ctx.clearRect(0, 0, film.size, film.size);
-    return rt.renderFrame(ctx, film, frame, { paper, look: q.get('look') ?? undefined });
+    return rt.renderFrame(ctx, film, frame, { paper, look: q.get('look') ?? undefined, loop: q.has('loop') });
   }
 
   // The renderer drives this: draw frame i and hand back a PNG.
   window.__stage = {
-    info: { slug, fps: film.fps, size: film.size, frames, duration: rt.duration(film), vtt: rt.chaptersVTT(film) },
+    info: { slug, fps: film.fps, size: film.size, frames, duration: rt.duration(film), vtt: rt.chaptersVTT(film), scenes: tl.map((s) => ({ id: s.id, start: s.start, dur: s.dur })) },
     render(i) { draw(i); return c.toDataURL('image/png'); },
   };
 

@@ -23,7 +23,7 @@ const ang = (a, b) => Math.atan2(b[1] - a[1], b[0] - a[0]);
 /** Grain runs along a face's longer edge. */
 const grain = (pts) => (len(pts[0], pts[1]) >= len(pts[1], pts[2]) ? ang(pts[0], pts[1]) : ang(pts[1], pts[2]));
 // Soft furniture: resample the edges first so chaikin only rounds the corners (radius ≈ 16 px).
-const soften = (part) => (part.kind === 'couch' || part.kind === 'cushion' ? { ...part, pts: chaikin(resample([...part.pts, part.pts[0]], 16).slice(0, -1), true, 2) } : part);
+const soften = (part) => (['couch', 'cushion', 'pillow'].includes(part.kind) ? { ...part, pts: chaikin(resample([...part.pts, part.pts[0]], 16).slice(0, -1), true, 2) } : part);
 const outline = (ctx, R, pts, o) => pencil(ctx, R, [...pts, pts[0]], { width: 2, amp: 1.1, alpha: 0.8, color: PEN, step: 6, ...o });
 
 // ---------- A: etched coloured pencil ----------
@@ -65,10 +65,16 @@ function etched(ctx, part, R, S) {
       h({ color: C.stainDeep, spacing: 5, angle: -0.6, alpha: 0.22 });
       ctx.restore();
       return;
-    case 'couch': case 'cushion':
-      h({ color: [190, 186, 200], spacing: 7, angle: 1.05, alpha: 0.12 });
-      if (sh > 0) h({ color: C.couchShade, spacing: 4.5 - sh * 1.5, angle: 1.1, alpha: 0.14 + sh * 0.2 });
-      outline(ctx, R, pts, { alpha: 0.42, width: 1.6, amp: 1.4 });
+    case 'couch': case 'cushion': case 'pillow':
+      // White upholstery: lit tops stay near paper; fronts and sides take soft, cool shade.
+      h({ color: [196, 190, 200], spacing: 6, angle: 1.05, alpha: 0.1 });
+      if (sh > 0) h({ color: C.couchShade, spacing: 3.6 - sh, angle: 1.1, alpha: 0.12 + sh * 0.22 });
+      if (kind === 'pillow') h({ color: [176, 150, 120], spacing: 4, angle: -0.6, alpha: 0.35 });
+      outline(ctx, R, pts, { alpha: 0.55, width: 1.7, amp: 1.4 });
+      return;
+    case 'foot':
+      h({ color: PEN, spacing: 2.5, angle: 1.5, alpha: 0.6 });
+      outline(ctx, R, pts, { alpha: 0.7, width: 1.2 });
       return;
     case 'oak': case 'oak-top': case 'slat': {
       const g = grain(pts);
@@ -160,7 +166,7 @@ function tooth(ctx, size, seed) {
 
 // ---------- C: the glass, rendered close to a photograph ----------
 
-function photoGlass(ctx, part, windowPts) {
+export function photoGlass(ctx, part) {
   const g = part.pts;
   ctx.save();
   tracePoly(ctx, g);
@@ -201,7 +207,11 @@ function photoGlass(ctx, part, windowPts) {
 const OAK_BASE = { top: [150, 98, 64], front: [118, 74, 48], right: [86, 52, 36] };
 function base(part, paperFill) {
   const { kind, face = 'top' } = part;
-  if (kind === 'couch' || kind === 'cushion' || kind === 'baseboard') return paperFill;
+  if (kind === 'couch' || kind === 'cushion' || kind === 'pillow') return rgba(SHADE[face] > 0.6 ? [226, 222, 220] : SHADE[face] > 0.2 ? [238, 234, 228] : [250, 247, 240], 1);
+  if (kind === 'pillow') return rgba([232, 214, 188], 1);
+  if (kind === 'baseboard') return paperFill;
+  if (kind === 'wall') return rgba([226, 214, 196], 1);
+  if (kind === 'foot') return rgba([70, 60, 64], 1);
   if (kind === 'floor') return rgba([226, 208, 180], 1);
   if (kind === 'oak' || kind === 'slat') return rgba(OAK_BASE[face], 1);
   if (kind === 'oak-top') return rgba(face === 'top' ? [160, 104, 66] : OAK_BASE[face], 1);

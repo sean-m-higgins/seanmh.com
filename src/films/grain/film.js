@@ -7,6 +7,9 @@ import { pencil } from '../../lib/draw/line.js';
 import { signature, span, easeInOut } from '../common.js';
 import { A, homeCamera, buildHome, vMark } from './home.js';
 import { renderHome, PEN } from './looks.js';
+import { mark, design, store, measure } from './scenes1.js';
+import { cut, legs, sand, dryFit } from './scenes2.js';
+import { glass, stain, glueUp } from './scenes3.js';
 
 const P = homeCamera();
 const PARTS = buildHome(P);
@@ -15,8 +18,9 @@ export default {
   slug: 'grain', title: 'grain', model: 'claude opus 5.5', year: 2026,
   fps: 24, size: 1080, seed: 20260914,
   scenes: [
+    mark, design, store, measure, cut, legs, sand, dryFit, glass, stain, glueUp,
     {
-      id: 'home', dur: 6,
+      id: 'home', dur: 6, step: 'finish',
       draw(ctx, t, R, env) {
         ctx.drawImage(env.paper, 0, 0);
         // The one camera move: a slow push, zooming about the anchor so the V never moves.
