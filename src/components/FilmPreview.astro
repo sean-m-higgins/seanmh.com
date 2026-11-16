@@ -1,0 +1,49 @@
+---
+interface Props { slug: 'grain' | 'gesso' | 'ramp'; description: string }
+const { slug, description } = Astro.props;
+---
+<figure class="film-preview">
+  <video controls loop muted playsinline preload="none" poster={`/film-previews/${slug}-poster.webp`} aria-label={`${slug}: animated short film preview`} data-film-preview>
+    <source src={`/film-previews/${slug}-loop.mp4`} type="video/mp4" />
+  </video>
+  <figcaption>
+    <div><p class="eyebrow">A SHORT FILM / {slug.toUpperCase()}</p><p>{description}</p></div>
+    <a class="text-link" href={`https://www.seanmh.com/films/${slug}/`}>Watch the full film <span aria-hidden="true">↗</span></a>
+  </figcaption>
+</figure>
+<style>
+  .film-preview { display: grid; grid-template-columns: minmax(0, 240px) minmax(0, 1fr); align-items: center; gap: 1.5rem; max-width: 720px; margin: 2.5rem 0 0; padding-top: 1.5rem; border-top: 1px solid currentColor; }
+  video { display: block; width: 100%; aspect-ratio: 16 / 9; object-fit: contain; background: #e8ddc7; }
+  figcaption { display: flex; align-items: flex-start; flex-direction: column; gap: .5rem; }
+  p { margin: 0 0 .5rem; }
+  a { flex-shrink: 0; }
+  @media (max-width: 540px) { .film-preview { grid-template-columns: minmax(0, 160px) minmax(0, 1fr); gap: 1rem; } figcaption { font-size: .8rem; } a { flex-shrink: 1; } }
+</style>
+<script>
+  const reduced = window.matchMedia('(prefers-reduced-motion: reduce)');
+  document.querySelectorAll<HTMLVideoElement>('[data-film-preview]').forEach(video => {
+    let visible = false;
+    let manuallyPaused = false;
+    let automaticPause = false;
+    const update = () => {
+      if (visible && !document.hidden && !reduced.matches && !(navigator as Navigator & { connection?: { saveData?: boolean } }).connection?.saveData && !manuallyPaused) {
+        video.muted = true;
+        void video.play().catch(() => {});
+      } else if (!video.paused) {
+        automaticPause = true;
+        video.pause();
+      }
+    };
+    video.addEventListener('pause', () => {
+      if (!automaticPause) manuallyPaused = true;
+      automaticPause = false;
+    });
+    video.addEventListener('play', () => { manuallyPaused = false; });
+    new IntersectionObserver(entries => {
+      visible = entries[0].isIntersecting;
+      update();
+    }, { threshold: .25 }).observe(video);
+    reduced.addEventListener('change', update);
+    document.addEventListener('visibilitychange', update);
+  });
+</script>

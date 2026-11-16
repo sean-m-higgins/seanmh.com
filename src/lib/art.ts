@@ -58,7 +58,7 @@ export function projectArt(kind: string, id: string) {
         (_, i) =>
           `<path d="${archPath(300, 50 + i * 13, 400 - i * 32, 342 - i * 12, false)}" stroke="currentColor" stroke-width="${i === 8 ? 3 : 1}"/>`,
       ).join("") +
-      `<path d="M40 390H560M300 28V430" stroke="currentColor" stroke-opacity=".3" stroke-dasharray="4 6"/><circle cx="300" cy="225" r="22" fill="#c69a58"/><path d="M293 225l5 5 11-12" stroke="#163f43" stroke-width="2"/>`;
+      `<path d="M40 390H560M300 28V430" stroke="currentColor" stroke-opacity=".3" stroke-dasharray="4 6"/><circle cx="300" cy="225" r="5" fill="#c69a58"/>`;
   } else if (kind === "consent") {
     body =
       Array.from(
@@ -66,7 +66,7 @@ export function projectArt(kind: string, id: string) {
         (_, i) =>
           `<ellipse cx="300" cy="230" rx="${65 + i * 3}" ry="${143 - i * 1.7}" transform="rotate(${i * 11.25} 300 230)" stroke="currentColor" stroke-opacity=".6" stroke-width=".8"/>`,
       ).join("") +
-      `<circle cx="300" cy="230" r="50" fill="#ecdfbf"/><path d="M275 230h50M300 205v50" stroke="#8c572d" stroke-width="1.4"/>`;
+      `<circle cx="300" cy="230" r="18" fill="none" stroke="#8c572d" stroke-width="1.4"/>`;
   } else if (kind === "data") {
     body =
       Array.from(

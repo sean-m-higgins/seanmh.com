@@ -1,4 +1,5 @@
 ---
+import FilmPreview from './FilmPreview.astro';
 import { Image } from 'astro:assets';
 import { eagle } from '../content/making';
 import { rampArt } from '../lib/ramp.mjs';
@@ -19,4 +20,5 @@ import { rampArt } from '../lib/ramp.mjs';
       <figcaption>{eagle.image ? (eagle.caption ?? 'THE EAGLE SCOUT PROJECT') : 'THE EAGLE SCOUT PROJECT / A STRUCTURE THAT ROLLS INTO PLACE'}</figcaption>
     </figure>
   </div>
+  <FilmPreview slug="ramp" description="A portable wheelchair ramp, made as an Eagle Scout project." />
 </section>

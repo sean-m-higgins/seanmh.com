@@ -249,7 +249,7 @@ const observer = new IntersectionObserver(
       !lightStarted
     ) {
       lightStarted = true;
-      import("./lightwell")
+      const startLight = () => import("./lightwell")
         .then((m) =>
           m.initLightwell(
             $<HTMLCanvasElement>("#lightwell"),
@@ -259,6 +259,8 @@ const observer = new IntersectionObserver(
         .catch(() => {
           /* The complete architectural SVG remains visible. */
         });
+      if ("requestIdleCallback" in window) window.requestIdleCallback(startLight, { timeout: 4000 });
+      else setTimeout(startLight, 1500);
     }
   },
   { rootMargin: "100px" },

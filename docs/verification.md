@@ -96,3 +96,18 @@ Real iOS/Android hardware, production edge delivery, field Core Web Vitals, and 
 - Existing Scroll presentation code was removed only from H; it remains recoverable in the parent branch. Existing unrelated files, including `.inspiration` and the US atlas plan on main, were preserved.
 
 No commit, push, Pages provisioning, Worker deployment, or production publication has been performed. Wiki edits are in the local wiki checkout. Release order is documented in the wiki; the current default remains Scroll.
+
+## Film previews — November 16, 2026
+
+- Added grain, gesso, and ramp MP4 loops and posters from the films worktree, with full-film links in Growth, Courtyard, and Eagle.
+- Node 22.23.2; Astro check, all unit tests, and build pass.
+- `scripts/films-review.mjs`: Chromium passes playback and links at 375, 768, and 1440px, manual pause, reduced motion, no-JS controls/links, and overflow checks. No page errors or automated WCAG A/AA violations. Browser launch required sandbox escalation; the initial axe harness context was corrected before the passing run.
+- Preview screenshots saved under `artifacts/film-*.png`; representative phone, tablet, and desktop compositions visually reviewed. Production film destinations and real mobile hardware were not tested. No commit or deployment performed.
+
+## November 16, 2026 — compact films and loading
+
+- Node 22.23.2; Astro check: no errors/warnings (one existing browser-script typing hint); all 13 tests pass; production build passes. Optional Three.js chunk still triggers the size advisory.
+- Film media reduced from approximately 4.6 MB to 460 KB across three loops and posters. Photos retain responsive formats and lazy loading; videos retain preload none and viewport playback. Data saver suppresses autoplay; optional lightwell starts at idle.
+- Chrome film review: 375/768/1440 widths, playback, manual pause, reduced motion, no-JS, links, overflow, axe, and page errors pass. Screenshots inspected at all three sizes.
+- Full Chrome visual QA: all five studies, keyboard carousel, reproducible mosaic and export, no-JS, reduced motion, touch fallback, responsive overflow pass; zero page errors and axe violations.
+- Local mobile Lighthouse: performance 95, LCP 2.6s, CLS 0.024. Lab measurement, not deployed field data; no before/after timing claim.

@@ -540,12 +540,7 @@ main {
   overflow: hidden;
   transition: background 0.8s var(--settle);
 }
-.exhibit-art svg {
-  transition: transform 1s var(--settle);
-}
-.exhibit:hover .exhibit-art svg {
-  transform: scale(1.03);
-}
+.exhibit-art { cursor: default; }
 .exhibit-consent .exhibit-art {
   background: #d8c69b;
   color: #745d3d;
@@ -960,20 +955,6 @@ body[data-active-room="works"] .rail-name {
   }
 }
 @media (prefers-reduced-motion: no-preference) {
-  .exhibit.is-visible .exhibit-art:after {
-    content: "";
-    position: absolute;
-    inset: -100%;
-    background: linear-gradient(
-      115deg,
-      transparent 44%,
-      #f6dc9820 50%,
-      transparent 56%
-    );
-    transform: translateX(-60%);
-    animation: glaze-pass 1.5s var(--settle) both;
-    pointer-events: none;
-  }
   @keyframes glaze-pass {
     to {
       transform: translateX(60%);

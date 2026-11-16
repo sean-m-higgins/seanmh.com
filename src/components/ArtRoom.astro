@@ -1,4 +1,5 @@
 ---
+import FilmPreview from './FilmPreview.astro';
 import { Image } from 'astro:assets';
 import { artworks } from '../content/making';
 import { courtyardArt } from '../lib/art';
@@ -11,4 +12,5 @@ import { courtyardArt } from '../lib/art';
     <figcaption>{piece.title ?? `UNTITLED SPACE ${String(i + 1).padStart(2, '0')}`}{piece.caption && <span>{piece.caption}</span>}</figcaption>
   </figure>)}
   <figure class="sunny-room"><div set:html={courtyardArt()}></div><figcaption><span>THE RESIDENT ART CRITIC</span><span>SUNNY ↗</span></figcaption></figure></div>
+  <FilmPreview slug="gesso" description="A canvas, built and painted in an apartment." />
 </section>

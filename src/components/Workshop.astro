@@ -1,4 +1,5 @@
 ---
+import FilmPreview from './FilmPreview.astro';
 import { Picture } from 'astro:assets';
 import { woodworking } from '../content/making';
 import { treeArt } from '../lib/art';
@@ -13,4 +14,5 @@ const stages = ['freshman', 'sophomore', 'junior', 'senior'];
       <figcaption><div><span class="eyebrow">{String(i + 1).padStart(2, '0')} / WOODWORKING</span><h3>{piece.title ?? `Project ${String(i + 1).padStart(2, '0')}`}</h3></div><span class="wood-order">The {stages[i]} piece</span>{piece.caption && <p>{piece.caption}</p>}</figcaption>
     </figure>)}</div>
   </div>
+  <FilmPreview slug="grain" description="A coffee table, built in a garage." />
 </section>
