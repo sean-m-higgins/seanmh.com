@@ -28,3 +28,6 @@ pnpm-debug.log*
 incoming/
 renders/
 .wrangler/
+
+# Python bytecode from the Blender film scripts
+__pycache__/
