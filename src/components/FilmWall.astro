@@ -1,0 +1,142 @@
+---
+import { films, filmPath, formatDuration, type Film } from "../content/films";
+
+interface Props { film: Film }
+const { film } = Astro.props;
+const index = films.findIndex((item) => item.slug === film.slug);
+const previous = films[(index - 1 + films.length) % films.length];
+const next = films[(index + 1) % films.length];
+const number = String(index + 1).padStart(2, "0");
+const total = String(films.length).padStart(2, "0");
+const media = `/films/${film.slug}`;
+---
+
+<div class="museum-shell">
+  <header class="museum-masthead">
+    <a class="wordmark" href="/films/" aria-label="From life — films home">
+      <span>from life</span>
+      <small>films by Sean Higgins</small>
+    </a>
+    <nav aria-label="Collection links">
+      <a href="/"><span class="portfolio-long">Sean’s </span>portfolio <span aria-hidden="true">↗</span></a>
+    </nav>
+  </header>
+
+  <aside class="film-index" aria-label="Film index">
+    <div class="index-heading">
+      <span>Short films</span>
+      <span>{film.year}</span>
+    </div>
+    <ol>
+      {films.map((item, i) => (
+        <li class:list={{ current: item.slug === film.slug }}>
+          <a href={filmPath(item.slug)} aria-current={item.slug === film.slug ? "page" : undefined}>
+            <span class="index-number">{String(i + 1).padStart(2, "0")}</span>
+            <span>{item.title}</span>
+            <span class="index-year">{item.year}</span>
+          </a>
+        </li>
+      ))}
+    </ol>
+    <p class="index-note">Drawn entirely in code<br />from build photographs.</p>
+  </aside>
+
+  <main class="film-main" id="film-work">
+    <div class="wall-label" aria-label="Film details">
+      <p><span class="label-long">Short film, {film.year} <span aria-hidden="true">·</span> </span>{formatDuration(film.duration)}</p>
+      <p><span class="label-long">Drawn by </span>{film.model}</p>
+    </div>
+
+    <figure class="film-frame">
+      <video
+        id="film-player"
+        controls
+        playsinline
+        muted
+        preload="metadata"
+        poster={`${media}-poster.webp`}
+        aria-label={`${film.title}: ${film.subject}`}
+      >
+        <source src={`${media}.mp4`} type="video/mp4" />
+        {film.steps && <track kind="chapters" src={`${media}.vtt`} srclang="en" label="Chapters" default />}
+        <p>Your browser cannot play this film. <a href={`${media}.mp4`}>Download the MP4.</a></p>
+      </video>
+    </figure>
+
+    <footer class="work-label">
+      <div>
+        <p class="work-number">{number} / {total}</p>
+        <h1>{film.title}</h1>
+        <p>{film.sentence}</p>
+      </div>
+      <nav class="tour-nav" aria-label="Previous and next films">
+        <a href={filmPath(previous.slug)} aria-label={`Previous film: ${previous.title}`}>‹</a>
+        <span>{number}/{total}</span>
+        <a href={filmPath(next.slug)} aria-label={`Next film: ${next.title}`}>›</a>
+      </nav>
+    </footer>
+
+    {film.kind === "how-to" ? (
+      <section class="making-notes" aria-labelledby="making-heading">
+        <header>
+          <p class="section-kicker">Under the film</p>
+          <h2 id="making-heading">How it was made.</h2>
+          <p>The film carries the sequence. These are the real materials, tools, and chapter marks behind it.</p>
+        </header>
+        <div class="notes-grid">
+          <section aria-labelledby="materials-heading">
+            <h3 id="materials-heading">Materials</h3>
+            <ul>{film.materials?.map((item) => <li>{item}</li>)}</ul>
+          </section>
+          <section aria-labelledby="tools-heading">
+            <h3 id="tools-heading">Tools</h3>
+            <ul>{film.tools?.map((item) => <li>{item}</li>)}</ul>
+          </section>
+          <section class="chapters" aria-labelledby="chapters-heading">
+            <h3 id="chapters-heading">Chapters</h3>
+            <ol>
+              {film.steps?.map((step, i) => (
+                <li>
+                  <button type="button" data-seek={step.t}>
+                    <span>{String(i + 1).padStart(2, "0")}</span>
+                    <span>{step.label}</span>
+                    <time>{formatDuration(step.t)}</time>
+                  </button>
+                </li>
+              ))}
+            </ol>
+          </section>
+        </div>
+      </section>
+    ) : (
+      <section class="story-notes" aria-labelledby="story-heading">
+        <header>
+          <p class="section-kicker">The project</p>
+          <h2 id="story-heading">A way in.</h2>
+        </header>
+        <div class="story-grid">
+          <div class="synopsis">{film.synopsis?.map((paragraph) => <p>{paragraph}</p>)}</div>
+          <dl>{film.facts?.map((fact) => <div><dt>{fact.label}</dt><dd>{fact.value}</dd></div>)}</dl>
+        </div>
+      </section>
+    )}
+
+  </main>
+
+  <footer class="museum-footer">
+    <p>© {new Date().getFullYear()} Sean Higgins</p>
+    <p>1080 × 1080 <span aria-hidden="true">·</span> silent <span aria-hidden="true">·</span> drawn on twos</p>
+  </footer>
+</div>
+
+<script>
+  const player = document.querySelector<HTMLVideoElement>("#film-player");
+  document.querySelectorAll<HTMLButtonElement>("[data-seek]").forEach((button) => {
+    button.addEventListener("click", () => {
+      if (!player) return;
+      player.currentTime = Number(button.dataset.seek ?? 0);
+      player.play().catch(() => undefined);
+      player.scrollIntoView({ behavior: matchMedia("(prefers-reduced-motion: reduce)").matches ? "auto" : "smooth", block: "center" });
+    });
+  });
+</script>

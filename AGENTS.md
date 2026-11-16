@@ -1,4 +1,4 @@
-# AGENTS.md — version/films (Films)
+# AGENTS.md — version/i-films (Films)
 
 Short animated films drawn in code from Sean's build photos. A path app at
 `seanmh.com/films/` (not live yet); the Pages origin is `noindex`. Pages

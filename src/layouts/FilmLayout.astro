@@ -1,0 +1,59 @@
+---
+import "../styles/films.css";
+
+interface Props {
+  title: string;
+  description: string;
+  canonicalPath: string;
+  image?: string;
+  duration?: number;
+  error?: boolean;
+  skipLabel?: string;
+}
+
+const { title, description, canonicalPath, image, duration, error = false, skipLabel = "Skip to the film" } = Astro.props;
+const canonicalUrl = new URL(canonicalPath, Astro.site ?? Astro.url);
+const imageUrl = image ? new URL(image, Astro.site ?? Astro.url) : undefined;
+const structuredData = !error && imageUrl && duration ? {
+  "@context": "https://schema.org",
+  "@type": "VideoObject",
+  name: title,
+  description,
+  thumbnailUrl: imageUrl.href,
+  uploadDate: "2026-11-16",
+  duration: `PT${duration}S`,
+  contentUrl: new URL(canonicalPath.replace(/\/$/, ".mp4"), Astro.site ?? Astro.url).href,
+  author: { "@type": "Person", name: "Sean Higgins", url: "https://seanmh.com/" },
+} : undefined;
+---
+
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="description" content={description} />
+    <meta name="generator" content={Astro.generator} />
+    <meta name="theme-color" content="#f3f0e9" />
+    <meta name="portfolio-version" content="films" />
+
+    {!error && <link rel="canonical" href={canonicalUrl} />}
+    {!error && <meta property="og:title" content={title} />}
+    {!error && <meta property="og:description" content={description} />}
+    {!error && <meta property="og:type" content={duration ? "video.other" : "website"} />}
+    {!error && <meta property="og:url" content={canonicalUrl} />}
+    {imageUrl && <meta property="og:image" content={imageUrl} />}
+    {imageUrl && <meta property="og:image:alt" content={`A frame from ${title}`} />}
+    {imageUrl && <meta name="twitter:card" content="summary_large_image" />}
+
+    <link rel="icon" type="image/svg+xml" href="/films/favicon.svg" />
+    <link rel="icon" type="image/x-icon" href="/films/favicon.ico" />
+    <link rel="apple-touch-icon" sizes="180x180" href="/films/apple-touch-icon.png" />
+    <title>{title}</title>
+    {structuredData && <script is:inline type="application/ld+json" set:html={JSON.stringify(structuredData)} />}
+  </head>
+  <body>
+    <a class="skip-link" href="#film-work">{skipLabel}</a>
+    <slot />
+  </body>
+</html>

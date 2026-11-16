@@ -1,0 +1,22 @@
+---
+import FilmWall from "../../components/FilmWall.astro";
+import { films, filmPath } from "../../content/films";
+import FilmLayout from "../../layouts/FilmLayout.astro";
+
+export function getStaticPaths() {
+  return films.map((film) => ({ params: { slug: film.slug }, props: { film } }));
+}
+
+const { film } = Astro.props;
+const description = `${film.title}: ${film.sentence}`;
+---
+
+<FilmLayout
+  title={`${film.title} — from life`}
+  description={description}
+  canonicalPath={filmPath(film.slug)}
+  image={`/films/${film.slug}-poster.webp`}
+  duration={film.duration}
+>
+  <FilmWall film={film} />
+</FilmLayout>
