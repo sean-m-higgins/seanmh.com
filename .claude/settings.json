@@ -1,0 +1,15 @@
+{
+  "extraKnownMarketplaces": {
+    "seanmh": {
+      "source": {
+        "source": "github",
+        "repo": "sean-m-higgins/seanmh.com"
+      }
+    }
+  },
+  "enabledPlugins": {
+    "seanmh@seanmh": true,
+    "playwright@claude-plugins-official": true,
+    "cloudflare@claude-plugins-official": true
+  }
+}
