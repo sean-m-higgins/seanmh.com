@@ -1,8 +1,8 @@
 # AGENTS.md — version/i-films (Films)
 
 Short animated films drawn in code from Sean's build photos. A path app at
-`seanmh.com/films/` (not live yet); the Pages origin is `noindex`. Pages
-project `seanmh-films` (not created yet). Preview port 4330 for Astro, 4340
+`seanmh.com/films/` (live); the Pages origin is `noindex`. Pages project
+`seanmh-films`, git-connected to this branch. Preview port 4330 for Astro, 4340
 for the film stage.
 
 ## Commands
@@ -32,7 +32,7 @@ Plan: `plans/films-plan.html` on `main`.
 
 - Node ≥ 22.12. `~/SoftLot/MyWebsite/.tool-versions` pins 22.23.2; stop if `node -v` is lower.
 - Commit straight to this branch, only when asked; never create feature branches.
-- **Pushing this branch deploys it** to its Cloudflare Pages project (once it exists). Confirm first.
+- **Pushing this branch deploys it** to its Cloudflare Pages project. Confirm first.
 - Never run `wrangler deploy` here; only `main` deploys the router Worker.
 - Shared files (`src/content/site.ts`, `experience.ts`, `projects.ts`, `src/assets/images/headshot.jpeg`, `src/components/VersionSwitcher.astro`, `src/styles/transitions.css`) are edited on `content` only, then synced.
 - Keep this version's own look. Read `~/SoftLot/MyWebsite/seanmh.com/.inspiration` before design work.

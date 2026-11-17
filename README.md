@@ -10,8 +10,9 @@ pipeline proof). All three films passed their storyboard and style-frame gates,
 are fully animated, and have release media in `public/`: **grain** (12 scenes,
 etched coloured pencil with one photographic glass pass; redrawn 2026-11-16), **gesso** (17 scenes,
 impasto with raking light), and **ramp** (18 scenes, lit cut-paper relief). The
-`/films/` wall (step 3) is not built yet. The Astro pages are still the
-`content` baseline.
+`/films/` collection and one wall page per film (step 3) are live at
+`seanmh.com/films/`. sunny, a fourth film, is in draft and not yet in
+`src/content/films.ts`.
 
 ## Commands
 
