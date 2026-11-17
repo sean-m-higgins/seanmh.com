@@ -50,7 +50,7 @@ const portals = VERSIONS;
         Choose your universe.
       </h1>
       <p class="nexus-fade max-w-md text-sm text-neutral-400" style="animation-delay: 0.3s">
-        One portfolio by {site.name}, parallel builds — each living on its own git branch.
+        One portfolio by {site.name}; parallel builds, each living on its own git branch auto-deployed and hosted by Cloudflare.
       </p>
     </header>
 
@@ -74,6 +74,34 @@ const portals = VERSIONS;
             <span class="portal-label-branch">{p.branch}</span>
           </a>
         ))
+      }
+      {
+        portals.filter((p) => p.children?.length).map((p) => {
+          const active = portals[0] === p;
+          return (
+            <ul
+              class="portal-moons"
+              data-moons-for={p.name}
+              data-active={active ? "" : undefined}
+              aria-hidden={active ? undefined : "true"}
+              aria-label={p.label}
+            >
+              {p.children!.map((moon, index) => (
+                <li>
+                  <a
+                    href={moon.href}
+                    class="portal-moon-link"
+                    tabindex={active ? 0 : -1}
+                    style={`--moon-color: ${moon.color}`}
+                  >
+                    <span class="portal-moon-dot" aria-hidden="true"></span>
+                    {String(index + 1).padStart(2, "0")} {moon.label}
+                  </a>
+                </li>
+              ))}
+            </ul>
+          );
+        })
       }
     </div>
 
@@ -126,6 +154,20 @@ const portals = VERSIONS;
                   </span>
                   <span class="text-xs text-neutral-500">{p.branch}</span>
                 </a>
+                {p.children?.length && (
+                  <ul class="mt-2 flex flex-wrap gap-2 pl-4">
+                    {p.children.map((moon, index) => (
+                      <li>
+                        <a
+                          href={moon.href}
+                          class="block rounded-md border border-neutral-800 px-3 py-1.5 font-mono text-xs text-neutral-300 transition-colors hover:border-neutral-600"
+                        >
+                          {String(index + 1).padStart(2, "0")} {moon.label}
+                        </a>
+                      </li>
+                    ))}
+                  </ul>
+                )}
               </li>
             ))
           }
@@ -142,6 +184,17 @@ const portals = VERSIONS;
                 <a href={p.href} class="underline">
                   {p.glyph} {p.label} — {p.blurb} ({p.branch})
                 </a>
+                {p.children?.length && (
+                  <ul class="mt-2 flex flex-col gap-2 pl-6">
+                    {p.children.map((moon, index) => (
+                      <li>
+                        <a href={moon.href} class="underline">
+                          {String(index + 1).padStart(2, "0")} {moon.label}
+                        </a>
+                      </li>
+                    ))}
+                  </ul>
+                )}
               </li>
             ))
           }
@@ -234,6 +287,75 @@ const portals = VERSIONS;
         outline: 2px solid var(--portal-color);
         outline-offset: 6px;
         border-radius: 4px;
+      }
+
+      /* The front orb's moons, as real links under its label. */
+      .portal-moons {
+        position: absolute;
+        top: 0;
+        left: 0;
+        z-index: 10;
+        display: flex;
+        gap: 0.35rem;
+        margin: 0;
+        padding: 0;
+        list-style: none;
+        opacity: 0;
+        pointer-events: none;
+        transition: opacity 0.3s ease;
+        will-change: transform;
+      }
+
+      .portal-moons[data-active] {
+        opacity: 1;
+        pointer-events: auto;
+        animation: nexus-label-fade 0.8s ease-out 0.7s both;
+      }
+
+      #nexus-labels[data-spinning] .portal-moons {
+        pointer-events: none;
+      }
+
+      #nexus-labels[data-entering] .portal-moons {
+        opacity: 0;
+      }
+
+      .portal-moon-link {
+        display: flex;
+        align-items: center;
+        gap: 0.4rem;
+        min-height: 2.25rem;
+        padding: 0 0.6rem;
+        border: 1px solid rgba(125, 136, 174, 0.2);
+        border-radius: 999px;
+        font-family: var(--font-mono);
+        font-size: 0.68rem;
+        letter-spacing: 0.06em;
+        white-space: nowrap;
+        color: #9298b0;
+        background: rgba(7, 8, 20, 0.5);
+        text-decoration: none;
+        transition: color 0.2s ease, border-color 0.2s ease;
+      }
+
+      .portal-moon-dot {
+        width: 0.45rem;
+        height: 0.45rem;
+        border-radius: 50%;
+        background: var(--moon-color);
+        box-shadow: 0 0 0.5rem var(--moon-color);
+      }
+
+      .portal-moon-link:hover,
+      .portal-moon-link:focus-visible,
+      .portal-moon-link[data-lit] {
+        color: #eef0fa;
+        border-color: color-mix(in srgb, var(--moon-color) 70%, transparent);
+      }
+
+      .portal-moon-link:focus-visible {
+        outline: 2px solid var(--moon-color);
+        outline-offset: 3px;
       }
 
       .nexus-fade {
@@ -361,6 +483,13 @@ const portals = VERSIONS;
         .portal-label-branch {
           font-size: 0.6rem;
         }
+        .portal-moons {
+          display: grid;
+          grid-template-columns: repeat(2, auto);
+        }
+        .portal-moon-link {
+          min-height: 2.75rem;
+        }
         .nexus-orbit-control {
           width: 3rem;
           min-height: 3rem;
@@ -380,7 +509,8 @@ const portals = VERSIONS;
           opacity: 1;
           transform: none;
         }
-        .portal-label[data-active="true"] {
+        .portal-label[data-active="true"],
+        .portal-moons[data-active] {
           animation: none;
           opacity: 1;
         }

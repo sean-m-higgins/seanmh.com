@@ -10,7 +10,16 @@ export interface VersionDef {
   blurb: string;
   color: string;
   /** Which miniature world lives inside this version's orb. */
-  interior: "aurora" | "cards" | "rain" | "halfpipe" | "ring" | "blueprint" | "globe" | "gaudi";
+  interior: "aurora" | "cards" | "rain" | "halfpipe" | "ring" | "blueprint" | "globe" | "gaudi" | "films";
+  /** Moons orbiting the orb, one per child page (Films: one per film). */
+  children?: readonly MoonDef[];
+}
+
+export interface MoonDef {
+  slug: string;
+  label: string;
+  href: string;
+  color: string;
 }
 
 export const VERSIONS: readonly VersionDef[] = [
@@ -93,5 +102,23 @@ export const VERSIONS: readonly VersionDef[] = [
     blurb: "a house that grows",
     color: "#c49a59",
     interior: "gaudi",
+  },
+  {
+    name: "i-films",
+    href: "/films/",
+    glyph: "▷",
+    label: "Films",
+    branch: "version/i-films",
+    blurb: "short films drawn from life",
+    color: "#d98cff",
+    interior: "films",
+    // A static copy of version/i-films' src/content/films.ts: add a moon here
+    // whenever a film ships there.
+    children: [
+      { slug: "grain", label: "grain", href: "/films/grain/", color: "#d9a86c" },
+      { slug: "gesso", label: "gesso", href: "/films/gesso/", color: "#e2584a" },
+      { slug: "ramp", label: "ramp", href: "/films/ramp/", color: "#ff8a2a" },
+      { slug: "sunny", label: "sunny", href: "/films/sunny/", color: "#b9c545" },
+    ],
   },
 ];

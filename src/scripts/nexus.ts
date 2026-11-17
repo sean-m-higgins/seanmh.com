@@ -3,7 +3,7 @@
 // flies the camera into the glass and hands off to that version's canonical
 // route. The version list lives in ../content/versions.ts.
 import * as THREE from "three";
-import { VERSIONS, type VersionDef } from "../content/versions.ts";
+import { VERSIONS, type MoonDef, type VersionDef } from "../content/versions.ts";
 
 const ORB_RADIUS = 1.2;
 const MIN_ORBIT_CHORD = 3.8; // generous center-to-center room for neighboring orbs
@@ -18,6 +18,10 @@ const TILT_CAMERA_Y = 0.28;
 const DRAG_STEP_PORTION = 0.28; // drag this fraction of the viewport per universe
 const DRAG_FRICTION = 4.8;
 const SNAP_STRENGTH = 10;
+const MOON_RADIUS = 0.2;
+const MOON_ORBIT = 1.75; // clears the orb's glass (radius 1.2) with room to spare
+const MOON_TILT = THREE.MathUtils.degToRad(16); // the ring dips toward the viewer
+const MOON_SPEED = 0.35; // radians per second
 
 const reducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
 
@@ -827,6 +831,164 @@ function buildGaudi(color: THREE.Color): Interior {
   };
 }
 
+// films: the films are drawn in code, frame by frame, so the orb holds a
+// stack of square paper frames drifting toward the viewer. Each one draws
+// its subject in a pencil line that boils on twos (re-jittered twelve times a
+// second, as the films are), and one accent dot holds still while every
+// frame passes through it: the series' match cut.
+const FILM_SUBJECTS: [number, number][][][] = [
+  // grain: a coffee table, glass inset, slatted lower shelf.
+  [
+    [[-0.8, 0.1], [0.8, 0.1]],
+    [[-0.5, 0.2], [0.5, 0.2]],
+    [[-0.65, 0.1], [-0.65, -0.6]],
+    [[0.65, 0.1], [0.65, -0.6]],
+    [[-0.65, -0.3], [0.65, -0.3]],
+  ],
+  // gesso: a stretched canvas with one painted flower.
+  [
+    [[-0.55, -0.7], [0.55, -0.7], [0.55, 0.7], [-0.55, 0.7], [-0.55, -0.7]],
+    Array.from({ length: 13 }, (_, k): [number, number] => {
+      const a = (k / 12) * Math.PI * 2;
+      const r = 0.2 + 0.07 * Math.cos(a * 5);
+      return [Math.cos(a) * r, 0.15 + Math.sin(a) * r];
+    }),
+    [[0, -0.07], [0.06, -0.55]],
+  ],
+  // ramp: a slope up to a landing, with a rail.
+  [
+    [[-0.9, -0.6], [0.9, -0.6]],
+    [[-0.85, -0.6], [0.35, -0.2], [0.85, -0.2], [0.85, -0.6]],
+    [[-0.7, -0.25], [0.35, 0.15], [0.85, 0.15]],
+  ],
+  // sunny: a cat curled asleep in a patch of sun.
+  [
+    Array.from({ length: 17 }, (_, k): [number, number] => {
+      const a = (k / 16) * Math.PI * 2;
+      return [Math.cos(a) * 0.62, -0.25 + Math.sin(a) * 0.36];
+    }),
+    [[-0.62, -0.05], [-0.58, 0.32], [-0.42, 0.1], [-0.22, 0.32], [-0.2, -0.02]],
+    [[0.6, -0.3], [0.3, -0.48], [-0.15, -0.45], [-0.3, -0.32]],
+    [[-0.95, 0.75], [-0.6, 0.75]],
+  ],
+];
+
+function buildFilms(color: THREE.Color): Interior {
+  const group = new THREE.Group();
+  const stack = new THREE.Group();
+  group.add(stack);
+  const paper = new THREE.Color(0xf1eadc);
+  const FRAME = 0.88;
+  const COUNT = 4;
+  const SCALE = 0.34;
+  const STEP = 0.045; // resampling length, so the jitter reads as a hand line
+
+  // Deterministic jitter: the same seed always boils the same way.
+  const jitter = (seed: number, i: number) => {
+    const x = Math.sin(seed * 12.9898 + i * 78.233) * 43758.5453;
+    return x - Math.floor(x) - 0.5;
+  };
+
+  const frames = Array.from({ length: COUNT }, (_, index) => {
+    const frame = new THREE.Group();
+    const fill = new THREE.MeshBasicMaterial({
+      color: paper,
+      transparent: true,
+      side: THREE.DoubleSide,
+      depthWrite: false,
+    });
+    frame.add(new THREE.Mesh(new THREE.PlaneGeometry(FRAME, FRAME), fill));
+    const edge = new THREE.LineBasicMaterial({ color: paper, transparent: true, depthWrite: false });
+    const h = FRAME / 2;
+    frame.add(new THREE.LineLoop(
+      new THREE.BufferGeometry().setFromPoints([
+        new THREE.Vector3(-h, -h, 0), new THREE.Vector3(h, -h, 0),
+        new THREE.Vector3(h, h, 0), new THREE.Vector3(-h, h, 0),
+      ]),
+      edge
+    ));
+
+    // Resample the subject into short pieces; each pair of points is one segment.
+    const points: [number, number][] = [];
+    const pairs: [number, number][] = [];
+    for (const line of FILM_SUBJECTS[index % FILM_SUBJECTS.length]) {
+      for (let k = 0; k < line.length - 1; k++) {
+        const [ax, ay] = line[k];
+        const [bx, by] = line[k + 1];
+        const pieces = Math.max(1, Math.round((Math.hypot(bx - ax, by - ay) * SCALE) / STEP));
+        for (let j = 0; j <= pieces; j++) {
+          if (j > 0 || k === 0) points.push([
+            (ax + ((bx - ax) * j) / pieces) * SCALE,
+            (ay + ((by - ay) * j) / pieces) * SCALE,
+          ]);
+          if (j > 0) pairs.push([points.length - 2, points.length - 1]);
+        }
+      }
+    }
+    const positions = new Float32Array(pairs.length * 6);
+    const geometry = new THREE.BufferGeometry();
+    geometry.setAttribute("position", new THREE.BufferAttribute(positions, 3));
+    const ink = new THREE.LineBasicMaterial({ color: paper, transparent: true, depthWrite: false });
+    frame.add(new THREE.LineSegments(geometry, ink));
+    stack.add(frame);
+    return { frame, fill, edge, ink, geometry, positions, points, pairs, seed: -1 };
+  });
+
+  // The anchor: one dot that never moves while the frames pass through it.
+  const anchor = new THREE.Mesh(new THREE.SphereGeometry(0.028, 12, 10), new THREE.MeshBasicMaterial({ color }));
+  const halo = new THREE.Mesh(
+    new THREE.SphereGeometry(0.075, 16, 12),
+    new THREE.MeshBasicMaterial({
+      color,
+      transparent: true,
+      opacity: 0.3,
+      blending: THREE.AdditiveBlending,
+      depthWrite: false,
+    })
+  );
+  anchor.position.set(0.24, 0.24, 0);
+  halo.position.copy(anchor.position);
+  group.add(halo, anchor);
+
+  const smooth = THREE.MathUtils.smoothstep;
+  return {
+    object: group,
+    update(time_) {
+      const twos = Math.floor(time_ * 12);
+      frames.forEach((f, index) => {
+        const p = THREE.MathUtils.euclideanModulo(time_ * 0.14 + index / COUNT, 1);
+        f.frame.position.z = THREE.MathUtils.lerp(-0.75, 0.55, p);
+        const alpha = smooth(p, 0, 0.18) * (1 - smooth(p, 0.72, 1));
+        f.fill.opacity = 0.08 * alpha;
+        f.edge.opacity = 0.4 * alpha;
+        // Only the frames nearing the front carry ink, so drawings never tangle.
+        f.ink.opacity = 0.95 * alpha * smooth(p, 0.3, 0.55);
+
+        // Each frame draws its line in as it comes forward.
+        const reveal = THREE.MathUtils.clamp((p - 0.3) / 0.35, 0, 1);
+        f.geometry.setDrawRange(0, Math.floor(f.pairs.length * reveal) * 2);
+
+        const seed = twos * 7 + index;
+        if (seed === f.seed) return;
+        f.seed = seed;
+        f.pairs.forEach(([a, b], k) => {
+          [a, b].forEach((pointIndex, end) => {
+            const [x, y] = f.points[pointIndex];
+            const o = k * 6 + end * 3;
+            f.positions[o] = x + jitter(seed, pointIndex) * 0.016;
+            f.positions[o + 1] = y + jitter(seed + 0.5, pointIndex) * 0.016;
+          });
+        });
+        f.geometry.attributes.position.needsUpdate = true;
+      });
+      halo.scale.setScalar(1 + Math.sin(time_ * 2.2) * 0.12);
+      // A three-quarter view, so the stack reads as a sequence in depth.
+      group.rotation.y = -0.38 + Math.sin(time_ * 0.25) * 0.14;
+      group.rotation.x = 0.12;
+    },
+  };
+}
+
 const INTERIOR_BUILDERS: Record<VersionDef["interior"], (color: THREE.Color) => Interior> = {
   aurora: buildAurora,
   cards: buildCards,
@@ -836,9 +998,18 @@ const INTERIOR_BUILDERS: Record<VersionDef["interior"], (color: THREE.Color) => 
   blueprint: buildBlueprint,
   globe: buildGlobe,
   gaudi: buildGaudi,
+  films: buildFilms,
 };
 
 // ---------------------------------------------------------------------------
+
+interface Moon {
+  def: MoonDef;
+  group: THREE.Group;
+  hit: THREE.Mesh; // invisible, larger than the bead: the raycast target
+  uniforms: Portal["uniforms"];
+  hover: number; // eased 0..1
+}
 
 interface Portal {
   def: VersionDef;
@@ -858,6 +1029,39 @@ interface Portal {
   layoutScale: number;
   frontness: number; // 0 at the back of the orbit, 1 at the active position
   labelOffset: number; // world units below orb center for the HTML label
+  moons: Moon[];
+  moonRing: THREE.Group;
+  moonAngle: number;
+}
+
+// A moon is a small glass bead with a bright core in its film's color, using
+// the orb's own shell shader.
+function buildMoon(def: MoonDef): Moon {
+  const group = new THREE.Group();
+  const color = new THREE.Color(def.color);
+  const uniforms = { uHover: { value: 0 }, uEnter: { value: 0 }, uRimPower: { value: 2.2 } };
+  const shell = new THREE.Mesh(
+    new THREE.SphereGeometry(MOON_RADIUS, 24, 16),
+    new THREE.ShaderMaterial({
+      vertexShader: SHELL_VERT,
+      fragmentShader: SHELL_FRAG,
+      uniforms: { uColor: { value: color }, ...uniforms, uIntensity: { value: 1.3 } },
+      transparent: true,
+      depthWrite: false,
+    })
+  );
+  shell.renderOrder = 4;
+  const core = new THREE.Mesh(
+    new THREE.SphereGeometry(MOON_RADIUS * 0.32, 12, 10),
+    new THREE.MeshBasicMaterial({ color })
+  );
+  core.renderOrder = 4;
+  const hit = new THREE.Mesh(
+    new THREE.SphereGeometry(MOON_RADIUS * 1.7, 8, 6),
+    new THREE.MeshBasicMaterial({ visible: false })
+  );
+  group.add(core, shell, hit);
+  return { def, group, hit, uniforms, hover: 0 };
 }
 
 function webglAvailable(): boolean {
@@ -1235,6 +1439,14 @@ function buildOrb(def: VersionDef, index: number): Portal {
   shell.userData.portalIndex = index;
 
   group.add(back, interior.object, shell);
+
+  const moonRing = new THREE.Group();
+  moonRing.position.y = 0.1;
+  moonRing.rotation.x = MOON_TILT;
+  const moons = (def.children ?? []).map(buildMoon);
+  moons.forEach((moon) => moonRing.add(moon.group));
+  group.add(moonRing);
+
   return {
     def,
     group,
@@ -1249,7 +1461,18 @@ function buildOrb(def: VersionDef, index: number): Portal {
     layoutScale: 1,
     frontness: 1,
     labelOffset: ORB_RADIUS + 0.55,
+    moons,
+    moonRing,
+    moonAngle: 0,
   };
+}
+
+function placeMoons(portal: Portal) {
+  const count = portal.moons.length;
+  portal.moons.forEach((moon, index) => {
+    const angle = portal.moonAngle + (index / count) * Math.PI * 2;
+    moon.group.position.set(Math.sin(angle) * MOON_ORBIT, 0, Math.cos(angle) * MOON_ORBIT);
+  });
 }
 
 function init() {
@@ -1302,6 +1525,15 @@ function init() {
     .querySelectorAll<HTMLAnchorElement>("#nexus-labels a[data-version]")
     .forEach((el) => labels.set(el.dataset.version!, el));
 
+  // Each orb with moons has a list of real links under its label, one per moon.
+  const moonLists = new Map<string, HTMLElement>();
+  document
+    .querySelectorAll<HTMLElement>("#nexus-labels [data-moons-for]")
+    .forEach((el) => moonLists.set(el.dataset.moonsFor!, el));
+  const moonLinks = (name: string) =>
+    Array.from(moonLists.get(name)?.querySelectorAll<HTMLAnchorElement>("a") ?? []);
+  let moonListOffset = 0; // px below the label's top; measured on resize
+
   const labelsContainer = document.getElementById("nexus-labels");
   const previousButton = document.getElementById("nexus-orbit-prev");
   const nextButton = document.getElementById("nexus-orbit-next");
@@ -1340,7 +1572,8 @@ function init() {
     const nextIndex = wrapIndex(index);
     if (nextIndex === activeIndex && labels.get(portals[nextIndex].def.name)?.dataset.active === "true") return;
     const moveLabelFocus = document.activeElement instanceof HTMLAnchorElement
-      && document.activeElement.classList.contains("portal-label");
+      && (document.activeElement.classList.contains("portal-label")
+        || document.activeElement.classList.contains("portal-moon-link"));
     activeIndex = nextIndex;
 
     portals.forEach((portal, portalIndex) => {
@@ -1348,6 +1581,12 @@ function init() {
       if (!label) return;
       const active = portalIndex === activeIndex;
       label.tabIndex = active ? 0 : -1;
+      const list = moonLists.get(portal.def.name);
+      if (list) {
+        list.toggleAttribute("data-active", active);
+        list.toggleAttribute("aria-hidden", !active);
+        moonLinks(portal.def.name).forEach((link) => (link.tabIndex = active ? 0 : -1));
+      }
       if (active) {
         label.dataset.active = "true";
         label.removeAttribute("aria-hidden");
@@ -1465,9 +1704,12 @@ function init() {
     renderer.setSize(window.innerWidth, window.innerHeight);
     POINT_SCALE.value = (window.innerHeight * renderer.getPixelRatio()) / 2;
     layout();
+    const anyLabel = labels.values().next().value;
+    if (anyLabel) moonListOffset = anyLabel.offsetHeight + 10;
   }
   resize();
   window.addEventListener("resize", resize);
+  document.fonts?.ready.then(resize);
   setActiveIndex(0);
 
   // Pointer parallax + raycast hover.
@@ -1479,6 +1721,8 @@ function init() {
   const raycaster = new THREE.Raycaster();
   let hoveredIndex = -1;
   let focusedIndex = -1;
+  let hoveredMoon = -1; // a moon of the active orb, under the pointer
+  let focusedMoon = -1; // a moon of the active orb, via its link
   let pointerActive = false;
   let tiltActive = false;
   let tiltOrigin: { beta: number; gamma: number } | null = null;
@@ -1506,6 +1750,21 @@ function init() {
     if (!activeShell) return -1;
     const hits = raycaster.intersectObject(activeShell);
     return hits.length ? activeIndex : -1;
+  }
+
+  // Moons respond only while their orb is the settled front orb.
+  function activeMoonAt(clientX: number, clientY: number): number {
+    if (!isOrbitSettled()) return -1;
+    const moons = portals[activeIndex]?.moons ?? [];
+    if (!moons.length) return -1;
+    setPointerPosition(clientX, clientY);
+    raycaster.setFromCamera(pointerTarget, camera);
+    return nearestMoonHit(moons);
+  }
+
+  function nearestMoonHit(moons: Moon[]): number {
+    const hits = raycaster.intersectObjects(moons.map((moon) => moon.hit), false);
+    return hits.length ? moons.findIndex((moon) => moon.hit === hits[0].object) : -1;
   }
 
   function shortestAngle(value: number, origin: number): number {
@@ -1715,6 +1974,17 @@ function init() {
     } else if (event.key === "ArrowRight") {
       event.preventDefault();
       stepOrbit(1);
+    } else if ((event.key === "ArrowDown" || event.key === "ArrowUp") && !entering && isOrbitSettled()) {
+      // Up and down walk the front orb's label, then its moons.
+      const name = portals[activeIndex].def.name;
+      const links = moonLinks(name);
+      if (!links.length) return;
+      event.preventDefault();
+      const current = links.indexOf(document.activeElement as HTMLAnchorElement);
+      const next = event.key === "ArrowDown"
+        ? Math.min(current + 1, links.length - 1)
+        : current - 1;
+      (next < 0 ? labels.get(name) : links[next])?.focus({ preventScroll: true });
     }
   });
 
@@ -1733,6 +2003,20 @@ function init() {
     });
     el.addEventListener("pointerenter", () => (focusedIndex = index));
     el.addEventListener("pointerleave", () => (focusedIndex = -1));
+
+    moonLinks(name).forEach((link, moonIndex) => {
+      const highlight = () => (focusedMoon = moonIndex);
+      const clear = () => (focusedMoon = -1);
+      link.addEventListener("focus", highlight);
+      link.addEventListener("blur", clear);
+      link.addEventListener("pointerenter", highlight);
+      link.addEventListener("pointerleave", clear);
+      link.addEventListener("click", (event) => {
+        event.preventDefault();
+        if (entering || index !== activeIndex || !isOrbitSettled()) return;
+        beginEnter(index, moonIndex);
+      });
+    });
   });
 
   renderer.domElement.addEventListener("click", (event) => {
@@ -1743,42 +2027,74 @@ function init() {
     }
     // A tap enters only the orb snapped into the front slot. Every other shell
     // is scenery until the visitor rotates it forward.
+    const tappedMoon = activeMoonAt(event.clientX, event.clientY);
+    if (tappedMoon >= 0) {
+      beginEnter(activeIndex, tappedMoon);
+      return;
+    }
     const tappedIndex = activePortalAt(event.clientX, event.clientY);
     if (tappedIndex >= 0) beginEnter(tappedIndex);
   });
 
   // Entry sequence state.
   let entering: Portal | null = null;
+  let enteringMoon: Moon | null = null; // set when the flight targets a moon
   let enterStart = 0;
   const enterFrom = new THREE.Vector3();
   const enterTo = new THREE.Vector3();
+  const enterLook = new THREE.Vector3();
 
-  function beginEnter(index: number) {
+  function beginEnter(index: number, moonIndex = -1) {
     if (index !== activeIndex || !isOrbitSettled()) return;
     const portal = portals[index];
+    const moon = portal.moons[moonIndex] ?? null;
+    const href = moon ? moon.def.href : portal.def.href;
     entering = portal;
+    enteringMoon = moon;
     enterStart = clock.elapsedTime;
-    veil.style.backgroundColor = portal.def.color;
+    veil.style.backgroundColor = moon ? moon.def.color : portal.def.color;
     document.getElementById("nexus-labels")?.setAttribute("data-entering", "");
     document.body.setAttribute("data-entering", "");
 
     if (reducedMotion) {
       veil.style.transition = "opacity 0.25s ease";
       veil.style.opacity = "1";
-      window.setTimeout(() => navigate(portal), 280);
+      window.setTimeout(() => navigate(href), 280);
       return;
     }
     enterFrom.copy(camera.position);
-    // Fly straight into the glass: end just past the orb's center, along the
-    // current view line, so the camera crosses the shell mid-whiteout.
-    const dir = camera.position.clone().sub(portal.group.position).normalize();
-    enterTo.copy(portal.group.position).addScaledVector(dir, 0.2);
-    window.setTimeout(() => navigate(portal), ENTER_DURATION * 1000 + 60);
+    // Fly straight into the glass: end just past the target's center, along
+    // the current view line, so the camera crosses the shell mid-whiteout.
+    if (moon) moon.group.getWorldPosition(enterLook);
+    else enterLook.copy(portal.group.position);
+    const dir = camera.position.clone().sub(enterLook).normalize();
+    enterTo.copy(enterLook).addScaledVector(dir, moon ? 0.05 : 0.2);
+    window.setTimeout(() => navigate(href), ENTER_DURATION * 1000 + 60);
   }
 
-  function navigate(portal: Portal) {
-    window.location.href = portal.def.href;
+  function navigate(href: string) {
+    window.location.href = href;
   }
+
+  // Back from a version restores this page from the bfcache mid-entry: clear
+  // the veil and the flight so the Nexus is live again.
+  window.addEventListener("pageshow", (event) => {
+    if (!event.persisted || !entering) return;
+    entering.uniforms.uEnter.value = 0;
+    entering.uniforms.uRimPower.value = 2.6;
+    entering.interior.object.scale.setScalar(1);
+    if (enteringMoon) {
+      enteringMoon.uniforms.uEnter.value = 0;
+      enteringMoon.uniforms.uRimPower.value = 2.2;
+    }
+    entering = null;
+    enteringMoon = null;
+    veil.style.transition = "";
+    veil.style.opacity = "0";
+    document.getElementById("nexus-labels")?.removeAttribute("data-entering");
+    document.body.removeAttribute("data-entering");
+    clock.getDelta();
+  });
 
   const clock = new THREE.Clock();
 
@@ -1844,12 +2160,18 @@ function init() {
       const t = Math.min((elapsed - enterStart) / ENTER_DURATION, 1);
       const eased = easeInOutCubic(t);
       camera.position.lerpVectors(enterFrom, enterTo, eased);
-      camera.lookAt(entering.group.position);
-      // The rim band widens until the whole shell glows white, and the little
-      // world expands to meet the camera.
-      entering.uniforms.uEnter.value = eased;
-      entering.uniforms.uRimPower.value = THREE.MathUtils.lerp(2.6, 1.0, eased);
-      entering.interior.object.scale.setScalar(1 + eased * 1.6);
+      if (enteringMoon) {
+        camera.lookAt(enterLook);
+        enteringMoon.uniforms.uEnter.value = eased;
+        enteringMoon.uniforms.uRimPower.value = THREE.MathUtils.lerp(2.2, 1.0, eased);
+      } else {
+        camera.lookAt(entering.group.position);
+        // The rim band widens until the whole shell glows white, and the
+        // little world expands to meet the camera.
+        entering.uniforms.uEnter.value = eased;
+        entering.uniforms.uRimPower.value = THREE.MathUtils.lerp(2.6, 1.0, eased);
+        entering.interior.object.scale.setScalar(1 + eased * 1.6);
+      }
       if (t > 0.55) {
         veil.style.opacity = String((t - 0.55) / 0.45);
       }
@@ -1880,6 +2202,21 @@ function init() {
       portal.interiorTime += dt * motion * (1 + portal.hover * 1.5);
       portal.interior.update(portal.interiorTime);
 
+      // Moons circle beneath the orb; a hovered or focused moon stops the
+      // ring so it can be read and clicked, and brightens.
+      if (portal.moons.length) {
+        const isActive = index === activeIndex;
+        const highlighted = isActive ? (hoveredMoon >= 0 ? hoveredMoon : focusedMoon) : -1;
+        if (highlighted < 0 && !entering) portal.moonAngle += dt * MOON_SPEED * motion;
+        placeMoons(portal);
+        portal.moons.forEach((moon, moonIndex) => {
+          const target = moonIndex === highlighted ? 1 : 0;
+          moon.hover = reducedMotion ? target : moon.hover + (target - moon.hover) * Math.min(dt * 8, 1);
+          moon.uniforms.uHover.value = moon.hover;
+          moon.group.scale.setScalar(1 + moon.hover * 0.3);
+        });
+      }
+
       // Keep the HTML label pinned under the orb.
       const label = labels.get(portal.def.name);
       if (label) {
@@ -1889,20 +2226,32 @@ function init() {
         const x = (anchor.x * 0.5 + 0.5) * window.innerWidth;
         const y = (-anchor.y * 0.5 + 0.5) * window.innerHeight;
         label.style.transform = `translate(-50%, 0) translate(${x}px, ${y}px)`;
+        const list = moonLists.get(portal.def.name);
+        if (list) {
+          list.style.transform = `translate(-50%, 0) translate(${x}px, ${y + moonListOffset}px)`;
+          moonLinks(portal.def.name).forEach((link, moonIndex) => {
+            const lit = index === activeIndex && moonIndex === hoveredMoon;
+            link.toggleAttribute("data-lit", lit);
+          });
+        }
       }
     });
 
     // Only the settled front shell participates in hover or entry raycasts.
     if (!entering && !dragging && pointerActive && isOrbitSettled()) {
       raycaster.setFromCamera(pointerTarget, camera);
-      const hits = raycaster.intersectObject(portals[activeIndex].shell);
+      // A moon in front of the glass wins over the orb behind it.
+      const nextMoon = nearestMoonHit(portals[activeIndex].moons);
+      const hits = nextMoon >= 0 ? [] : raycaster.intersectObject(portals[activeIndex].shell);
       const nextHovered = hits.length ? activeIndex : -1;
-      if (nextHovered !== hoveredIndex) {
+      if (nextHovered !== hoveredIndex || nextMoon !== hoveredMoon) {
         hoveredIndex = nextHovered;
-        renderer.domElement.style.cursor = hoveredIndex >= 0 ? "pointer" : "grab";
+        hoveredMoon = nextMoon;
+        renderer.domElement.style.cursor = hoveredIndex >= 0 || hoveredMoon >= 0 ? "pointer" : "grab";
       }
-    } else if (hoveredIndex !== -1) {
+    } else if (hoveredIndex !== -1 || hoveredMoon !== -1) {
       hoveredIndex = -1;
+      hoveredMoon = -1;
       renderer.domElement.style.cursor = "grab";
     }
 
