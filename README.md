@@ -12,6 +12,7 @@ Multi-version portfolio site. Scroll is the canonical default; visitors can expl
 | `version/e-2d-game` | Counter boxing game | seanmh-2d-game.pages.dev |
 | `version/f-blueprint` | Living systems map at `/systems/` | seanmh-blueprint.pages.dev |
 | `version/g-travel` | Interactive travel atlas at `/travel/` | seanmh-travel.pages.dev |
+| `version/i-films` | Short films drawn from life at `/films/` | seanmh-films.pages.dev |
 | `version/h-gaudi` | Casa Higgins — a seven-room house for things made | seanmh-gaudi.pages.dev |
 
 ## Quick Start
@@ -44,6 +45,8 @@ selection so they never vary with a visitor's preference:
 |------|-----------|
 | `/card` | 302 to `/?v=b-card`. The short URL printed on stickers and business cards. |
 | `/systems/` | Proxies the Blueprint Pages project, prefix stripped. |
+| `/travel/` | Proxies the G Travel Pages project, prefix stripped. |
+| `/films/` | Proxies the Films Pages project, prefix stripped. MP4 `Range` requests pass through. |
 | `/api/*` | Answered by the Worker directly: `/api/ask`, `/api/score`, `/api/score/boxing`. |
 | `/robots.txt`, `/sitemap-index.xml`, `/sitemap-0.xml` | Served at the edge. |
 

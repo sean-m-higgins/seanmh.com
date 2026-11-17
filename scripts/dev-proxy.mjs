@@ -14,6 +14,7 @@
 //        f-blueprint: npm run preview -- --port 4327
 //        g-travel:   npm run preview -- --port 4328
 //        h-gaudi:    npm run preview -- --port 4329
+//        i-films:    npm run preview -- --port 4330
 //   2. node scripts/dev-proxy.mjs
 //   3. Open http://localhost:8787 in Chrome/Edge and use the dial.
 import http from "node:http";
@@ -41,6 +42,7 @@ const ROUTABLE = [
 const PATH_APPS = [
   { name: "f-blueprint", origin: "http://localhost:4327", prefix: "/systems" },
   { name: "g-travel", origin: "http://localhost:4328", prefix: "/travel" },
+  { name: "i-films", origin: "http://localhost:4330", prefix: "/films" },
 ];
 const TRAVEL_VERSION_ALIAS = "g-travel";
 

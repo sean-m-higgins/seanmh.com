@@ -41,6 +41,7 @@ const GAME_2D = { name: 'e-2d-game', origin: 'https://seanmh-2d-game.pages.dev' 
 const PATH_APPS = [
   { name: 'f-blueprint', origin: 'https://seanmh-blueprint.pages.dev', prefix: '/systems' },
   { name: 'g-travel', origin: 'https://seanmh-travel.pages.dev', prefix: '/travel' },
+  { name: 'i-films', origin: 'https://seanmh-films.pages.dev', prefix: '/films' },
 ];
 const TRAVEL_VERSION_ALIAS = 'g-travel';
 
@@ -67,7 +68,7 @@ const CONTROL_ROUTES = new Map([
   }],
   ['/sitemap-index.xml', {
     type: 'application/xml; charset=utf-8',
-    body: '<?xml version="1.0" encoding="UTF-8"?>\n<sitemapindex xmlns="http://www.sitemaps.org/schemas/sitemap/0.9"><sitemap><loc>https://seanmh.com/sitemap-0.xml</loc></sitemap><sitemap><loc>https://seanmh.com/systems/sitemap-0.xml</loc></sitemap><sitemap><loc>https://seanmh.com/travel/sitemap-0.xml</loc></sitemap></sitemapindex>\n',
+    body: '<?xml version="1.0" encoding="UTF-8"?>\n<sitemapindex xmlns="http://www.sitemaps.org/schemas/sitemap/0.9"><sitemap><loc>https://seanmh.com/sitemap-0.xml</loc></sitemap><sitemap><loc>https://seanmh.com/systems/sitemap-0.xml</loc></sitemap><sitemap><loc>https://seanmh.com/travel/sitemap-0.xml</loc></sitemap><sitemap><loc>https://seanmh.com/films/sitemap-0.xml</loc></sitemap></sitemapindex>\n',
   }],
   ['/sitemap-0.xml', {
     type: 'application/xml; charset=utf-8',

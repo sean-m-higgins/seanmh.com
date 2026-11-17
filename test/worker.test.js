@@ -334,6 +334,55 @@ test('G Travel canonicalizes its root and rewrites origin redirects under /trave
   assert.equal(redirected.headers.get('Location'), 'https://seanmh.com/travel/norway-2026/?from=trip');
 });
 
+test('Films owns /films and its media independently of version selection', async (t) => {
+  const upstream = [];
+  const restore = mockFetch(async (url, init) => {
+    const range = new Headers(init?.headers).get('Range');
+    upstream.push({ url: String(url), range });
+    return new Response('films', {
+      status: range ? 206 : 200,
+      headers: {
+        'X-Robots-Tag': 'noindex',
+        'Set-Cookie': 'origin=value; Path=/',
+      },
+    });
+  });
+  t.after(restore);
+
+  const document = await worker.fetch(request('/films/grain/', {
+    headers: { Accept: 'text/html', Cookie: 'pv=b-card' },
+  }));
+  const media = await worker.fetch(request('/films/grain.mp4', {
+    headers: { Range: 'bytes=0-99', Cookie: 'pv=nexus' },
+  }));
+
+  assert.deepEqual(upstream.map((u) => u.url), [
+    'https://seanmh-films.pages.dev/grain/',
+    'https://seanmh-films.pages.dev/grain.mp4',
+  ]);
+  assert.equal(upstream[1].range, 'bytes=0-99');
+  assert.equal(document.headers.get('X-Portfolio-Version'), 'i-films');
+  assert.equal(document.headers.get('Set-Cookie'), null);
+  assert.equal(document.headers.get('X-Robots-Tag'), null);
+  assert.equal(media.status, 206);
+  assert.equal(media.headers.get('X-Portfolio-Version'), 'i-films');
+  assert.equal(media.headers.get('Set-Cookie'), null);
+});
+
+test('Films canonicalizes its root without touching an origin', async (t) => {
+  const restore = mockFetch(async () => {
+    throw new Error('canonical redirect must not reach an origin');
+  });
+  t.after(restore);
+
+  const canonical = await worker.fetch(request('/films', {
+    headers: { Accept: 'text/html', Cookie: 'pv=a-scroll' },
+  }));
+  assert.equal(canonical.status, 308);
+  assert.equal(canonical.headers.get('Location'), 'https://seanmh.com/films/');
+  assert.equal(canonical.headers.get('Set-Cookie'), null);
+});
+
 test('SEO control routes are stable and delegate discovery to path-app sitemaps', async (t) => {
   const restore = mockFetch(async () => {
     throw new Error('control routes must not reach an origin');
@@ -350,6 +399,7 @@ test('SEO control routes are stable and delegate discovery to path-app sitemaps'
   assert.match(indexBody, /https:\/\/seanmh\.com\/sitemap-0\.xml<\/loc>/);
   assert.match(indexBody, /https:\/\/seanmh\.com\/systems\/sitemap-0\.xml<\/loc>/);
   assert.match(indexBody, /https:\/\/seanmh\.com\/travel\/sitemap-0\.xml<\/loc>/);
+  assert.match(indexBody, /https:\/\/seanmh\.com\/films\/sitemap-0\.xml<\/loc>/);
 
   const sitemap = await worker.fetch(request('/sitemap-0.xml', {
     headers: { Cookie: 'pv=nexus' },
@@ -361,6 +411,7 @@ test('SEO control routes are stable and delegate discovery to path-app sitemaps'
   assert.match(body, /https:\/\/seanmh\.com\/<\/loc>/);
   assert.doesNotMatch(body, /\/systems\//);
   assert.doesNotMatch(body, /\/travel\//);
+  assert.doesNotMatch(body, /\/films\//);
 
   const robots = await worker.fetch(request('/robots.txt', {
     headers: { Cookie: 'pv=e-2d-game' },
