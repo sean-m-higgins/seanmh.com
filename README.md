@@ -30,8 +30,8 @@ See the **[Wiki](https://github.com/sean-m-higgins/seanmh.com/wiki)** for full d
 ## Router Worker
 
 The `main` branch owns the front routing Worker and local multi-version proxy.
-Blueprint and G Travel use stable `/systems/*` and `/travel/*` namespaces;
-`/?v=g-travel` is a convenience redirect to the canonical Travel path.
+Blueprint, G Travel and Films use stable `/systems/*`, `/travel/*` and `/films/*`
+namespaces;`/?v=g-travel` is a convenience redirect to the canonical Travel path.
 Use Node 22.12 or newer (see `.nvmrc`), then run `npm test` and
 `npm run check:shared`. Validate a deployment bundle with
 `npx wrangler deploy --dry-run` before deploying.

@@ -141,7 +141,7 @@
 <body>
 
 <h1>Films — <em>from life</em></h1>
-<p class="muted stamp">Design plan, September 21, 2026. Temporary feature plan for <code>version/films</code> (created 2026-11-14; worktree <code>wt/films</code>).</p>
+<p class="muted stamp">Design plan, September 21, 2026. Temporary feature plan for <code>version/i-films</code> (created 2026-11-14; worktree <code>wt/i-films</code>).</p>
 
 <div class="callout">
   <p><strong>Goal:</strong> a series of short animated films, drawn by a frontier model the way the Kengo Works films are drawn, but drawn from Sean's own photos. It starts with three:</p>
@@ -387,7 +387,7 @@ export default {
   <li><strong>Budget.</strong> Each MP4 must be <strong>20 MiB or less</strong> (Pages rejects files over 25 MiB), and the render script enforces it. Only release renders are committed; drafts stay in gitignored <code>renders/</code>. If a film cannot fit at acceptable quality, the fallback is an R2 bucket behind the Worker. That is a decision to make once the pipeline proof has measured the real bitrate, not a default.</li>
 </ol>
 
-<h2>Architecture — <code>version/films</code> at <code>/films/*</code></h2>
+<h2>Architecture — <code>version/i-films</code> at <code>/films/*</code></h2>
 
 <ul>
   <li><strong>Branch and stack.</strong> Astro, like its siblings. From g-travel it copies <code>base: '/films'</code>, <code>site: 'https://seanmh.com'</code>, the sitemap integration, the <code>noindex</code> header in <code>public/_headers</code>, and the <code>_redirects</code> contract (<code>wiki/Travel.md</code>, <code>wiki/Cloudflare-Worker.md</code>). The Pages project is <code>seanmh-films</code> and the dev port is 4330.</li>
@@ -421,7 +421,7 @@ export default {
   </li>
   <li><strong>Main-repo integration</strong>, done at release:
     <ul>
-      <li><code>worker.js:40-43</code>: add <code>{ name: 'films', origin: 'https://seanmh-films.pages.dev', prefix: '/films' }</code>.</li>
+      <li><code>worker.js:40-43</code>: add <code>{ name: 'i-films', origin: 'https://seanmh-films.pages.dev', prefix: '/films' }</code>.</li>
       <li><code>worker.js:69</code>: add the films sitemap to the index string.</li>
       <li><code>scripts/dev-proxy.mjs:41-44</code>: add port 4330.</li>
       <li><code>test/worker.test.js</code>: copy the Travel block (280–335) and extend the SEO test (337–369).</li>
@@ -448,7 +448,7 @@ export default {
 <ul>
   <li><strong>Catalog</strong> (<code>wt/nexus/src/content/versions.ts</code>): append an entry, so Scroll stays in front on load, and add <code>"films"</code> to the <code>interior</code> union. Also add an optional <code>children</code> field. It holds a static copy of the films catalog, which can drift from the original: update both when a film ships.
 <pre><code>{ name: "films", label: "Films", glyph: "▷", href: "/films/",
-  branch: "version/films", blurb: "short films drawn from life",
+  branch: "version/i-films", blurb: "short films drawn from life",
   color: "#d98cff", interior: "films",
   children: [{ slug: "grain", label: "grain", href: "/films/grain/", color: "…" }] }</code></pre>
     <code>#d98cff</code> sits at about 280°, in the unused violet–magenta gap. Check it in the scene against Scroll (<code>#7c83ff</code>) and the saucer's violet ring (<code>#9f8cff</code>).
@@ -495,7 +495,7 @@ export default {
 <ol class="todo">
   <li>
     <span class="priority">1</span><strong>Toolkit and pipeline proof.</strong>
-    Create <code>version/films</code> and its worktree. Build the drawing toolkit, the film runtime, the preview
+    Create <code>version/i-films</code> and its worktree. Build the drawing toolkit, the film runtime, the preview
     page and <code>render-film.mjs</code>. Render a 5-second test film: a pencil line crossing paper, then a
     signature.
     <p class="criteria"><strong>Done when:</strong> the test film renders to an MP4 that plays in Chrome and Safari. Rendering the same frame twice gives the same pixel hash. The bitrate with boiling lines is measured and projected against the 20 MiB budget for a 60-second film, which decides whether R2 is needed.</p>
@@ -508,7 +508,8 @@ export default {
   <li>
     <span class="priority">3</span><strong>The <code>/films/</code> wall and its release.</strong>
     Build the wall template and the catalog. Sean creates the git-connected Pages project <code>seanmh-films</code> in the dashboard (<code>wrangler</code> can only create direct-upload projects). Verify the origin, then land the Worker path app, the sitemap and the tests, then deploy.
-    <p class="criteria"><strong>Done when:</strong> <code>npm test</code> passes. <code>/films/</code> and <code>/films/grain/</code> return 200 with <code>X-Portfolio-Version: films</code> and no <code>pv</code> cookie. A seek request for the MP4 returns 206. The page works at 390 px. The deployment IDs and the rollback target are recorded.</p>
+    <p class="criteria"><strong>Done when:</strong> <code>npm test</code> passes. <code>/films/</code> and <code>/films/grain/</code> return 200 with <code>X-Portfolio-Version: i-films</code> and no <code>pv</code> cookie. A seek request for the MP4 returns 206. The page works at 390 px. The deployment IDs and the rollback target are recorded.</p>
+    <p class="criteria"><strong>Status, 2026-11-17:</strong> the wall, the catalog and the Pages project are live. The Worker path app, sitemap and tests landed in <code>main</code> commit <code>59f6099</code> and were deployed; <code>/films/</code> and <code>/films/grain/</code> return 200 with <code>X-Portfolio-Version: i-films</code> and no <code>pv</code>. <strong class="blocked">Open:</strong> a seek request returns 200, not 206, because the Pages origin ignores <code>Range</code> for the MP4s (the Worker forwards it), so R2 is back on the table. The Worker deployment ID was not recorded.</p>
   </li>
   <li>
     <span class="priority">4</span><strong>Nexus Films orb and moons.</strong>
@@ -517,7 +518,7 @@ export default {
   </li>
   <li>
     <span class="priority later">5</span><strong><code>gesso</code></strong>, then <span class="priority later">6</span><strong><code>ramp</code></strong>.
-    The same pipeline. Each film adds a catalog entry on <code>version/films</code> and a <code>children</code> entry in the Nexus.
+    The same pipeline. Each film adds a catalog entry on <code>version/i-films</code> and a <code>children</code> entry in the Nexus.
     <p class="criteria"><strong>Done when:</strong> the wall reads <code>03/03</code> and there are three moons.</p>
   </li>
   <li>

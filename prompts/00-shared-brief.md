@@ -137,7 +137,7 @@ from these images; check it against the photos yourself.
 
 ## 6. Workflow, with gates (do not skip a gate)
 
-0. **If `version/films` does not exist yet**, do films-plan.html step 1
+0. **If `version/i-films` does not exist yet**, do films-plan.html step 1
    first: create the branch and worktree with the `new-version` skill, build
    the drawing toolkit, the deterministic film runtime (time comes from the
    frame index, never `requestAnimationFrame`), the local preview page with a
