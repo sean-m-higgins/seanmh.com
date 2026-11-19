@@ -146,7 +146,7 @@
 <div class="callout">
   <p><strong>Goal:</strong> a short 3D film about Sunny, Sean's cat: one day in the apartment, from the first patch of morning sun to a nap in the last one. Every beat is a moment that is really in Sean's videos, rebuilt as a small felt-and-card miniature and shot like stop motion.</p>
   <p><strong>What is different from films 01–03:</strong> those are drawn in JavaScript on a canvas. This one is modelled, lit and animated in <strong>Blender 5.3</strong>, entirely from Python, headless. Nothing is sculpted or keyframed by hand in the Blender UI, so the film is still code: one command rebuilds every frame.</p>
-  <p class="warning" id="status"><strong>Status (2026-11-18):</strong> steps 1–7 done. The film is rendered: 62.5 s, 1080², 7.5 MiB, with a poster and a 4 s loop, in <code>wt/i-films/public/</code>. It is in the catalog locally. Not committed, not pushed. Sean has not yet watched it: the storyboard and style-frame gates were run straight through, as asked, so his review is the next step.</p>
+  <p class="done" id="status"><strong>Status (2026-11-19):</strong> released. All eight steps are done. The film is live at <a href="https://seanmh.com/films/sunny/"><code>seanmh.com/films/sunny/</code></a> as film 04: 62.5 s, 1080², 7.5 MiB, with a poster and a 4 s loop (<code>version/i-films</code> <code>c162f22</code>, after the 2026-11-19 look pass). The Nexus Films orb has its fourth moon, and Scroll ends with the feather-leap loop and a link to the film (<code>version/a-scroll</code> <code>f4be0de</code>).</p>
 </div>
 
 <h2>The inspiration</h2>
@@ -240,21 +240,22 @@
 
 <h2>Steps</h2>
 <ol class="todo">
-  <li><span class="priority">1</span><strong>References and this doc.</strong>
+  <li><span class="priority done">1</span><strong>References and this doc.</strong>
     <p class="criteria"><strong>Done when:</strong> every video has a contact sheet in <code>film-refs/sunny/</code> and the beats above cite them.</p></li>
-  <li><span class="priority">2</span><strong>Storyboard</strong> at <code>wt/i-films/incoming/sunny/storyboard.html</code> (gitignored).
+  <li><span class="priority done">2</span><strong>Storyboard</strong> at <code>wt/i-films/incoming/sunny/storyboard.html</code> (gitignored).
     <p class="criteria"><strong>Done when:</strong> each scene has a duration, a camera, a light, and its source.</p></li>
-  <li><span class="priority">3</span><strong>Sunny.</strong> Model, rig, coat, eyes. Then the pose library: sit, walk, trot, run, crouch, leap, flop, stretch, curl.
+  <li><span class="priority done">3</span><strong>Sunny.</strong> Model, rig, coat, eyes. Then the pose library: sit, walk, trot, run, crouch, leap, flop, stretch, curl.
     <p class="criteria"><strong>Done when:</strong> a turnaround and a pose sheet read as this cat, not a cat.</p></li>
-  <li><span class="priority">4</span><strong>Style frames.</strong> Scene 1 in looks A, B and C.
+  <li><span class="priority done">4</span><strong>Style frames.</strong> Scene 1 in looks A, B and C.
     <p class="criteria"><strong>Done when:</strong> three stills are in <code>incoming/sunny/style-frames/</code> and one is chosen.</p></li>
-  <li><span class="priority">5</span><strong>Sets and scenes</strong>, one at a time, then the self-review contact sheet (start, middle and end of every scene).
+  <li><span class="priority done">5</span><strong>Sets and scenes</strong>, one at a time, then the self-review contact sheet (start, middle and end of every scene).
     <p class="criteria"><strong>Done when:</strong> Sunny's feet meet the floor, the light patch is in every scene, no frame shows a face, a logo or a real photo, and the last frame rhymes with the first.</p></li>
-  <li><span class="priority">6</span><strong>Release render.</strong> <code>public/sunny.mp4</code>, <code>sunny-poster.webp</code>, <code>sunny-loop.mp4</code>, <code>sunny-loop.gif</code>.
+  <li><span class="priority done">6</span><strong>Release render.</strong> <code>public/sunny.mp4</code>, <code>sunny-poster.webp</code>, <code>sunny-loop.mp4</code>, <code>sunny-loop.gif</code>.
     <p class="criteria"><strong>Done when:</strong> the MP4 is 1080², 24 fps, under 20 MiB, and plays through; the same frame renders to the same pixels twice.</p></li>
-  <li><span class="priority">7</span><strong>Catalog.</strong> Add <code>sunny</code> to <code>src/content/films.ts</code> so the wall reads <code>04/04</code>; update the films <code>README.md</code>.
+  <li><span class="priority done">7</span><strong>Catalog.</strong> Add <code>sunny</code> to <code>src/content/films.ts</code> so the wall reads <code>04/04</code>; update the films <code>README.md</code>.
     <p class="criteria"><strong>Done when:</strong> <code>npm run check</code>, <code>npm test</code> and <code>npm run build</code> pass.</p></li>
-  <li><span class="priority later">8</span><strong>Later, not in this pass:</strong> a fourth Nexus moon, and the commit and push (pushing <code>version/i-films</code> deploys, so Sean confirms).</li>
+  <li><span class="priority done">8</span><strong>Nexus moon and release:</strong> a fourth Nexus moon, and the commit and push (pushing <code>version/i-films</code> deploys, so Sean confirms).
+    <p class="criteria"><strong>Status:</strong> done 2026-11-19. The moon links to <code>/films/sunny/</code>, which now returns 200. The share loop also landed on Scroll as a coda below Contact.</p></li>
 </ol>
 
 <h2>Open questions for Sean</h2>

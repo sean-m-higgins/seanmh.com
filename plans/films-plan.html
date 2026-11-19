@@ -150,7 +150,8 @@
     <li>a canvas, built and then painted (a how-to);</li>
     <li>the Eagle Scout project, a portable wheelchair ramp, from idea to delivery (a story, not a how-to).</li>
   </ol>
-  <p class="warning"><strong>Status:</strong> designed, nothing built yet. The first thing to build is the pipeline proof (step 1 below).</p>
+  <p class="done"><strong>Status (2026-11-19):</strong> live. Four films are at <code>seanmh.com/films/</code>: the three above plus <code>sunny</code>, film 04, made in Blender (its own design doc is <code>sunny-film-plan.html</code>). The Worker routes <code>/films/*</code>, the Nexus has the Films orb with a moon per film, and Casa Higgins links grain, gesso and ramp from their rooms. Scroll ends with a loop from sunny.</p>
+  <p class="warning"><strong>Still open:</strong> MP4 seek requests get a full <code>200</code>, not <code>206</code> (step 3), and the Blueprint inventory entry was never added. When those are settled or moved to <code>plan.html</code>, this file can be retired as described below.</p>
   <p><strong>Temporary:</strong> this file exists only while the work is being done. When it ships, the durable facts go to the wiki (a new <code>Films.md</code>, plus updates to <code>Nexus.md</code>), the open items go to <code>plan.html</code>, and this file is deleted. <code>plan.html</code> stays the only standing plan.</p>
 </div>
 
@@ -182,7 +183,7 @@
   from photos of real things Sean made.
 </p>
 
-<h2>What exists today</h2>
+<h2>What existed when this was planned (September 21)</h2>
 <div class="status-grid">
   <div class="status-card">
     <h3 class="done">✓ One Casa Higgins room per film</h3>
@@ -494,36 +495,42 @@ export default {
 
 <ol class="todo">
   <li>
-    <span class="priority">1</span><strong>Toolkit and pipeline proof.</strong>
+    <span class="priority done">1</span><strong>Toolkit and pipeline proof.</strong>
     Create <code>version/i-films</code> and its worktree. Build the drawing toolkit, the film runtime, the preview
     page and <code>render-film.mjs</code>. Render a 5-second test film: a pencil line crossing paper, then a
     signature.
     <p class="criteria"><strong>Done when:</strong> the test film renders to an MP4 that plays in Chrome and Safari. Rendering the same frame twice gives the same pixel hash. The bitrate with boiling lines is measured and projected against the 20 MiB budget for a 60-second film, which decides whether R2 is needed.</p>
+    <p class="criteria"><strong>Status:</strong> done 2026-11-14. The measured facts (determinism, speed, bitrate, chroma) are in the films branch <code>README.md</code>; holding the shading made R2 unnecessary for the budget.</p>
   </li>
   <li>
-    <span class="priority">2</span><strong><code>grain</code>.</strong>
+    <span class="priority done">2</span><strong><code>grain</code>.</strong>
     Intake, photo log and facts, storyboard, style frames, then the film and the render.
     <p class="criteria"><strong>Done when:</strong> Sean has approved the storyboard and the style frames, every fact on screen is confirmed, and the final MP4 is under budget with its poster and chapters track.</p>
+    <p class="criteria"><strong>Status:</strong> done. 12 scenes, 55.5 s, 16.9 MiB; redrawn 2026-11-16 on a pencil engine that works from light.</p>
   </li>
   <li>
     <span class="priority">3</span><strong>The <code>/films/</code> wall and its release.</strong>
     Build the wall template and the catalog. Sean creates the git-connected Pages project <code>seanmh-films</code> in the dashboard (<code>wrangler</code> can only create direct-upload projects). Verify the origin, then land the Worker path app, the sitemap and the tests, then deploy.
     <p class="criteria"><strong>Done when:</strong> <code>npm test</code> passes. <code>/films/</code> and <code>/films/grain/</code> return 200 with <code>X-Portfolio-Version: i-films</code> and no <code>pv</code> cookie. A seek request for the MP4 returns 206. The page works at 390 px. The deployment IDs and the rollback target are recorded.</p>
     <p class="criteria"><strong>Status, 2026-11-17:</strong> the wall, the catalog and the Pages project are live. The Worker path app, sitemap and tests landed in <code>main</code> commit <code>59f6099</code> and were deployed; <code>/films/</code> and <code>/films/grain/</code> return 200 with <code>X-Portfolio-Version: i-films</code> and no <code>pv</code>. <strong class="blocked">Open:</strong> a seek request returns 200, not 206, because the Pages origin ignores <code>Range</code> for the MP4s (the Worker forwards it), so R2 is back on the table. The Worker deployment ID was not recorded.</p>
+    <p class="criteria"><strong>Status, 2026-11-19:</strong> still open, unchanged: <code>/films/sunny.mp4</code> also answers a <code>Range</code> request with the full file. Of the main-repo integration list above, the README row is done and the Blueprint inventory entry is not.</p>
   </li>
   <li>
-    <span class="priority">4</span><strong>Nexus Films orb and moons.</strong>
+    <span class="priority done">4</span><strong>Nexus Films orb and moons.</strong>
     The back-button fix first, then the catalog entry, <code>buildFilms</code>, the moons, the label links, the fallbacks and the wiki.
     <p class="criteria"><strong>Done when:</strong> the moon count comes from <code>children</code>, so the orb ships with one moon. A moon can be reached by mouse, keyboard and touch. Back from a film returns to a live Nexus. The no-WebGL list shows the films. At 9 orbs the front orb is no smaller than the layout formula predicts (about 0.835 scale).</p>
+    <p class="criteria"><strong>Status:</strong> done 2026-11-17 (<code>version/nexus</code> <code>ba31ae0</code>), including the back-button fix. The orb has four moons (grain, gesso, ramp, sunny), each linking to its live film page.</p>
   </li>
   <li>
-    <span class="priority later">5</span><strong><code>gesso</code></strong>, then <span class="priority later">6</span><strong><code>ramp</code></strong>.
+    <span class="priority done">5</span><strong><code>gesso</code></strong>, then <span class="priority done">6</span><strong><code>ramp</code></strong>.
     The same pipeline. Each film adds a catalog entry on <code>version/i-films</code> and a <code>children</code> entry in the Nexus.
     <p class="criteria"><strong>Done when:</strong> the wall reads <code>03/03</code> and there are three moons.</p>
+    <p class="criteria"><strong>Status:</strong> done. gesso is 17 scenes, 74 s; ramp is 18 scenes, 89 s. A fourth film, <code>sunny</code>, followed outside this plan (<code>sunny-film-plan.html</code>) and was released 2026-11-19, so the wall reads <code>04/04</code> and there are four moons.</p>
   </li>
   <li>
-    <span class="priority later">7</span><strong>Casa Higgins links</strong>, gated on h-gaudi's release.
+    <span class="priority done">7</span><strong>Casa Higgins links</strong>, gated on h-gaudi's release.
     <p class="criteria"><strong>Done when:</strong> each of the three rooms links to its film, and no link was published before its target was live.</p>
+    <p class="criteria"><strong>Status:</strong> done 2026-11-16 on <code>version/h-gaudi</code>. The Woodshop, Art Room and Eagle rooms each show a looping preview (<code>FilmPreview.astro</code>) with a “Watch the full film” link to <code>/films/grain/</code>, <code>/films/gesso/</code> and <code>/films/ramp/</code>. This went in as a component rather than the planned <code>film</code> field on <code>making.ts</code>.</p>
   </li>
 </ol>
 

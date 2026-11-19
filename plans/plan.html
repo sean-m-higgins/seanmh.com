@@ -152,6 +152,10 @@
     <p><code>version/g-travel</code> now has an uncommitted, buildable path app plus local Worker/proxy/Nexus/Blueprint/sitemap integration. The actual route, photo edit, final archive/privacy verification, browser QA, durable wiki documentation, commit, and deployment remain.</p>
   </div>
   <div class="status-card">
+    <h3 class="done">✓ Films live at /films/</h3>
+    <p>Version I, <em>from life</em>: four short films (grain, gesso, ramp, sunny) on the path-owned <code>/films/*</code>, with Nexus moons, Casa Higgins room links, and a sunny loop on Scroll. MP4 seek requests still get a full 200; see Version I below.</p>
+  </div>
+  <div class="status-card">
     <h3 class="blocked">! Reliability backlog</h3>
     <p>Concurrency-safe storage, Halfpipe correctness/tests, Nexus failure handling, API timeout/consolidation, CI, and lifecycle/accessibility work remain open.</p>
   </div>
@@ -188,7 +192,7 @@
   </thead>
   <tbody>
     <tr><td>Homepage routing</td><td><code>VERSIONS</code> contains a-scroll, b-card, and c-terminal; a-scroll is the only anonymous default. Nexus and both games belong in manual-only <code>ROUTABLE</code>.</td></tr>
-    <tr><td>Path-owned content</td><td>Blueprint owns <code>/systems/*</code>. Travel will own <code>/travel/*</code>. Resolve path apps and site-wide control files before version cookies, strip the public prefix upstream, rewrite same-origin redirects, and never let a path app alter <code>pv</code>.</td></tr>
+    <tr><td>Path-owned content</td><td>Blueprint owns <code>/systems/*</code>. Travel will own <code>/travel/*</code>. Films owns <code>/films/*</code>. Resolve path apps and site-wide control files before version cookies, strip the public prefix upstream, rewrite same-origin redirects, and never let a path app alter <code>pv</code>.</td></tr>
     <tr><td>Shared content</td><td>The content branch is canonical for shared profile facts and the switcher kit. a-scroll's expanded content schema is a documented manual-port exception.</td></tr>
     <tr><td>Progressive enhancement</td><td>Navigation and meaningful content must survive unsupported View Transitions, reduced motion, disabled JavaScript, denied storage, and unavailable WebGL.</td></tr>
     <tr><td>Indexing</td><td>The clean apex profile is the canonical identity. Similar profile presentations may consolidate to it; materially distinct experiences must not claim the résumé homepage as equivalent. Direct Pages origins are secondary and should be noindex without leaking that signal through the Worker.</td></tr>
@@ -370,6 +374,10 @@
 <h2>Version H — Casa Higgins</h2>
 <p><code>version/h-gaudi</code> lives in <code>wt/h-gaudi</code>. Seven architectural rooms translate Gaudí's natural geometry, ceramic craft, and light into a personal portfolio, informed by the Kengo Works survey in <code>.inspiration</code>. Local implementation includes catenary interaction, deterministic mosaic export, shared-content checks, Worker/proxy routing, Nexus-only discovery, a Nexus miniature, and Blueprint inventory updates. Casa Higgins is deliberately absent from the shared version switcher.</p>
 <p>Design and verification records live on H under <code>docs/</code>; durable operating information is in <code>wiki/Gaudi.md</code>. Released September 21, 2026: the Pages origin is healthy and Worker version <code>035922bc-9196-4180-ae65-3c9e0c9ec1db</code> routes <code>/?v=h-gaudi</code> to it. Casa Higgins remains Nexus-discovered rather than a shared-switcher choice, and <code>a-scroll</code> remains canonical.</p>
+<h2>Version I — Films</h2>
+<p><code>version/i-films</code> lives in <code>wt/i-films</code>. <em>from life</em> is a series of short silent films, each drawn entirely in code from Sean's own photos and videos and shown on a museum-wall page per film. grain, gesso and ramp are drawn on a canvas in JavaScript; sunny is built and rendered in Blender from Python. Every MP4 stays within 20 MiB. Durable operating information is in <code>wiki/Films.md</code>; the temporary execution plans are <code>plans/films-plan.html</code> and <code>plans/sunny-film-plan.html</code>.</p>
+<p>Released November 17, 2026: the <code>seanmh-films</code> Pages origin is git-connected and the Worker routes <code>/films/*</code> to it (<code>main</code> <code>59f6099</code>; the Worker deployment ID was not recorded). sunny followed on November 19. The Nexus Films orb carries one moon per film, the Casa Higgins Woodshop, Art Room and Eagle rooms link to grain, gesso and ramp, and Scroll ends with a sunny loop linking to <code>/films/sunny/</code>.</p>
+<p>Open: the Pages origin answers an MP4 <code>Range</code> request with a full <code>200</code>, not <code>206</code>, so every view downloads the whole file and seeking and Safari playback need checking; decide between R2 behind the Worker and a Worker-side range response. The Blueprint inventory has no Films entry yet.</p>
 <p class="muted">Do not create another standing plan file. Update this document as work changes state, and move durable implementation facts into the wiki before deleting any temporary execution notes.</p>
 
 </body>

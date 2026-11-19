@@ -22,7 +22,7 @@ One repo, one branch per version, each checked out as a worktree under
 | `version/f-blueprint` | `wt/f-blueprint` | Living systems map (path app) | `/systems/` | 4327 | Blueprint |
 | `version/g-travel` | `wt/g-travel` | Travel atlas + globe (path app) | `/travel/` | 4328 | Travel |
 | `version/h-gaudi` | `wt/h-gaudi` | Casa Higgins, seven-room house | `/?v=h-gaudi` | 4329 | Gaudi |
-| `version/i-films` | `wt/i-films` | Short films drawn from life (path app) | `/films/` | 4330 | — |
+| `version/i-films` | `wt/i-films` | Short films drawn from life (path app) | `/films/` | 4330 | Films |
 
 Routing truth lives in `worker.js` (`VERSIONS`, `NEXUS`, `GAME`, `GAME_2D`,
 `PATH_APPS`) and is mirrored by `scripts/dev-proxy.mjs`. Only `VERSIONS` can be
