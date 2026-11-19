@@ -47,7 +47,7 @@ export const regions: readonly SystemRegion[] = [
     number: "01",
     title: "Experience layer",
     summary:
-      "Nine expressions of one portfolio, each with a deliberate audience, interaction model, and fallback posture, including Casa Higgins: a Gaudí-inspired architectural portrait.",
+      "Ten expressions of one portfolio, each with a deliberate audience, interaction model, and fallback posture, including Casa Higgins: a Gaudí-inspired architectural portrait.",
   },
   {
     id: "edge",
@@ -130,7 +130,7 @@ export const nodes: readonly SystemNode[] = [
     label: "path → choice → cookie → default",
     summary: "A clear precedence rule prevents accidental experience drift.",
     detail:
-      "Blueprint and G Travel use invariant path namespaces. For the portfolio root, an explicit visitor choice wins over a valid session preference; without either, Scroll is always served.",
+      "Blueprint, G Travel, and Films use invariant path namespaces. For the portfolio root, an explicit visitor choice wins over a valid session preference; without either, Scroll is always served.",
     decisions: [
       "Do not place path-owned apps in the preference cookie.",
       "Keep invalid controls away from upstream origins.",
@@ -169,10 +169,10 @@ export const nodes: readonly SystemNode[] = [
     region: "experience",
     code: "EXP.02",
     title: "Opt-in destinations",
-    label: "Nexus · Games · Blueprint · Travel",
-    summary: "Discovery, play, systems, and travel demonstrate range without hijacking the landing page.",
+    label: "Nexus · Games · Blueprint · Travel · Films",
+    summary: "Discovery, play, systems, travel, and film demonstrate range without hijacking the landing page.",
     detail:
-      "Nexus maps the portfolio as miniature worlds. Halfpipe and Counter are complete arcade loops, Blueprint documents the architecture, and G Travel turns journeys into an interactive atlas. None replaces the canonical first-visit portfolio.",
+      "Nexus maps the portfolio as miniature worlds. Halfpipe and Counter are complete arcade loops, Blueprint documents the architecture, G Travel turns journeys into an interactive atlas, and Films shows short films made entirely in code from Sean's own photos and videos. None replaces the canonical first-visit portfolio.",
     decisions: [
       "Make playful work discoverable, never mandatory.",
       "Keep every game playable when storage or APIs fail.",
@@ -183,6 +183,7 @@ export const nodes: readonly SystemNode[] = [
       { label: "Counter source", href: "https://github.com/sean-m-higgins/seanmh.com/tree/version/e-2d-game" },
       { label: "Blueprint source", href: "https://github.com/sean-m-higgins/seanmh.com/tree/version/f-blueprint" },
       { label: "G Travel source", href: "https://github.com/sean-m-higgins/seanmh.com/tree/version/g-travel" },
+      { label: "Films source", href: "https://github.com/sean-m-higgins/seanmh.com/tree/version/i-films" },
     ],
     href: "/?v=nexus",
     position: { x: 80, y: 20 },
