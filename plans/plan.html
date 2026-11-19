@@ -149,7 +149,7 @@
   </div>
   <div class="status-card">
     <h3 class="done">✓ Travel live at /travel/</h3>
-    <p>Routed since August 28, 2026 and extended since: four journeys with confirmed routes, journals and photo galleries, the archived Norway plan, and a United States places layer. Automated browser coverage and a stale Travel wiki page remain; see Version G below.</p>
+    <p>Routed since August 28, 2026 and extended since: four journeys with confirmed routes, journals and photo galleries, the archived Norway plan, and a United States places layer. Automated browser coverage and an image-rights check remain; see Version G below.</p>
   </div>
   <div class="status-card">
     <h3 class="done">✓ Films live at /films/</h3>
@@ -298,12 +298,11 @@
 <ul>
   <li>All four journeys (Spain 2014, Spain 2025, France 2026, Norway 2026) have confirmed, published routes, journals, and photo galleries with a keyboard-accessible <code>&lt;dialog&gt;</code> lightbox.</li>
   <li>The Norway plan ships as a sanitized, self-contained HTML archive and a PDF; tests check both and that no private planning details remain.</li>
-  <li>A United States places layer (42 places across 25 states, September 20) shades each state visited. Its design doc is <code>plans/us-atlas-plan.html</code>.</li>
+  <li>A United States places layer (42 places across 25 states, September 20) shades each state visited. Its design, previously <code>plans/us-atlas-plan.html</code>, is folded into <code>wiki/Travel.md</code>.</li>
   <li>The edge sitemap lists the landing page and every journal and gallery. The 20 Travel tests cover globe maths, data validation, the archive, and the publication gates.</li>
 </ul>
 <p>Open:</p>
 <ul>
-  <li><strong><code>wiki/Travel.md</code> is out of date.</strong> It still lists the Norway route as unconfirmed and every gallery as empty, and has nothing on the US places layer. Update it, then retire <code>us-atlas-plan.html</code> as that plan directs.</li>
   <li><strong>Browser coverage.</strong> There are no automated browser tests for mouse, touch and keyboard selection, the lightbox, reduced motion, WebGL failure, no-JS navigation, or the visibility pause.</li>
   <li><strong>Image rights.</strong> Confirm that every retained third-party image in the Norway archive is attributed or removed.</li>
 </ul>
@@ -345,9 +344,9 @@
 <p><code>version/h-gaudi</code> lives in <code>wt/h-gaudi</code>. Seven architectural rooms translate Gaudí's natural geometry, ceramic craft, and light into a personal portfolio, informed by the Kengo Works survey in <code>.inspiration</code>. Local implementation includes catenary interaction, deterministic mosaic export, shared-content checks, Worker/proxy routing, Nexus-only discovery, a Nexus miniature, and Blueprint inventory updates. Casa Higgins is deliberately absent from the shared version switcher.</p>
 <p>Design and verification records live on H under <code>docs/</code>; durable operating information is in <code>wiki/Gaudi.md</code>. Released September 21, 2026: the Pages origin is healthy and Worker version <code>035922bc-9196-4180-ae65-3c9e0c9ec1db</code> routes <code>/?v=h-gaudi</code> to it. Casa Higgins remains Nexus-discovered rather than a shared-switcher choice, and <code>a-scroll</code> remains canonical.</p>
 <h2>Version I — Films</h2>
-<p><code>version/i-films</code> lives in <code>wt/i-films</code>. <em>from life</em> is a series of short silent films, each drawn entirely in code from Sean's own photos and videos and shown on a museum-wall page per film. grain, gesso and ramp are drawn on a canvas in JavaScript; sunny is built and rendered in Blender from Python. Every MP4 stays within 20 MiB. Durable operating information, including the series grammar, the gated process and the guardrails, is in <code>wiki/Films.md</code>; session prompts are in <code>prompts/</code>. The series plan was retired on November 19, 2026; sunny's design doc remains as <code>plans/sunny-film-plan.html</code>.</p>
+<p><code>version/i-films</code> lives in <code>wt/i-films</code>. <em>from life</em> is a series of short silent films, each drawn entirely in code from Sean's own photos and videos and shown on a museum-wall page per film. grain, gesso and ramp are drawn on a canvas in JavaScript; sunny is built and rendered in Blender from Python. Every MP4 stays within 20 MiB. Durable operating information, including the series grammar, the gated process and the guardrails, is in <code>wiki/Films.md</code>; session prompts are in <code>prompts/</code>. The series plan and sunny's design doc were retired on November 19, 2026, their lasting content folded into the wiki.</p>
 <p>Released November 17, 2026: the <code>seanmh-films</code> Pages origin is git-connected and the Worker routes <code>/films/*</code> to it (<code>main</code> <code>59f6099</code>; the Worker deployment ID was not recorded). sunny followed on November 19. The Nexus Films orb carries one moon per film, the Casa Higgins Woodshop, Art Room and Eagle rooms link to grain, gesso and ramp, and Scroll ends with a sunny loop linking to <code>/films/sunny/</code>.</p>
-<p>Seeking: Cloudflare Pages ignores <code>Range</code>, so the Worker answers <code>GET /films/*.mp4</code> from the Workers Cache API, keyed by the origin's ETag, and the cache returns a 206 for the requested bytes (<code>main</code> <code>06db86d</code>). R2 was not needed and is not enabled on the account. Blueprint lists Films as its tenth experience (<code>version/f-blueprint</code> <code>dcd5818</code>). No Films items remain open.</p>
+<p>Seeking: Cloudflare Pages ignores <code>Range</code>, so the Worker answers <code>GET /films/*.mp4</code> from the Workers Cache API, keyed by the origin's ETag, and the cache returns a 206 for the requested bytes (<code>main</code> <code>06db86d</code>). R2 was not needed and is not enabled on the account. Blueprint lists Films as its tenth experience (<code>version/f-blueprint</code> <code>dcd5818</code>). No Films work remains open. Optional, for sunny's wall text: who the grey cat in the hallway is, anything Sean wants said about Sunny himself, and whether the red-orange painting over the bed is his own.</p>
 <p class="muted">Do not create another standing plan file. Update this document as work changes state, and move durable implementation facts into the wiki before deleting any temporary execution notes.</p>
 
 </body>
