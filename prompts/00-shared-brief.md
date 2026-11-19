@@ -20,11 +20,11 @@ is called **from life**, the drawing term for working from direct observation.
 | 03 | `ramp` | the Eagle Scout project, a portable wheelchair ramp | story | up to 90 s |
 
 The standing design for the series is
-`/Users/seanmhiggins/SoftLot/MyWebsite/seanmh.com/plans/films-plan.html`.
+`/Users/seanmhiggins/SoftLot/MyWebsite/seanmh.com/wiki/Films.md`.
 **Read it.** It has the decisions already made (silent, 1080², match-cut anchor,
-two registers, rationed words, signature), the render pipeline, the `/films/`
-wall, and the Nexus integration. This brief adds to that plan and does not
-contradict it. Where the two disagree, ask Sean.
+two registers, rationed words, signature), both render pipelines, the `/films/`
+wall, the release order, and the Nexus integration. This brief adds to it and
+does not contradict it. Where the two disagree, ask Sean.
 
 The bar is **world-class**: a film someone stops scrolling for, and a viewer
 cannot tell whether a person or a program drew it. Put your heart into it. It
@@ -61,7 +61,7 @@ model) and the hand-drawn toolkit spec (`mul32`, `wob`, `chaikin`,
 `hatchFill`, `aword`, `tornPath`) plus "Principles carried out of these sites".
 Cite the entry or principle a decision echoes.
 
-## 3. The series grammar (from films-plan.html, summarised)
+## 3. The series grammar (from wiki/Films.md, summarised)
 
 - **Frame.** 1080×1080, 24 fps, drawn on twos (the line "boils" by reseeding
   `wob` every second frame). Silent.
@@ -104,7 +104,7 @@ Cite the entry or principle a decision echoes.
   frame-render chain was smoke-tested: canvas page → PNG → ffmpeg MP4 →
   gifski GIF. **Launching Chrome once per frame costs ~1.5 s**, about 55 min
   for a 60 s film. Use one persistent headless Chrome over CDP (Node 22 has
-  a global `WebSocket`; no dependencies needed), as films-plan.html specifies.
+  a global `WebSocket`; no dependencies needed), as `scripts/render-film.mjs` does.
   Run only one Chrome at a time; 16 GB is the limit.
 - **Blender 5.3.0** at `/Applications/Blender.app/Contents/MacOS/Blender`
   (not on `PATH`). Verified headless with Python:
@@ -137,12 +137,11 @@ from these images; check it against the photos yourself.
 
 ## 6. Workflow, with gates (do not skip a gate)
 
-0. **If `version/i-films` does not exist yet**, do films-plan.html step 1
-   first: create the branch and worktree with the `new-version` skill, build
-   the drawing toolkit, the deterministic film runtime (time comes from the
-   frame index, never `requestAnimationFrame`), the local preview page with a
-   scrubber, and `scripts/render-film.mjs`. Prove it with the 5-second test
-   film and measure the bitrate against the budget.
+0. **The toolkit already exists** on `version/i-films` (`wt/i-films`): the
+   drawing toolkit, the deterministic film runtime (time comes from the frame
+   index, never `requestAnimationFrame`), the preview stage, and
+   `scripts/render-film.mjs`, plus the Blender pipeline sunny introduced. Read
+   that branch's `README.md` for the module contract and measured budgets.
 1. **Photo log and facts.** Check the photo log against the photos. Sean
    answered every open question on 2026-11-13; the answers are in each film
    prompt's Facts and "Facts status" sections. Ask Sean only about anything

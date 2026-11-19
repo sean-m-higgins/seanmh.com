@@ -148,12 +148,12 @@
     <p>The three opt-in experiences and the path-owned <code>/systems/</code> case study are implemented. Nexus and Counter's completed build specs were checked against their wiki pages during this consolidation.</p>
   </div>
   <div class="status-card">
-    <h3 class="warning">↻ G Travel in progress</h3>
-    <p><code>version/g-travel</code> now has an uncommitted, buildable path app plus local Worker/proxy/Nexus/Blueprint/sitemap integration. The actual route, photo edit, final archive/privacy verification, browser QA, durable wiki documentation, commit, and deployment remain.</p>
+    <h3 class="done">✓ Travel live at /travel/</h3>
+    <p>Routed since August 28, 2026 and extended since: four journeys with confirmed routes, journals and photo galleries, the archived Norway plan, and a United States places layer. Automated browser coverage and a stale Travel wiki page remain; see Version G below.</p>
   </div>
   <div class="status-card">
     <h3 class="done">✓ Films live at /films/</h3>
-    <p>Version I, <em>from life</em>: four short films (grain, gesso, ramp, sunny) on the path-owned <code>/films/*</code>, with Nexus moons, Casa Higgins room links, and a sunny loop on Scroll. MP4 seek requests still get a full 200; see Version I below.</p>
+    <p>Version I, <em>from life</em>: four short films (grain, gesso, ramp, sunny) on the path-owned <code>/films/*</code>, with Nexus moons, Casa Higgins room links, a sunny loop on Scroll, and a Blueprint entry. MP4 seeks are answered with 206 from the edge cache.</p>
   </div>
   <div class="status-card">
     <h3 class="blocked">! Reliability backlog</h3>
@@ -173,7 +173,7 @@
   <tbody>
     <tr>
       <td>Nexus glass-orb redesign</td>
-      <td><code>version/nexus</code> has typed destination data, layered fresnel spheres, individual miniature builders, fly-through entry, real-link fallbacks, and an evolved orbital carousel. Its current working tree adds G Travel as the seventh destination.</td>
+      <td><code>version/nexus</code> has typed destination data, layered fresnel spheres, individual miniature builders, fly-through entry, real-link fallbacks, and an evolved orbital carousel. The catalog now holds nine destinations; Travel, Casa Higgins and Films (with a moon per film) were added after this consolidation.</td>
       <td><code>wiki/Nexus.md</code> documents the destination catalog, orb construction, carousel controls, ambient field, entry behavior, routing, fallbacks, and local development.</td>
     </tr>
     <tr>
@@ -192,7 +192,7 @@
   </thead>
   <tbody>
     <tr><td>Homepage routing</td><td><code>VERSIONS</code> contains a-scroll, b-card, and c-terminal; a-scroll is the only anonymous default. Nexus and both games belong in manual-only <code>ROUTABLE</code>.</td></tr>
-    <tr><td>Path-owned content</td><td>Blueprint owns <code>/systems/*</code>. Travel will own <code>/travel/*</code>. Films owns <code>/films/*</code>. Resolve path apps and site-wide control files before version cookies, strip the public prefix upstream, rewrite same-origin redirects, and never let a path app alter <code>pv</code>.</td></tr>
+    <tr><td>Path-owned content</td><td>Blueprint owns <code>/systems/*</code>, Travel owns <code>/travel/*</code>, and Films owns <code>/films/*</code>. Resolve path apps and site-wide control files before version cookies, strip the public prefix upstream, rewrite same-origin redirects, and never let a path app alter <code>pv</code>.</td></tr>
     <tr><td>Shared content</td><td>The content branch is canonical for shared profile facts and the switcher kit. a-scroll's expanded content schema is a documented manual-port exception.</td></tr>
     <tr><td>Progressive enhancement</td><td>Navigation and meaningful content must survive unsupported View Transitions, reduced motion, disabled JavaScript, denied storage, and unavailable WebGL.</td></tr>
     <tr><td>Indexing</td><td>The clean apex profile is the canonical identity. Similar profile presentations may consolidate to it; materially distinct experiences must not claim the résumé homepage as equivalent. Direct Pages origins are secondary and should be noindex without leaking that signal through the Worker.</td></tr>
@@ -264,7 +264,7 @@
     <tr><td>Invalid <code>v</code> on another non-API method</td><td><code>400</code>, <code>no-store</code></td><td>Do not redirect/replay a request body.</td></tr>
     <tr><td>Unknown content path</td><td>Real <code>404</code> on every selected version</td><td>No canonical profile or ProfilePage markup.</td></tr>
     <tr><td><code>/api/*</code></td><td>Preserve existing JSON/SSE status and method contracts; <code>v</code> is not routing input</td><td><code>X-Robots-Tag: noindex</code>, <code>no-store</code>, and <code>nosniff</code> on every success/error.</td></tr>
-    <tr><td><code>/systems/*</code>, future <code>/travel/*</code>, and future <code>/projects/*</code></td><td>Resolved before preference routing and invariant across cookies</td><td>Self-canonical public path; strip direct-origin noindex.</td></tr>
+    <tr><td><code>/systems/*</code>, <code>/travel/*</code>, <code>/films/*</code>, and future <code>/projects/*</code></td><td>Resolved before preference routing and invariant across cookies</td><td>Self-canonical public path; strip direct-origin noindex.</td></tr>
     <tr><td>Direct production/preview <code>*.pages.dev</code></td><td>Normal origin response</td><td>Crawlable but <code>noindex</code>; never block the crawler from seeing that directive.</td></tr>
     <tr><td>HTTP or <code>www</code></td><td>One-hop <code>308</code> preserving path, query, and method</td><td>Destination is the HTTPS apex equivalent.</td></tr>
   </tbody>
@@ -292,51 +292,21 @@
   <p class="criteria"><strong>Review cadence:</strong> release day technical gates; T+7 crawl/render checks; T+28 selected canonical and query trend review; T+56–84 rolling performance comparison; quarterly fact, link, structured-data, sitemap, crawler-policy, and freshness audit.</p>
 </details>
 
-<h2>G Travel — active implementation</h2>
-<div class="callout">
-  <p><strong>Worktree state on August 27, 2026:</strong> <code>version/g-travel</code> is an uncommitted work in progress based on Blueprint. It contains a buildable Astro path app, lazy Three.js globe, static SVG fallback, Norway hub/itinerary/gallery shells, typed trip/photo data, sanitized HTML/PDF downloads, photo/PDF scripts, and four utility/schema tests. Local main-Worker, dev-proxy, Nexus, Blueprint-count, README, and sitemap changes are also present. Do not overwrite or discard these concurrent working-tree changes.</p>
-  <p><strong>Known unfinished gates:</strong> Sean must confirm the actual route, including any route implied by the Nexus miniature; the curated photos and metadata-free derivatives are absent; the gallery buttons do not yet open a keyboard-accessible lightbox; the archive still needs sensitive-pattern, self-containment, rights, and attribution review; browser/accessibility/privacy tests, Travel wiki documentation, commit review, deployment, and live smoke checks remain.</p>
-</div>
-
-<details open>
-  <summary>Travel product and content requirements</summary>
-  <ul>
-    <li>Make <code>/travel/</code> the canonical, indexable homepage. Support <code>/?v=g-travel</code> only as a <code>302</code> convenience redirect to <code>/travel/</code>; it must not read, set, or replace the portfolio cookie.</li>
-    <li>Use a custom Three.js cinematic atlas: dark vector globe, country boundaries, atmosphere, stars, restrained background, drag rotation, bounded zoom, idle motion, and an opening North Atlantic/Norway view. No live map/tile dependency.</li>
-    <li>Highlight explicit visited-country declarations and trip anchors. Dublin may appear in a route without marking Ireland visited. Selecting a country/trip reveals dates, summary, cover, and links to overview, itinerary, and photos.</li>
-    <li>The typed trip record must cover slug, dates, summary, visited ISO codes, accent, anchor, ordered waypoints and transport modes, links, cover, and publication state. Support multiple trips per country with distinct route colors.</li>
-    <li>Required pages/files: <code>/travel/</code>, Norway overview, itinerary, photos, sanitized downloadable HTML, and generated downloadable PDF.</li>
-    <li>The itinerary is the historical pre-trip plan; the globe is the confirmed actual route. Never substitute planned stops for observed travel. Keep unpublished route data out until Sean confirms it.</li>
-    <li>Launch the photo page with 12–20 curated images, authored alt/caption/location metadata, responsive output, and keyboard-accessible lightbox navigation.</li>
-    <li>Provide complete server-rendered navigation and a generated static SVG/poster map for JavaScript/WebGL failure. Respect reduced motion, pause while hidden, cap DPR, and load Three.js after the usable HTML shell.</li>
-  </ul>
-</details>
-
-<details open>
-  <summary>Travel privacy, archive, and media requirements</summary>
-  <ul>
-    <li>Copy only a reviewed, sanitized archival version of <code>oslo_lofoten_moto_trip.html</code>. Remove confirmation codes, private addresses/hosts, contact/account data, payment/insurance identifiers, and private booking links.</li>
-    <li>Retain historical dates, public businesses, route guidance, and costs only after review. Label the download as a dated pre-trip snapshot whose schedules and prices may be obsolete.</li>
-    <li>Audit image reuse rights. Keep only compatible attributed material; remove or replace lodging/vendor imagery without clear publication permission.</li>
-    <li>Make the downloadable HTML self-contained and generate a print-ready PDF with a reproducible headless-browser script.</li>
-    <li>Add a gitignored photo-intake directory and a processing script that orientation-corrects derivatives and strips EXIF/GPS. Commit only processed assets. Public location/order/alt/caption/featured state comes from a manifest, never EXIF.</li>
-  </ul>
-</details>
-
-<details open>
-  <summary>Travel routing, integration, tests, and acceptance</summary>
-  <ul>
-    <li><strong>Implemented locally; review and release:</strong> deploy <code>version/g-travel</code> as <code>seanmh-travel.pages.dev</code>, with an origin-only noindex header that the public Worker strips.</li>
-    <li><strong>Implemented locally; keep covered:</strong> the main Worker and dev proxy use a path-app manifest for <code>/systems/*</code> and <code>/travel/*</code>, including namespace precedence, prefix stripping, redirect rewriting, cookie isolation, origin-header stripping, public document caching, and a non-sticky <code>?v=g-travel</code> alias.</li>
-    <li><strong>Implemented locally; review and release:</strong> Travel uses port <code>4328</code>, appears in the main README and Nexus with a miniature globe, remains outside the résumé switcher, and updates Blueprint from seven to eight experiences.</li>
-    <li><strong>Implemented locally; verify at the edge:</strong> the Worker-owned sitemap includes Travel landing, Norway hub, itinerary, and gallery.</li>
-    <li>Test lat/lon conversion, antimeridian interpolation, country aggregation, unique colors, selection state, schema/target/photo validation, and explicit visited-country rules.</li>
-    <li>Add browser coverage for mouse, touch, keyboard selection, popover/bottom sheet, lightbox, reduced motion, WebGL failure, no-JS navigation, and visibility pause.</li>
-    <li>Extend Worker tests for path canonicalization, nested pages/assets, query retention, redirect rewriting, cookies, the <code>?v=g-travel</code> alias, origin noindex stripping, sitemap entries, and unchanged default routing.</li>
-    <li>Verify sanitized HTML self-containment, sensitive-pattern absence, PDF generation, retained-image attribution, and no committed GPS metadata.</li>
-  </ul>
-  <p class="criteria"><strong>Acceptance:</strong> a usable HTML shell precedes Three.js; the route is confirmed rather than inferred; the gallery and downloads are complete; representative phone/desktop interaction is smooth and accessible; privacy checks pass; and Travel tests, Astro check/build, main Worker tests, shared checks, and both Wrangler dry runs are clean.</p>
-</details>
+<h2>Version G — Travel</h2>
+<p><code>version/g-travel</code> lives in <code>wt/g-travel</code>. It is a path app at <code>/travel/</code>: a Three.js atlas over the journeys, a journal and a photo gallery per journey, and the archived Norway plan. The Worker routes <code>/travel/*</code> before any version preference (<code>main</code> <code>4e2d823</code>, August 28, 2026) and keeps <code>/?v=g-travel</code> as a non-sticky redirect. Durable operating information is in <code>wiki/Travel.md</code>.</p>
+<p>Shipped since the August consolidation, verified on the branch and live on November 19, 2026:</p>
+<ul>
+  <li>All four journeys (Spain 2014, Spain 2025, France 2026, Norway 2026) have confirmed, published routes, journals, and photo galleries with a keyboard-accessible <code>&lt;dialog&gt;</code> lightbox.</li>
+  <li>The Norway plan ships as a sanitized, self-contained HTML archive and a PDF; tests check both and that no private planning details remain.</li>
+  <li>A United States places layer (42 places across 25 states, September 20) shades each state visited. Its design doc is <code>plans/us-atlas-plan.html</code>.</li>
+  <li>The edge sitemap lists the landing page and every journal and gallery. The 20 Travel tests cover globe maths, data validation, the archive, and the publication gates.</li>
+</ul>
+<p>Open:</p>
+<ul>
+  <li><strong><code>wiki/Travel.md</code> is out of date.</strong> It still lists the Norway route as unconfirmed and every gallery as empty, and has nothing on the US places layer. Update it, then retire <code>us-atlas-plan.html</code> as that plan directs.</li>
+  <li><strong>Browser coverage.</strong> There are no automated browser tests for mouse, touch and keyboard selection, the lightbox, reduced motion, WebGL failure, no-JS navigation, or the visibility pause.</li>
+  <li><strong>Image rights.</strong> Confirm that every retained third-party image in the Norway archive is attributed or removed.</li>
+</ul>
 
 <h2>P1 — branch quality and maintainability</h2>
 <ol class="todo">
@@ -375,9 +345,9 @@
 <p><code>version/h-gaudi</code> lives in <code>wt/h-gaudi</code>. Seven architectural rooms translate Gaudí's natural geometry, ceramic craft, and light into a personal portfolio, informed by the Kengo Works survey in <code>.inspiration</code>. Local implementation includes catenary interaction, deterministic mosaic export, shared-content checks, Worker/proxy routing, Nexus-only discovery, a Nexus miniature, and Blueprint inventory updates. Casa Higgins is deliberately absent from the shared version switcher.</p>
 <p>Design and verification records live on H under <code>docs/</code>; durable operating information is in <code>wiki/Gaudi.md</code>. Released September 21, 2026: the Pages origin is healthy and Worker version <code>035922bc-9196-4180-ae65-3c9e0c9ec1db</code> routes <code>/?v=h-gaudi</code> to it. Casa Higgins remains Nexus-discovered rather than a shared-switcher choice, and <code>a-scroll</code> remains canonical.</p>
 <h2>Version I — Films</h2>
-<p><code>version/i-films</code> lives in <code>wt/i-films</code>. <em>from life</em> is a series of short silent films, each drawn entirely in code from Sean's own photos and videos and shown on a museum-wall page per film. grain, gesso and ramp are drawn on a canvas in JavaScript; sunny is built and rendered in Blender from Python. Every MP4 stays within 20 MiB. Durable operating information is in <code>wiki/Films.md</code>; the temporary execution plans are <code>plans/films-plan.html</code> and <code>plans/sunny-film-plan.html</code>.</p>
+<p><code>version/i-films</code> lives in <code>wt/i-films</code>. <em>from life</em> is a series of short silent films, each drawn entirely in code from Sean's own photos and videos and shown on a museum-wall page per film. grain, gesso and ramp are drawn on a canvas in JavaScript; sunny is built and rendered in Blender from Python. Every MP4 stays within 20 MiB. Durable operating information, including the series grammar, the gated process and the guardrails, is in <code>wiki/Films.md</code>; session prompts are in <code>prompts/</code>. The series plan was retired on November 19, 2026; sunny's design doc remains as <code>plans/sunny-film-plan.html</code>.</p>
 <p>Released November 17, 2026: the <code>seanmh-films</code> Pages origin is git-connected and the Worker routes <code>/films/*</code> to it (<code>main</code> <code>59f6099</code>; the Worker deployment ID was not recorded). sunny followed on November 19. The Nexus Films orb carries one moon per film, the Casa Higgins Woodshop, Art Room and Eagle rooms link to grain, gesso and ramp, and Scroll ends with a sunny loop linking to <code>/films/sunny/</code>.</p>
-<p>Open: the Pages origin answers an MP4 <code>Range</code> request with a full <code>200</code>, not <code>206</code>, so every view downloads the whole file and seeking and Safari playback need checking; decide between R2 behind the Worker and a Worker-side range response. The Blueprint inventory has no Films entry yet.</p>
+<p>Seeking: Cloudflare Pages ignores <code>Range</code>, so the Worker answers <code>GET /films/*.mp4</code> from the Workers Cache API, keyed by the origin's ETag, and the cache returns a 206 for the requested bytes (<code>main</code> <code>06db86d</code>). R2 was not needed and is not enabled on the account. Blueprint lists Films as its tenth experience (<code>version/f-blueprint</code> <code>dcd5818</code>). No Films items remain open.</p>
 <p class="muted">Do not create another standing plan file. Update this document as work changes state, and move durable implementation facts into the wiki before deleting any temporary execution notes.</p>
 
 </body>

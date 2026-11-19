@@ -1,7 +1,7 @@
 # Film 01 · grain — a coffee table, built by hand
 
 > **First read `/Users/seanmhiggins/SoftLot/MyWebsite/seanmh.com/prompts/00-shared-brief.md`
-> in full**, then `plans/films-plan.html`. This file adds the story, facts,
+> in full**, then `wiki/Films.md`. This file adds the story, facts,
 > photos, beats and look for this one film. Follow the brief's workflow gates.
 
 **Kind:** how-to · **Length:** 45–60 s · **Slug:** `grain` · **Frame:** 1080×1080, 24 fps, silent

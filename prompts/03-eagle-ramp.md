@@ -1,7 +1,7 @@
 # Film 03 · ramp — the Eagle Scout project
 
 > **First read `/Users/seanmhiggins/SoftLot/MyWebsite/seanmh.com/prompts/00-shared-brief.md`
-> in full**, then `plans/films-plan.html`. This file adds the story, facts,
+> in full**, then `wiki/Films.md`. This file adds the story, facts,
 > photos, beats and look for this one film. Follow the brief's workflow gates.
 
 **Kind:** story (not a how-to) · **Length:** up to ~90 s · **Slug:** `ramp` · **Frame:** 1080×1080, 24 fps, silent
