@@ -11,8 +11,9 @@ are fully animated, and have release media in `public/`: **grain** (12 scenes,
 etched coloured pencil with one photographic glass pass; redrawn 2026-11-16), **gesso** (17 scenes,
 impasto with raking light), and **ramp** (18 scenes, lit cut-paper relief). The
 `/films/` collection and one wall page per film (step 3) are live at
-`seanmh.com/films/`. sunny, a fourth film, is in draft and not yet in
-`src/content/films.ts`.
+`seanmh.com/films/`. **sunny** (9 scenes, a felt-and-card miniature rendered in
+Blender) is rendered and in the catalog locally; it is not pushed yet. Its
+design doc is `plans/sunny-film-plan.html` on `main`.
 
 ## Commands
 
@@ -43,6 +44,7 @@ Draft options: `--from <s> --to <s>` renders a range, `--crf <n>` (default
 | `src/films/grain/` | Film 01. Redrawn 2026-11-16 on a pencil engine that works from light. `kit.js` (the engine: a tonal painting laid down through pencil strokes that follow each form, cast shadows, a line layer with hidden-line removal, a held background per scene), `geom.js` (camera, boxes, cylinders), `table.js` (the table as solids, materials), `props.js` (carpenter's pencil, glove, dust), `scenesA–C.js` and `home.js` (the 12 scenes), `film.js`. |
 | `src/films/ramp/` | Film 03. Cut-paper relief, lit. `kit.js` (the paper piece, light, sparks, the jointed puppet, scenes on twos), `parts.js` (the ramp in inches, wheelchair, horse, ATV, trailer, sets, the plotter and dot-matrix), `weld.js` (scene 9), `scenesA–E.js` (the other 17), `film.js` (scene list). |
 | `src/films/gesso/` | Film 02. `paint.js` (paint with body: every stroke lays colour and height, then `light()` rakes a lamp across the height map), `field.js` and `painting.js` (the wildflower painting as an ordered list of marks), `kit.js` and `parts.js` (the apartment, tools, people and shared scene helpers), `scenes1–3.js` (all 17 scenes), `film.js` (scene list). |
+| `src/films/sunny/` | Film 04, made in Blender 5.3 from Python (no `.blend` file, no hand keyframes). `cat.py` (Sunny: a mesh grown from a skeleton with the Skin modifier, a painted coat, and a puppet rig whose bones are all set by matrix each frame; he is a tripod, with no right hind leg and a bob tail, while the grey cat is built with `tripod=False`), `anim.py` (poses and three-legged gaits as pure functions: a hopping walk, a rocking canter, a gallop), `sets.py` (rooms, props, lights, the yarn signature), `scenes.py` (the nine scenes and the share loop), `film.py` (timeline, renderer, encoder). |
 | `tools/stage.html` | Preview (scrubber, frame counter, `?t=`) and the page the renderer drives. |
 | `scripts/film-server.mjs` | Localhost static server; also serves `/refs/` from `~/SoftLot/MyWebsite/film-refs`. |
 | `scripts/render-film.mjs` | One headless Chrome over CDP → PNG frames piped into ffmpeg. No dependencies. |
@@ -90,6 +92,55 @@ no `Date`, no `Math.random`, no `requestAnimationFrame`.
 - **Dense paint can still compress well when it holds.** gesso (74 s, 17
   scenes, CRF 20) is 12.6 MiB (1.4 Mb/s); the impasto shading stays fixed while
   the drawn marks move.
+
+## sunny — the Blender film
+
+```bash
+B=/Applications/Blender.app/Contents/MacOS/Blender
+F=src/films/sunny/film.py
+$B --background --factory-startup --python $F -- --sheet                 # contact sheet -> renders/sunny/sheet.jpg
+$B --background --factory-startup --python $F -- --sheet feather --cols 12
+$B --background --factory-startup --python $F -- --still morning:6.5     # one frame -> renders/sunny/
+$B --background --factory-startup --python $F -- --scene feather         # one scene, draft MP4
+$B --background --factory-startup --python $F -- --release               # all scenes -> public/sunny.mp4
+$B --background --factory-startup --python $F -- --release --only lamp   # re-render one scene, reuse the rest
+$B --background --factory-startup --python $F -- --loop                  # public/sunny-loop.mp4 + .gif
+```
+
+The poster is a still converted with ImageMagick:
+`magick renders/sunny/morning-7.33333s.png -quality 90 webp:public/sunny-poster.webp`.
+
+Measured 2026-11-18 on the M1:
+
+- **Speed.** About 2 s per 1080² frame in EEVEE at 32 samples with screen-space
+  ray tracing. The film is posed 12 times a second and each pose is held for two
+  frames, so 62.5 s is 750 renders: about 25 minutes.
+- **Size.** 6.7 MiB at CRF 20 (0.9 Mb/s). Held poses and soft, textureless
+  surfaces compress far better than boiling pencil.
+- **Disk.** Each scene's PNGs are encoded to `renders/sunny/<scene>.mp4` and
+  deleted before the next scene starts.
+- **Determinism.** Every pose is a pure function of scene time, but EEVEE is
+  not bit-exact: rendering the same frame twice differs in a handful of pixels
+  by at most 2 of 255 levels (PSNR 92 dB). The `--hash` check therefore
+  reports DIFFERENT; compare with PSNR instead.
+- **Sunny has three legs.** Every pose places `fl`, `fr` and `hl` only, with
+  the hind paw near the midline (`MID_Y`). `gait()` takes the ground covered
+  per cycle (`D`) and gives each paw a stance travel of `D × duty`, so planted
+  paws do not slide even though the hind leg's duty differs from the front
+  legs'. `renders/sunny/posesheet.py` (local) renders pose and gait test sheets.
+- **The look (2026-11-19).** Sunny and the grey cat wear real fur: Blender hair
+  strands over the painted coat (`Cat._fur`). Strands can only read the skin's
+  colour when it is stored per face corner as byte colour, which is why
+  `_paint` writes the coat that way; a per-vertex float attribute renders the
+  fur red. Floors are `S.wood` (grain along the planks, polished enough to
+  reflect), rugs are `S.pile` (a displaced grid), `S.haze` puts dust in the air
+  so the hallway lamps and the last lamp throw visible cones, and `grade()` in
+  `film.py` adds a compositor bloom and a faint vignette. `--nograde` renders
+  without the compositor.
+  Cost: fur is nearly free, but haze roughly doubles a scene's render time.
+  The whole film now takes about 48 minutes (was 25) and is 7.5 MiB.
+- **Sets are built per scene.** `S.reset()` clears the file and the scene's
+  `build()` makes everything again, including the cat (under a second).
 
 ## Rules for films
 

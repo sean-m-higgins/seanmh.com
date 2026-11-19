@@ -1,5 +1,10 @@
 """Sunny: the model, the coat and the puppet rig.
 
+Sunny is a tripod: his right hind leg and his tail were amputated before Sean
+adopted him. He has two front legs, one hind leg (the left) that he carries
+under the middle of his body, and a bob of a tail. The grey cat is built from
+the same code with four legs and a full tail (`tripod=False`).
+
 The cat faces +X, up is +Z, and is about one unit long. The body is one mesh
 grown from a skeleton (Skin modifier, subdivided) and bound to an armature
 whose bones have no parents: a pose is a full set of bone matrices computed in
@@ -43,15 +48,15 @@ def h2(i, j, k=0):
     return ((n ^ (n >> 16)) & 0xFFFF) / 0xFFFF
 
 
-SAND = lin("#b08a5c")
-SAND_HI = lin("#c9a877")
+SAND = lin("#bf9b6b")
+SAND_HI = lin("#d8ba8a")
 CREAM = lin("#efe2c8")
 DARK = lin("#3a2a1e")
 GREY = lin("#7d7f86")
 GREY_D = lin("#5b5d66")
 GREY_L = lin("#a9abb0")
 
-LOOK = {"name": "felt"}
+LOOK = {"name": "felt", "fur": True}
 
 
 def material(name, color=None, rough=0.92, sheen=0.35, vcol=False, emit=0.0, bump=0.012, scale=220.0):
@@ -149,6 +154,8 @@ PAW_Z = 0.05
 TAIL0 = V((-0.37, 0, 0.53))
 TAIL_N = 7
 TAIL_SEG = 0.095
+HIP_T = V((-0.25, 0.072, 0.38))    # Sunny's one hind leg, set a little nearer the midline
+BOB_N, BOB_SEG = 2, 0.04          # what is left of his tail
 
 
 def _rest_leg(root, front):
@@ -187,7 +194,7 @@ def body_frame(pos, fwd=(1, 0, 0), up=(0, 0, 1)):
 REST = {"hips": body_frame(HIPS), "mid": body_frame(MID), "chest": body_frame(CHEST), "head": body_frame(HEAD)}
 
 
-def _skeleton_mesh(name):
+def _skeleton_mesh(name, tripod=False):
     """The stick figure the Skin modifier inflates. Returns the mesh object."""
     pts, radii, edges = [], [], []
 
@@ -217,10 +224,18 @@ def _skeleton_mesh(name):
     for s in "lr":
         k, p = _rest_leg(SH[s], True)
         chain([SH[s], k, p, p + V((0.055, 0, -0.012))], [0.075, 0.058, 0.058, 0.05], i_c, cuts=3)
-        k, p = _rest_leg(HP[s], False)
-        chain([HP[s], k, p, p + V((0.06, 0, -0.012))], [0.095, 0.062, 0.058, 0.05], i_h, cuts=3)
-    tp = [TAIL0 + V((-TAIL_SEG * i, 0, 0.012 * i)) for i in range(TAIL_N + 1)]
-    tr = [0.06] + [0.05 - 0.012 * i / TAIL_N for i in range(1, TAIL_N + 1)]
+        if tripod and s == "r":
+            continue                               # no right hind leg: the hip stays a smooth round
+        root = HIP_T if tripod else HP[s]
+        k, p = _rest_leg(root, False)
+        thigh = (0.112, 0.07, 0.062, 0.053) if tripod else (0.095, 0.062, 0.058, 0.05)   # the one leg does the work of two
+        chain([root, k, p, p + V((0.06, 0, -0.012))], thigh, i_h, cuts=3)
+    if tripod:
+        tp = [TAIL0 + V((-BOB_SEG * i, 0, 0.012 * i)) for i in range(BOB_N + 1)]
+        tr = [0.052, 0.045, 0.036]
+    else:
+        tp = [TAIL0 + V((-TAIL_SEG * i, 0, 0.012 * i)) for i in range(TAIL_N + 1)]
+        tr = [0.06] + [0.05 - 0.012 * i / TAIL_N for i in range(1, TAIL_N + 1)]
     chain(tp, tr, i_h, cuts=2)
 
     me = bpy.data.meshes.new(name)
@@ -263,7 +278,7 @@ def _spot(u, v, cell_u, cell_v, r, seed=0):
     return best
 
 
-def coat_body(p, pal):
+def coat_body(p, pal, tripod=False):
     base, hi, cream, dark = pal
     x, y, z = p
     col = base
@@ -274,6 +289,8 @@ def coat_body(p, pal):
         ring = sstep(0.15, 0.6, math.sin(s * 2 * math.pi / 0.105 - 0.8))
         col = mix(base, dark, ring * 0.92)
         col = mix(col, dark, sstep(0.52, 0.6, s))
+        if tripod:
+            col = mix(base, dark, sstep(0.0, 0.05, s) * 0.85)   # the bob: a dark tip
     elif on_leg:
         band = sstep(0.1, 0.65, math.sin(z * 2 * math.pi / 0.085 + (1.0 if x > 0 else 2.2)))
         inner = 1 - sstep(0.0, 0.05, abs(y) - 0.06)          # inside of the leg stays plain
@@ -336,9 +353,13 @@ def head_radius(d):
 
 
 def _paint(me, fn):
-    ca = me.color_attributes.new("coat", "FLOAT_COLOR", "POINT")
-    for i, v in enumerate(me.vertices):
-        ca.data[i].color = fn(v.co)
+    # stored per face corner as byte colour: the one form fur strands can read from the skin under them
+    cols = [fn(v.co) for v in me.vertices]
+    ca = me.color_attributes.new("coat", "BYTE_COLOR", "CORNER")
+    for lp in me.loops:
+        ca.data[lp.index].color = cols[lp.vertex_index]
+    me.color_attributes.active_color = ca
+    me.color_attributes.render_color_index = me.color_attributes.find("coat")
     return ca
 
 
@@ -418,20 +439,22 @@ def _eye_material(name, iris):
 class Cat:
     """Build with `Cat(name)`, then call `apply_pose(pose)` each frame."""
 
-    def __init__(self, name="sunny", grey=False, scale=1.0):
+    def __init__(self, name="sunny", grey=False, scale=1.0, tripod=None):
         self.name = name
+        self.tripod = (not grey) if tripod is None else tripod
+        self.tail_n, self.tail_seg = (BOB_N, BOB_SEG) if self.tripod else (TAIL_N, TAIL_SEG)
         pal = (GREY, GREY_L, lin("#c9cacd"), GREY_D) if grey else (SAND, SAND_HI, CREAM, DARK)
         self.pal = pal
         self.scale = scale
         fur = material(name + "-fur", vcol=True)
 
         # body
-        body = _skeleton_mesh(name + "-body")
+        body = _skeleton_mesh(name + "-body", self.tripod)
         me = body.data
         if grey:
             _paint(me, lambda p: mix(pal[0], pal[2], sstep(2.0, 2.9, math.atan2(abs(p.y), p.z - 0.47)) * 0.5))
         else:
-            _paint(me, lambda p: coat_body(p, pal))
+            _paint(me, lambda p: coat_body(p, pal, self.tripod))
         me.materials.append(fur)
         self.body = body
 
@@ -462,13 +485,16 @@ class Cat:
             bone("f%s_u" % s, SH[s], k, (1, 0, 0), None)
             bone("f%s_l" % s, k, p, (1, 0, 0), None)
             self.leg_rest["f" + s] = (SH[s], (k - SH[s]).length, (p - k).length)
-            k, p = _rest_leg(HP[s], False)
-            bone("h%s_u" % s, HP[s], k, (1, 0, 0), None)
+            if self.tripod and s == "r":
+                continue
+            root = HIP_T if self.tripod else HP[s]
+            k, p = _rest_leg(root, False)
+            bone("h%s_u" % s, root, k, (1, 0, 0), None)
             bone("h%s_l" % s, k, p, (1, 0, 0), None)
-            self.leg_rest["h" + s] = (HP[s], (k - HP[s]).length, (p - k).length)
-        for i in range(TAIL_N):
-            a = TAIL0 + V((-TAIL_SEG * i, 0, 0.012 * i))
-            b = TAIL0 + V((-TAIL_SEG * (i + 1), 0, 0.012 * (i + 1)))
+            self.leg_rest["h" + s] = (root, (k - root).length, (p - k).length)
+        for i in range(self.tail_n):
+            a = TAIL0 + V((-self.tail_seg * i, 0, 0.012 * i))
+            b = TAIL0 + V((-self.tail_seg * (i + 1), 0, 0.012 * (i + 1)))
             bone("t%d" % i, a, b, (0, 0, 1), None)
         bpy.ops.object.mode_set(mode="OBJECT")
         for b in arm.bones:
@@ -533,6 +559,7 @@ class Cat:
         self.eye_mat = _eye_material(name + "-eye", iris)
         lid_mat = material(name + "-lid", pal[3], rough=0.8, bump=0)
         self.eyes, self.lids = [], []
+        cover_mat = material(name + "-lidcover", mix(pal[1], pal[2], 0.35))
         for s in (1, -1):
             d = V((0.72, 0.5 * s, 0.1)).normalized()
             r = head_radius(d)
@@ -544,12 +571,37 @@ class Cat:
             lid.data.materials.append(lid_mat)
             child(lid, d * (r + 0.002), (0, -math.asin(d.z) * 0.6, math.atan2(d.y, d.x) * 0.72), (0.012, 0.062, 0.009))
             self.lids.append(lid)
+            cover = _sphere(name + "-lidcover", 1.0, 24, 12)       # the closed eyelid, in coat colour
+            cover.data.materials.append(cover_mat)
+            child(cover, d * (r - 0.03), (0, -math.asin(d.z) * 0.6, math.atan2(d.y, d.x) * 0.72), (0.043, 0.082, 0.082))
+            self.lids.append(cover)
         self.eye_scale = (0.045, 0.066, 0.066)
 
         nose = _sphere(name + "-nose", 1.0, 16, 8)
         nose.data.materials.append(material(name + "-nose", lin("#b5544a") if not grey else lin("#3b3b40"), rough=0.5, bump=0))
         dn = V((0.96, 0, -0.2)).normalized()
         child(nose, dn * (head_radius(dn) - 0.004), (0, 0, 0), (0.016, 0.026, 0.017))
+        # the mouth: a short line down from the nose, turning out to each side
+        mm = material(name + "-mouth", mix(pal[3], lin("#1a120c"), 0.5), rough=0.8, bump=0)
+        for sgn in (1, -1):
+            cu = bpy.data.curves.new(name + "-mouth", "CURVE")
+            cu.dimensions = "3D"
+            cu.bevel_depth = 0.0042
+            cu.bevel_resolution = 2
+            cu.use_fill_caps = True
+            sp = cu.splines.new("NURBS")
+            dirs = [(0.96, 0.0, -0.27), (0.94, 0.0, -0.36), (0.93, 0.035 * sgn, -0.43), (0.9, 0.1 * sgn, -0.45), (0.87, 0.17 * sgn, -0.41)]
+            sp.points.add(len(dirs) - 1)
+            sp.use_endpoint_u = True
+            sp.order_u = 3
+            for pt, dd in zip(sp.points, dirs):
+                dv = V(dd).normalized()
+                q = dv * (head_radius(dv) + 0.006)
+                pt.co = (q.x, q.y, q.z, 1.0)
+            cu.materials.append(mm)
+            mo = bpy.data.objects.new(name + "-mouth", cu)
+            bpy.context.scene.collection.objects.link(mo)
+            mo.parent = head
         wm = material(name + "-whisker", lin("#f4efe4"), rough=0.6, bump=0)
         for s in (1, -1):
             for j, (ay, az) in enumerate(((0.9, 0.1), (1.05, -0.08), (1.2, -0.3))):
@@ -570,6 +622,51 @@ class Cat:
 
         self.objects = [body, rig, head]
         self.root = Matrix.Identity(4)
+        if LOOK["name"] == "felt" and LOOK.get("fur"):
+            self._fur(body, 9000, 0.02)
+            vg = head.vertex_groups.new(name="fur")
+            keep = [V((0.72, 0.5, 0.1)).normalized(), V((0.72, -0.5, 0.1)).normalized(), V((0.96, 0, -0.2)).normalized(),
+                    V((0.92, 0, -0.42)).normalized()]
+            for v in head.data.vertices:
+                d = v.co.normalized()
+                w = min(sstep(0.3, 0.44, (d - k).length) for k in keep[:2])
+                w = min(w, sstep(0.1, 0.2, (d - keep[2]).length), 0.35 + 0.65 * sstep(0.1, 0.24, (d - keep[3]).length))
+                vg.add([v.index], w, "REPLACE")
+            self._fur(head, 6000, 0.014, "fur")
+
+    def _fur(self, ob, count, length, group=""):
+        """A short coat of real strands over the painted one. Each strand takes
+        the coat colour of the skin under its root, so the markings carry."""
+        mod = ob.modifiers.new("fur", "PARTICLE_SYSTEM")
+        ps = mod.particle_system
+        st = ps.settings
+        st.type = "HAIR"
+        st.count = count
+        st.hair_length = length
+        st.hair_step = 2
+        st.emit_from = "FACE"
+        st.use_emit_random = True
+        st.use_even_distribution = True
+        st.child_type = "INTERPOLATED"
+        st.child_percent = 30
+        st.rendered_child_count = 30
+        st.child_length = 1.0
+        st.child_radius = 0.02
+        st.roughness_2 = 0.012
+        st.roughness_endpoint = 0.004
+        st.root_radius = 0.9
+        st.tip_radius = 0.15
+        st.radius_scale = 0.0028
+        st.render_step = 2
+        st.display_step = 2
+        st.use_hair_bspline = False
+        ps.seed = 7
+        if group:
+            ps.vertex_group_density = group
+            ps.vertex_group_length = group
+        st.material = 1
+        mod.show_viewport = True
+        return ps
 
     # ------------------------------------------------------------ posing
 
@@ -619,6 +716,8 @@ class Cat:
         set_bone("neck", m @ Matrix.Diagonal((1, max(0.3, d.length / rest_len), 1, 1)))
 
         for leg, foot in pose["feet"].items():
+            if leg not in self.leg_rest:
+                continue                           # a pose may name a leg this cat does not have
             root_rest, l1, l2 = self.leg_rest[leg]
             Tp = T["chest"] if leg[0] == "f" else T["hips"]
             root = Tp @ root_rest
@@ -647,15 +746,19 @@ class Cat:
 
         tail = pose["tail"]
         upv = T["hips"].to_3x3() @ V((0, 0, 1))
-        for i in range(TAIL_N):
-            a, b = V(tail[i]), V(tail[i + 1])
-            set_bone("t%d" % i, frame(a, b - a, upv) @ Matrix.Diagonal((1, (b - a).length / TAIL_SEG * 0.992, 1, 1)))
+        a = V(tail[0])
+        for i in range(self.tail_n):
+            # follow the direction of the posed tail, at this cat's own tail length
+            d = (V(tail[i + 1]) - V(tail[i])).normalized()
+            set_bone("t%d" % i, frame(a, d, upv))
+            a = a + d * self.tail_seg
 
         self.head.matrix_world = self.root @ head @ REST["head"].inverted() @ Matrix.Translation(HEAD)
         op = pose.get("eyes", 1.0)
-        for e, lid in zip(self.eyes, self.lids):
+        for e in self.eyes:
             e.scale = (self.eye_scale[0], self.eye_scale[1], self.eye_scale[2] * max(op, 0.02))
             e.hide_render = op < 0.12
+        for lid in self.lids:
             lid.hide_render = op >= 0.12
         self.eye_mat.node_tree.nodes["pupil"].outputs[0].default_value = 0.16 + 0.5 * pose.get("pupil", 0.6)
         back = pose.get("ears", 0.0)

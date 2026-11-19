@@ -18,6 +18,95 @@ def mat(hexstr, rough=0.9, emit=0.0, bump=0.006, scale=90.0, sheen=0.1):
     return _mats[key]
 
 
+def wood(hexstr, along="Y", rough=0.36):
+    """Floorboards: grain running along the planks, and enough polish to hold a soft reflection."""
+    key = ("wood", hexstr, along, rough)
+    if key in _mats:
+        return _mats[key]
+    m = bpy.data.materials.new("wood" + hexstr)
+    try:
+        m.use_nodes = True
+    except Exception:
+        pass
+    nt = m.node_tree
+    for n in list(nt.nodes):
+        nt.nodes.remove(n)
+    out = nt.nodes.new("ShaderNodeOutputMaterial")
+    bsdf = nt.nodes.new("ShaderNodeBsdfPrincipled")
+    tc = nt.nodes.new("ShaderNodeTexCoord")
+    mp = nt.nodes.new("ShaderNodeMapping")
+    mp.inputs["Scale"].default_value = (26, 0.9, 1) if along == "Y" else (0.9, 26, 1)
+    nz = nt.nodes.new("ShaderNodeTexNoise")
+    nz.inputs["Scale"].default_value = 1.6
+    nz.inputs["Detail"].default_value = 5.0
+    nt.links.new(tc.outputs["Object"], mp.inputs["Vector"])
+    nt.links.new(mp.outputs["Vector"], nz.inputs["Vector"])
+    mx = nt.nodes.new("ShaderNodeMix")
+    mx.data_type = "RGBA"
+    base = lin(hexstr)
+    mx.inputs[6].default_value = tuple(c * 0.8 for c in base[:3]) + (1,)
+    mx.inputs[7].default_value = tuple(min(1, c * 1.12) for c in base[:3]) + (1,)
+    nt.links.new(nz.outputs["Fac"], mx.inputs[0])
+    nt.links.new(mx.outputs[2], bsdf.inputs["Base Color"])
+    rr = nt.nodes.new("ShaderNodeMapRange")
+    rr.inputs["To Min"].default_value = rough - 0.08
+    rr.inputs["To Max"].default_value = rough + 0.14
+    nt.links.new(nz.outputs["Fac"], rr.inputs["Value"])
+    nt.links.new(rr.outputs["Result"], bsdf.inputs["Roughness"])
+    nt.links.new(bsdf.outputs["BSDF"], out.inputs["Surface"])
+    _mats[key] = m
+    return m
+
+
+def pile(size, loc, m, height=0.07, nub=0.006, cell=0.034, rot=(0, 0, 0), name="rug"):
+    """A rug with real loops: a dense grid pushed up into nubs, over a flat base."""
+    box((size[0], size[1], height * 0.6), (loc[0], loc[1], loc[2] + height * 0.3), m, bevel=0.02, rot=rot, name=name + "-base")
+    me = bpy.data.meshes.new(name)
+    bm = bmesh.new()
+    nx, ny = int(size[0] / cell * 2), int(size[1] / cell * 2)
+    bmesh.ops.create_grid(bm, x_segments=nx, y_segments=ny, size=0.5)
+    for v in bm.verts:
+        x, y = v.co.x * (size[0] - 0.03), v.co.y * (size[1] - 0.03)
+        u, w = x / cell, y / cell
+        iu, iw = math.floor(u), math.floor(w)
+        h = ((iu * 7349 + iw * 9151) % 97) / 97.0
+        bump = (0.5 - abs(u - iu - 0.5)) * (0.5 - abs(w - iw - 0.5)) * 4
+        edge = min(1.0, (0.5 - abs(v.co.x)) * 30, (0.5 - abs(v.co.y)) * 30)
+        v.co = V((x, y, (bump ** 0.6) * nub * (0.55 + 0.45 * h) * max(edge, 0)))
+    bm.to_mesh(me)
+    bm.free()
+    for p in me.polygons:
+        p.use_smooth = True
+    ob = link(bpy.data.objects.new(name, me))
+    ob.location = (loc[0], loc[1], loc[2] + height * 0.6)
+    ob.rotation_euler = rot
+    me.materials.append(m)
+    return ob
+
+
+def haze(size, loc, density=0.02, color="#fff3e0"):
+    """Air with a little dust in it, so light through a window or from a lamp shows as a shaft."""
+    ob = box(size, loc, mat("#ffffff"), bevel=0, name="haze")
+    m = bpy.data.materials.new("haze")
+    try:
+        m.use_nodes = True
+    except Exception:
+        pass
+    nt = m.node_tree
+    for n in list(nt.nodes):
+        nt.nodes.remove(n)
+    out = nt.nodes.new("ShaderNodeOutputMaterial")
+    vol = nt.nodes.new("ShaderNodeVolumeScatter")
+    vol.inputs["Density"].default_value = density
+    vol.inputs["Color"].default_value = lin(color)
+    vol.inputs["Anisotropy"].default_value = 0.35
+    nt.links.new(vol.outputs["Volume"], out.inputs["Volume"])
+    ob.data.materials.clear()
+    ob.data.materials.append(m)
+    ob.visible_shadow = False
+    return ob
+
+
 def reset():
     _mats.clear()
     for coll in (bpy.data.objects, bpy.data.meshes, bpy.data.curves, bpy.data.materials, bpy.data.lights,
@@ -106,9 +195,10 @@ def soft(size, loc, m, rot=(0, 0, 0), name="soft", wrinkle=0.0, seed=0.0):
     return ob
 
 
-def sun(direction, energy=4.0, color="#fff1d6", angle=0.03):
+def sun(direction, energy=4.0, color="#fff1d6", angle=0.03, shaft=1.0):
     li = bpy.data.lights.new("sun", "SUN")
     li.energy, li.color, li.angle = energy, lin(color)[:3], angle
+    li.volume_factor = shaft
     ob = link(bpy.data.objects.new("sun", li))
     ob.rotation_euler = V(direction).normalized().to_track_quat("-Z", "Y").to_euler()
     return ob
@@ -182,21 +272,21 @@ def gobo(patch, direction, w=1.5, h=1.9, dist=9.0, bars=(2, 2), bar=0.07):
 
 def living_room(night=False):
     """The rug room of scenes 1, 2 and 9. The camera looks along +Y."""
-    box((16, 14, 0.2), (0, 1, -0.1), mat("#c9ad86", rough=0.6, bump=0.002, scale=14), bevel=0, name="floor")
+    box((16, 14, 0.2), (0, 1, -0.1), wood("#c9ad86"), bevel=0, name="floor")
     for i in range(-8, 9):                                   # plank joints
         box((0.012, 14, 0.004), (i * 0.9 + 0.2, 1, 0.001), mat("#b89f7c", bump=0), bevel=0)
-    rug = box((6.4, 4.6, 0.07), (0.1, 0.5, 0.035), mat("#f3eee4", rough=1.0, bump=0.05, scale=38, sheen=0.5), bevel=0.03, name="rug")
-    box((16, 0.2, 7), (0, 6.0, 3.5), mat("#efe9df"), bevel=0, name="wall")
+    rug = pile((6.4, 4.6), (0.1, 0.5, 0.0), mat("#f1ebe0", rough=1.0, bump=0.01, scale=160, sheen=0.6))
+    box((16, 0.2, 7), (0, 6.0, 3.5), mat("#eee3d3", bump=0.004, scale=30), bevel=0, name="wall")
     box((16, 0.06, 0.28), (0, 5.88, 0.14), mat("#f7f3ec"), bevel=0.01)
     # couch end, left
     soft((2.2, 3.6, 1.15), (-4.6, 1.4, 0.72), mat("#d8cfc2", bump=0.01, scale=60, sheen=0.4))
     soft((2.0, 3.2, 0.5), (-4.5, 1.5, 1.5), mat("#ddd5c9", bump=0.01, scale=60, sheen=0.4))
     ball(0.75, (-3.25, 0.2, 0.72), mat("#2b2a2e", rough=0.7), scale=(0.5, 0.85, 0.98), name="bag")
     # low shelf with books, right
-    wood = mat("#e3d2b4", rough=0.7, bump=0.002)
-    box((3.4, 1.0, 0.08), (4.3, 3.4, 1.5), wood)
-    box((3.4, 1.0, 0.08), (4.3, 3.4, 0.12), wood)
-    box((0.08, 1.0, 1.46), (2.62, 3.4, 0.8), wood)
+    shelf = mat("#e3d2b4", rough=0.7, bump=0.002)
+    box((3.4, 1.0, 0.08), (4.3, 3.4, 1.5), shelf)
+    box((3.4, 1.0, 0.08), (4.3, 3.4, 0.12), shelf)
+    box((0.08, 1.0, 1.46), (2.62, 3.4, 0.8), shelf)
     for i, (c, hh) in enumerate((("#c9573f", 1.0), ("#3d5a80", 1.15), ("#e0b84e", 0.95), ("#5c8a6a", 1.1), ("#e8dfd0", 1.0), ("#7a5ca8", 1.2))):
         box((0.16, 0.7, hh), (3.0 + i * 0.19, 3.4, 0.16 + hh / 2), mat(c), bevel=0.01, rot=(0, 0.03 * (i % 3 - 1), 0))
     # a stool, back
@@ -211,7 +301,7 @@ def living_room(night=False):
 
 def play_floor():
     """Scenes 3 and 4: a pale wood floor, a bed far off, a desk chair leg."""
-    box((30, 30, 0.2), (0, 6, -0.1), mat("#c9ad86", rough=0.55, bump=0.002, scale=10), bevel=0, name="floor")
+    box((30, 30, 0.2), (0, 6, -0.1), wood("#c9ad86"), bevel=0, name="floor")
     for i in range(-16, 17):
         box((0.014, 30, 0.004), (i * 0.95, 6, 0.001), mat("#b0946e", bump=0), bevel=0)
     box((30, 0.2, 9), (0, 15, 4.5), mat("#efeae2"), bevel=0)
@@ -219,7 +309,7 @@ def play_floor():
     box((7, 4.4, 0.5), (-3.5, 12.4, 0.55), mat("#b9a98f"), bevel=0.05)
     soft((6.8, 4.2, 0.9), (-3.5, 12.4, 1.2), mat("#b7bed0", sheen=0.4), wrinkle=0.05)
     # rug, left
-    box((5, 6.5, 0.06), (-6.6, 4.0, 0.03), mat("#eee7da", rough=1, bump=0.04, scale=40, sheen=0.5), bevel=0.02, rot=(0, 0, 0.12))
+    pile((5, 6.5), (-6.6, 4.0, 0.0), mat("#eee7da", rough=1, bump=0.01, scale=160, sheen=0.6), rot=(0, 0, 0.12))
     # desk chair: five-star base and post
     blk = mat("#26262a", rough=0.5)
     cyl(0.09, 1.3, (5.2, 7.5, 0.95), blk)
@@ -289,7 +379,7 @@ class Ribbon:
 
 def bedroom():
     """Scene 5: the bed under the red painting. Camera looks along +Y."""
-    box((20, 14, 0.2), (0, 2, -0.1), mat("#cdb692", rough=0.6, bump=0.002), bevel=0)
+    box((20, 14, 0.2), (0, 2, -0.1), wood("#cdb692", along="X"), bevel=0)
     box((20, 0.2, 12), (0, 4.2, 6), mat("#f2efe9"), bevel=0, name="wall")
     box((9.4, 6.4, 0.55), (0, 0.6, 0.45), mat("#2c2f3d"), bevel=0.06)             # base
     bed = soft((9.2, 6.2, 1.5), (0, 0.6, 1.45), mat("#e2d9cc", bump=0.008, scale=50, sheen=0.5), wrinkle=0.07, seed=3.0)
@@ -371,9 +461,9 @@ def window_view():
 
 def lamp_room():
     """Scene 8: a dark room, a glowing lamp on a low cabinet. Camera along +Y."""
-    box((20, 14, 0.2), (0, 2, -0.1), mat("#b7a48c", rough=0.6), bevel=0)
+    box((20, 14, 0.2), (0, 2, -0.1), wood("#b7a48c", along="X"), bevel=0)
     box((20, 0.2, 12), (0, 3.2, 6), mat("#e9e4dc"), bevel=0)
-    box((2.6, 1.6, 1.25), (1.5, 2.3, 0.625), mat("#a5714f", rough=0.5), bevel=0.04, name="cabinet")
+    box((2.6, 1.6, 1.25), (1.5, 2.3, 0.625), mat("#e3d6c4", rough=0.6), bevel=0.04, name="cabinet")
     cyl(0.34, 0.1, (1.5, 2.2, 1.3), mat("#18181b", rough=0.4))
     glow = material("lampglow", lin("#ff3b1e"), rough=0.5, emit=1.7, bump=0)
     lamp = cyl(0.13, 2.2, (1.5, 2.2, 2.45), glow, name="lamp")

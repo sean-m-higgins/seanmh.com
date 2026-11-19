@@ -2,7 +2,7 @@
 import { films, filmPath, formatDuration } from "../content/films";
 import FilmLayout from "../layouts/FilmLayout.astro";
 
-const description = "From life: three short films drawn entirely in code from Sean Higgins’s build photographs.";
+const description = "From life: four short films made entirely in code from Sean Higgins’s own photographs and videos.";
 ---
 
 <FilmLayout title="from life — films by Sean Higgins" description={description} canonicalPath="/films/" image="/films/grain-poster.webp" skipLabel="Skip to the collection">
@@ -13,13 +13,13 @@ const description = "From life: three short films drawn entirely in code from Se
     </header>
     <main id="film-work" class="collection-main">
       <header class="collection-intro">
-        <p class="section-kicker">An exhibition in three short films</p>
+        <p class="section-kicker">An exhibition in four short films</p>
         <div class="collection-title-row">
           <h1>from <em>life.</em></h1>
           <p>Things made by hand.<br />Stories drawn from them.</p>
         </div>
       </header>
-      <div class="collection-rule"><span>Selected films / 01—03</span><span>Silent · 2026</span></div>
+      <div class="collection-rule"><span>Selected films / 01—04</span><span>Silent · 2026</span></div>
       <ol class="collection-films" aria-label="Choose a film">
         {films.map((film, i) => (
           <li>
@@ -28,7 +28,7 @@ const description = "From life: three short films drawn entirely in code from Se
                 <img src={`/films/${film.slug}-poster.webp`} alt={`A still from ${film.title}`} width="1080" height="1080" />
                 <span class="collection-play" aria-hidden="true">↗</span>
               </div>
-              <div class="collection-film-meta"><span>0{i + 1} / {film.kind === "story" ? "A story" : "The making"}</span><span>{formatDuration(film.duration)}</span></div>
+              <div class="collection-film-meta"><span>0{i + 1} / {film.kind === "story" ? "A story" : film.kind === "portrait" ? "A portrait" : "The making"}</span><span>{formatDuration(film.duration)}</span></div>
               <div class="collection-film-title"><h2>{film.title}</h2><span class="collection-watch">Watch film ↗</span></div>
               <p>{film.subject}.</p>
             </a>
@@ -36,6 +36,6 @@ const description = "From life: three short films drawn entirely in code from Se
         ))}
       </ol>
     </main>
-    <footer class="museum-footer"><p>© {new Date().getFullYear()} Sean Higgins</p><p>Three projects. Three films.</p></footer>
+    <footer class="museum-footer"><p>© {new Date().getFullYear()} Sean Higgins</p><p>Three projects, one cat. Four films.</p></footer>
   </div>
 </FilmLayout>

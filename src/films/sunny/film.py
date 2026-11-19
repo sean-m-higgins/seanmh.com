@@ -4,7 +4,9 @@
   $B --background --factory-startup --python src/films/sunny/film.py -- --sheet
   $B ... -- --still feather:2.1,sunny:9      stills -> renders/sunny/<scene>-<t>s.png
   $B ... -- --scene feather                  one scene, draft -> renders/sunny/feather.mp4
-  $B ... -- --release                        every scene -> public/sunny.mp4 + poster
+  $B ... -- --release [--only a,b]           every scene -> public/sunny.mp4 (20 MiB budget enforced)
+  $B ... -- --loop                           the feather leap, seamless -> public/sunny-loop.mp4 + .gif
+  $B ... -- --hash morning:6.5               render a frame twice and compare pixels
   options: --look felt|paper|toon  --size 1080  --samples 32
 
 The film moves on twos: the scene is posed 12 times a second and each pose is
@@ -26,7 +28,7 @@ sys.path.insert(0, HERE)
 
 import cat as C          # noqa: E402
 import sets as S         # noqa: E402
-from scenes import SCENES  # noqa: E402
+from scenes import LOOP, SCENES  # noqa: E402
 
 FPS, POSES = 24, 12
 FFMPEG = shutil.which("ffmpeg") or "/opt/homebrew/bin/ffmpeg"
@@ -74,6 +76,54 @@ def setup(o):
         pass
     s.view_settings.exposure = 0.0
     C.LOOK["name"] = o["look"]
+    try:
+        s.eevee.volumetric_tile_size = "4"
+        s.eevee.volumetric_samples = 96
+        s.eevee.use_volumetric_shadows = True
+        s.eevee.volumetric_end = 60.0
+    except Exception as e:
+        print("volumetric options unavailable:", e)
+    if o["look"] == "felt" and "nograde" not in o:
+        grade(s)
+
+
+def grade(s):
+    """The lens: a soft bloom on anything brighter than paper white, and a faint vignette."""
+    t = bpy.data.node_groups.new("grade", "CompositorNodeTree")
+    t.interface.new_socket(name="Image", in_out="OUTPUT", socket_type="NodeSocketColor")
+    rl = t.nodes.new("CompositorNodeRLayers")
+    gl = t.nodes.new("CompositorNodeGlare")
+    gl.inputs["Type"].default_value = "Bloom"
+    gl.inputs["Threshold"].default_value = 1.15
+    gl.inputs["Smoothness"].default_value = 0.4
+    gl.inputs["Strength"].default_value = 0.42
+    gl.inputs["Size"].default_value = 0.55
+    gl.inputs["Clamp"].default_value = True
+    gl.inputs["Maximum"].default_value = 6.0
+    t.links.new(rl.outputs["Image"], gl.inputs["Image"])
+    mask = t.nodes.new("CompositorNodeEllipseMask")
+    mask.inputs["Size"].default_value[0] = 1.02
+    mask.inputs["Size"].default_value[1] = 1.02
+    blur = t.nodes.new("CompositorNodeBlur")
+    r = s.render.resolution_x * 0.24
+    blur.inputs["Size"].default_value[0] = r
+    blur.inputs["Size"].default_value[1] = r
+    t.links.new(mask.outputs["Mask"], blur.inputs["Image"])
+    dark = t.nodes.new("ShaderNodeMix")
+    dark.data_type = "RGBA"
+    dark.blend_type = "MULTIPLY"
+    dark.inputs[0].default_value = 1.0
+    dark.inputs[7].default_value = (0.74, 0.73, 0.78, 1.0)
+    t.links.new(gl.outputs["Image"], dark.inputs[6])
+    vig = t.nodes.new("ShaderNodeMix")
+    vig.data_type = "RGBA"
+    t.links.new(blur.outputs["Image"], vig.inputs[0])
+    t.links.new(dark.outputs[2], vig.inputs[6])
+    t.links.new(gl.outputs["Image"], vig.inputs[7])
+    out = t.nodes.new("NodeGroupOutput")
+    t.links.new(vig.outputs[2], out.inputs[0])
+    s.compositing_node_group = t
+    s.render.use_compositing = True
 
 
 def apply_look(o):
@@ -205,6 +255,28 @@ def main():
         print("RELEASE %s %.2f MiB" % (dest, mib))
         if mib > 20:
             raise SystemExit("over the 20 MiB budget")
+        return
+
+    if "loop" in o:
+        # a seamless 720 px excerpt for sharing: MP4 for the web, GIF for everywhere else
+        bpy.context.scene.render.resolution_x = bpy.context.scene.render.resolution_y = 720
+        tmp = os.path.join(OUT, "tmp-loop")
+        os.makedirs(tmp, exist_ok=True)
+        st = build(LOOP, o)
+        n = int(round(LOOP.dur * POSES))
+        for i in range(n):
+            LOOP.frame(st, i / POSES)
+            render(os.path.join(tmp, "f%04d.png" % i))
+        pub = os.path.join(ROOT, "public")
+        subprocess.run([FFMPEG, "-v", "error", "-y", "-framerate", str(POSES), "-i", os.path.join(tmp, "f%04d.png"), "-r", str(FPS),
+                        "-c:v", "libx264", "-preset", "slow", "-crf", "20", "-pix_fmt", "yuv420p", "-movflags", "+faststart", "-an",
+                        os.path.join(pub, "sunny-loop.mp4")], check=True)
+        gifski = shutil.which("gifski") or "/opt/homebrew/bin/gifski"
+        frames = [os.path.join(tmp, "f%04d.png" % i) for i in range(n)]
+        subprocess.run([gifski, "--fps", str(POSES), "--quality", "85", "-o", os.path.join(pub, "sunny-loop.gif")] + frames, check=True)
+        shutil.rmtree(tmp)
+        for name in ("sunny-loop.mp4", "sunny-loop.gif"):
+            print("LOOP %s %.2f MB" % (name, os.path.getsize(os.path.join(pub, name)) / 1e6))
         return
 
     print(__doc__)

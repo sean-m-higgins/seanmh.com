@@ -38,13 +38,13 @@ const media = `/films/${film.slug}`;
         </li>
       ))}
     </ol>
-    <p class="index-note">Drawn entirely in code<br />from build photographs.</p>
+    <p class="index-note">{film.kind === "portrait" ? <>Built entirely in code<br />from home videos.</> : <>Drawn entirely in code<br />from build photographs.</>}</p>
   </aside>
 
   <main class="film-main" id="film-work">
     <div class="wall-label" aria-label="Film details">
       <p><span class="label-long">Short film, {film.year} <span aria-hidden="true">·</span> </span>{formatDuration(film.duration)}</p>
-      <p><span class="label-long">Drawn by </span>{film.model}</p>
+      <p><span class="label-long">{film.kind === "portrait" ? "Made by " : "Drawn by "}</span>{film.model}</p>
     </div>
 
     <figure class="film-frame">
@@ -111,8 +111,8 @@ const media = `/films/${film.slug}`;
     ) : (
       <section class="story-notes" aria-labelledby="story-heading">
         <header>
-          <p class="section-kicker">The project</p>
-          <h2 id="story-heading">A way in.</h2>
+          <p class="section-kicker">{film.notes?.kicker ?? "The project"}</p>
+          <h2 id="story-heading">{film.notes?.heading ?? "A way in."}</h2>
         </header>
         <div class="story-grid">
           <div class="synopsis">{film.synopsis?.map((paragraph) => <p>{paragraph}</p>)}</div>

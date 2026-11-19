@@ -4,15 +4,16 @@ export interface FilmStep {
 }
 
 export interface Film {
-  slug: "grain" | "gesso" | "ramp";
+  slug: "grain" | "gesso" | "ramp" | "sunny";
   title: string;
   subject: string;
-  kind: "how-to" | "story";
+  kind: "how-to" | "story" | "portrait";
   model: string;
   year: number;
   duration: number;
   sentence: string;
-  room: "woodshop" | "art" | "eagle";
+  room?: "woodshop" | "art" | "eagle";
+  notes?: { kicker: string; heading: string };
   materials?: string[];
   tools?: string[];
   steps?: FilmStep[];
@@ -92,6 +93,31 @@ export const films: Film[] = [
       { label: "Slope", value: "designed to the ADA 1:12 maximum" },
       { label: "Moving it", value: "each section towable by ATV" },
       { label: "Threshold", value: "a hinged toe plate folds to the ground" },
+    ],
+  },
+  {
+    slug: "sunny",
+    title: "sunny",
+    subject: "a day with Sunny, the tripod cat",
+    kind: "portrait",
+    model: "Claude Fable 5.2",
+    year: 2026,
+    duration: 62,
+    sentence: "One day with Sunny, from the first patch of morning sun to the last warm one, built in felt and card.",
+    notes: { kicker: "The subject", heading: "A day with Sunny." },
+    synopsis: [
+      "Sunny is a tripod cat: three legs and a bob of a tail. He sits bolt upright in the morning sun, hops straight into the lens, plays fetch with a striped mouse on a ribbon, and goes straight up after a feather. Then the hallway, the window at dusk, a lamp, and sleep.",
+      "Every moment comes from Sean’s own videos of him, and so does the way he moves: the front legs step, the one hind leg hops. None of the footage appears: the cat, the rooms and the light were rebuilt as a small felt-and-card miniature in Blender, written entirely in code, and shot like stop motion.",
+    ],
+    facts: [
+      { label: "Coat", value: "spotted tabby" },
+      { label: "Legs", value: "three, with the hind paw under the middle" },
+      { label: "Tail", value: "a bob" },
+      { label: "Eyes", value: "yellow-green" },
+      { label: "Games", value: "fetch, and the feather wand" },
+      { label: "Made in", value: "Blender, from Python, with no hand keyframes" },
+      { label: "Motion", value: "twelve poses a second, each held for two frames" },
+      { label: "Drawn from", value: "four home videos" },
     ],
   },
 ];

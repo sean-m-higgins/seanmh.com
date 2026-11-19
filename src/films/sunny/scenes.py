@@ -16,8 +16,10 @@ from cat import Cat
 V = Vector
 PI = math.pi
 
-WALK = dict(stride=0.32, duty=0.62)
-TROT = dict(stride=0.4, duty=0.5, lift=0.1, trot=True, bob=0.02)
+# Sunny has three legs, so he has three ways of moving, all of them hops.
+# D is the ground covered in one cycle (see anim.gait for why that keeps paws planted).
+WALK = dict(D=0.5, mode="walk")
+TROT = dict(D=0.72, mode="canter")
 RUN_PER = 0.6 / 0.35
 
 
@@ -40,13 +42,18 @@ def aim(cam, pos, target, focus=None, roll=0.0):
 
 
 def per(g):
-    return g["stride"] / g["duty"]
+    return g["D"]
 
 
 def walk_pose(dist, g=WALK, **kw):
     a = dict(g)
     a.update(kw)
-    return A.gait(dist / per(g), **a)
+    return A.gait(dist / g["D"], **a)
+
+
+def move_pose(dist, k, **kw):
+    """Canter blending down to a walk as k goes 0 -> 1."""
+    return blend(walk_pose(dist, TROT, **kw), walk_pose(dist, WALK, **kw), k)
 
 
 def along(p0, p1, u):
@@ -72,6 +79,7 @@ def look_at(cat_pos, heading, target, eye_h=0.72, max_yaw=1.3):
 
 HIGH_CAM = (V((0.1, -2.9, 4.6)), V((0.1, 0.05, 0.0)))
 LOW_CAM = (V((0.0, -4.3, 0.8)), V((0.1, 0.3, 0.66)))
+END_CAM = (V((0.1, -2.5, 3.6)), V((0.1, -0.05, 0.0)))   # the last frame: the opening angle, closer
 SPOT = V((0.1, 0.3, 0.0))            # where the light falls, and where Sunny sits
 
 
@@ -88,13 +96,14 @@ class Morning:
     def build(self):
         st = _living(False)
         d = (0.5, -0.55, -0.68)
-        S.sun(d, 7.5, "#ffe2b0", angle=0.02)
+        S.sun(d, 8.5, "#ffdca6", angle=0.02, shaft=5.0)
         S.gobo(SPOT + V((0.0, 0.1, 0)), d, w=1.7, h=2.0)
         for o in bpy.data.objects:
             if o.name.startswith("wall"):
                 o.visible_shadow = False
-        S.world("#f0e2d0", 0.6)
-        S.area((2, -6, 5), (0, 0, 0.5), 500, "#dfe8ff", 6)
+        S.world("#ecdcc8", 0.46)
+        S.area((2, -6, 5), (0, 0, 0.5), 420, "#dfe8ff", 6).data.volume_factor = 0.0
+        S.haze((15, 13, 6.8), (0, 0.4, 3.4), 0.008)
         return st
 
     def frame(self, st, t):
@@ -102,7 +111,7 @@ class Morning:
         p0, p1 = (3.5, 2.5, 0.07), (SPOT.x + 0.05, SPOT.y, 0.07)
         u = ease_out(span(t, 1.0, 4.3)) * 0.999
         pos, h0, dist = along(p0, p1, u)
-        walk = walk_pose(dist, look=(0.15, 0.05))
+        walk = move_pose(dist, ease(span(t, 3.2, 3.9)), look=(0.15, 0.05))
         h1 = -PI / 2 + 0.22
         k = ease(span(t, 4.2, 5.0))
         look = (0.0, 0.08)
@@ -141,7 +150,7 @@ class Hello:
         y = lerp(SPOT.y, y_end, u)
         x = lerp(SPOT.x + 0.05, 0.0, ease(u))
         dist = SPOT.y - y
-        walk = walk_pose(dist, look=(0, 0.05), bob=0.006)
+        walk = walk_pose(dist, look=(0, 0.05))
         walk["pupil"] = 0.55 + 0.4 * span(t, 3.2, 4.3)
         walk["eyes"] = blink(t, 1.6)
         sit = A.sit(look=(0, 0.1), eyes=1.0)
@@ -149,7 +158,11 @@ class Hello:
         pose = blend(sit, walk, k)
         cat.apply_pose(pose)
         hw = head_world(cat, pose)
-        aim(cam, cam_pos + V((0, 0, -0.04 * (1 - u))), (0.1, 0.0, lerp(0.62, 0.745, ease(span(t, 2.4, 4.0)))), focus=hw + V((0, -0.17, 0)))
+        d = V((0.72, 0.5, 0.1)).normalized()
+        eye = cat.root @ pose["head"] @ (d * 0.185)
+        k_eye = ease(span(t, 2.6, 3.9))
+        target = V((0.1, 0.0, 0.64)).lerp(eye, k_eye)
+        aim(cam, cam_pos + V((0, 0, -0.04 * (1 - u))), target, focus=(hw + V((0, -0.17, 0))).lerp(eye + V((0, -0.03, 0)), k_eye))
 
 
 # ================================================================ 3 throw
@@ -162,14 +175,14 @@ def _mouse_path(t):
     dangle = V((0.25 + 0.12 * math.sin(t * 5.0), 0.75 + 0.06 * math.cos(t * 3.7), 1.75 + 0.1 * math.sin(t * 7.0)))
     if t < 1.05:
         return dangle
-    a, b = V((0.3, 0.8, 1.8)), V((-1.5, 8.6, 0.09))
+    a, b = V((0.3, 0.8, 1.8)), V((-0.9, 5.6, 0.09))
     if t < 1.95:
         u = (t - 1.05) / 0.9
         p = a.lerp(b, u)
         p.z = lerp(a.z, b.z, u) + 2.6 * 4 * u * (1 - u) * 0.5
         return p
     u = ease_out(span(t, 1.95, 2.6))
-    return V((b.x - 0.25 * u, b.y + 1.1 * u, 0.09))
+    return V((b.x - 0.2 * u, b.y + 0.9 * u, 0.09))
 
 
 def _ribbon_pts(n, t, release=1.05, lag=0.55):
@@ -191,7 +204,7 @@ class Throw:
     def build(self):
         S.play_floor()
         st = dict(cat=Cat("sunny"), cam=camera(24, 2.0), mouse=S.toy_mouse(), rib=S.Ribbon(36))
-        S.socks(0.0, -0.1, legs=False)
+        S.socks(0.0, -0.1, legs=False, k=0.85)
         S.sun((-0.35, 0.3, -0.85), 3.2, "#fff6e8", angle=0.25)
         S.world("#f4f1ec", 1.0)
         S.area((-6, 2, 7), (0, 5, 0), 900, "#ffffff", 8)
@@ -201,7 +214,7 @@ class Throw:
         cat, cam, mouse = st["cat"], st["cam"], st["mouse"]
         m = _mouse_path(t)
         start = V((0.25, 1.7, 0))
-        land = V((-1.72, 9.55, 0))
+        land = V((-1.1, 6.5, 0))
         stop = land + V((0.1, -0.62, 0))
         pos, hrun, dist = along(start, stop, ease_in(span(t, 1.35, 1.6)) * 0.12 + 0.88 * span(t, 1.55, 3.0))
         h_sit = -PI / 2
@@ -241,8 +254,8 @@ class Throw:
             st["rib"].set(_ribbon_pts(36, t))
         hw = head_world(cat, pose)
         fol = ease(span(t, 1.2, 3.2))
-        aim(cam, (0.05, -0.9, 3.5), V((0.1, 1.5, 0.3)).lerp(V((-1.3, 8.6, 0.4)), fol), focus=hw)
-        cam.data.lens = lerp(24, 62, ease(span(t, 1.6, 3.4)))
+        aim(cam, (0.05, -0.9, 3.5), V((0.1, 1.5, 0.3)).lerp(V((-0.9, 6.0, 0.45)), fol), focus=hw)
+        cam.data.lens = lerp(24, 80, ease(span(t, 1.6, 3.4)))
 
 
 # ================================================================ 4 fetch
@@ -261,9 +274,9 @@ class Fetch:
 
     def frame(self, st, t):
         cat, cam, mouse = st["cat"], st["cam"], st["mouse"]
-        p0, p1 = V((-1.5, 9.2, 0)), V((0.05, 1.75, 0))
-        u = span(t, 0.0, 3.3)
-        u = 1 - (1 - u) ** 1.6
+        p0, p1 = V((-1.0, 6.4, 0)), V((0.05, 1.75, 0))
+        u = span(t, 0.2, 3.3)
+        u = 1 - (1 - u) ** 1.5
         pos, h, dist = along(p0, p1, u)
         trot = walk_pose(dist, TROT, look=(0, 0.22), head_up=0.05)
         trot["tail"] = A.tail_for(trot["hips"], 1.35, 0.06, sway=0.1 * math.sin(dist * 9))
@@ -404,6 +417,7 @@ class Hallway:
         S.hallway()
         st = dict(cat=Cat("sunny"), grey=Cat("grey", grey=True, scale=1.08), cam=camera(35, 1.6))
         S.world("#8a786a", 0.8)
+        S.haze((5.0, 44, 8.9), (0, 20, 4.5), 0.012)
         return st
 
     def frame(self, st, t):
@@ -416,7 +430,7 @@ class Hallway:
         run = A.gallop(d1 / RUN_PER + 0.2)
         if t > 1.5:
             pos, h, d2 = along(b, c, u2 * 0.999)
-            walk = walk_pose(d2, TROT if u2 < 0.5 else WALK, look=(0.3, 0.05))
+            walk = move_pose(d2, ease(span(u2, 0.45, 0.75)), look=(0.3, 0.05))
             pose = blend(run, walk, ease(span(t, 1.5, 1.8)))
         else:
             pose = run
@@ -425,8 +439,7 @@ class Hallway:
         hh = h + ((h_end - h + PI) % (2 * PI) - PI) * ease(span(t, 3.3, 4.4))
         lie = A.lie(side=-1.0, look=(-0.5 + 0.9 * ease(span(t, 5.6, 6.2)), 0.1), eyes=blink(t, 6.9, 0.4), pupil=0.6)
         tip = math.sin(t * 5.0) * 0.5 * span(t, 4.8, 5.4)
-        for i in range(4, len(lie["tail"])):
-            lie["tail"][i] = lie["tail"][i] + V((0, 0, max(0, tip) * 0.05 * (i - 3)))
+        A.nub(lie, wag=0.5 * tip)
         pose = blend(pose, lie, flop)
         cat.place(pos, hh)
         cat.apply_pose(pose)
@@ -434,7 +447,7 @@ class Hallway:
         gh = -PI / 2 + 0.25
         gy, gp = look_at(gpos, gh, cat.root.translation + V((0, 0, 0.45 - 0.2 * flop)), eye_h=0.95)
         seen = ease(span(t, 2.2, 3.0))
-        gpose = A.sit(look=(lerp(0.0, gy, seen), lerp(0.05, gp, seen)), tall=1.0, pupil=0.5, tail_wrap=-0.42)
+        gpose = A.sit(look=(lerp(0.0, gy, seen), lerp(0.05, gp, seen)), tall=1.0, pupil=0.5, tail_wrap=-0.42, tripod=False)
         gpose["eyes"] = blink(t, 5.2, 0.3)
         grey.place(gpos, gh)
         grey.apply_pose(gpose)
@@ -471,8 +484,7 @@ class Window:
         tw = max(0.0, math.sin((t - 1.4) * 14)) * (1 if 1.4 < t < 1.85 else 0) + max(0.0, math.sin((t - 3.3) * 14)) * (1 if 3.3 < t < 3.75 else 0)
         pose["ears"] = 0.25 * tw
         fl = max(0.0, math.sin(t * 4.2 - 1.0)) ** 3
-        for i in range(4, len(pose["tail"])):
-            pose["tail"][i] = pose["tail"][i] + V((0, 0, fl * 0.05 * (i - 3)))
+        A.nub(pose, wag=0.7 * fl * math.sin(t * 19))
         cat.place((0.3, 0.25, 0.0), PI / 2 + 0.12)
         cat.apply_pose(pose)
         push = ease(span(t, 0.0, 6.0))
@@ -495,9 +507,9 @@ class Lamp:
     def frame(self, st, t):
         cat, cam = st["cat"], st["cam"]
         base = V((0.55, 1.12, 0))
-        p0 = V((-3.0, 0.75, 0))
+        p0 = V((-1.9, 0.8, 0))
         pos, h, dist = along(p0, base, ease_out(span(t, 0.0, 1.3)) * 0.999)
-        walk = walk_pose(dist, look=(0.3, 0.3))
+        walk = walk_pose(dist, TROT, look=(0.3, 0.3))
         rise = ease(span(t, 1.2, 1.9)) * (1 - ease(span(t, 3.5, 4.1)))
         knead = math.sin(t * 9.0) * 0.045 * span(t, 1.9, 2.2)
         up = A.stretch_up(reach=0.6 + 0.4 * ease(span(t, 1.9, 2.6)), look=(0.35, 0.1))
@@ -507,9 +519,9 @@ class Lamp:
         heading = h + ((h_up - h + PI) % (2 * PI) - PI) * ease(span(t, 1.0, 1.7))
         pose = blend(walk, up, rise)
         if t > 3.5:
-            p1 = V((4.6, 0.3, 0))
-            pos2, h2, d2 = along(base, p1, ease_in(span(t, 3.9, 5.0)) * 0.999)
-            off = walk_pose(d2, look=(0, 0.05))
+            p1 = V((3.2, 0.4, 0))
+            pos2, h2, d2 = along(base, p1, span(t, 3.9, 5.0) ** 1.6 * 0.999)
+            off = walk_pose(d2, TROT, look=(0, 0.05))
             pose = blend(up, off, ease(span(t, 3.5, 4.1)))
             heading = h_up + ((h2 - h_up + PI) % (2 * PI) - PI) * ease(span(t, 3.6, 4.3))
             pos = pos2
@@ -527,9 +539,10 @@ class Sunny:
     def build(self):
         st = _living(True)
         S.world("#1d2748", 0.5)
-        st["lamp"] = S.spot((-1.4, -1.2, 7.5), SPOT, 2600, "#ffc98a", size=0.62, blend=0.5, soft=0.25)
-        S.area((6, 2, 6), (0, 0.5, 0), 500, "#5a78d8", 6)
-        st["sig"] = S.Signature("sunny · claude fable 5.2 · 2026", (-0.9, -0.82, 0.08), scale=0.0195, color="#c44a34", thick=0.013)
+        st["lamp"] = S.spot((-1.4, -1.2, 7.5), SPOT + V((0, -0.15, 0)), 2600, "#ffc98a", size=0.5, blend=0.5, soft=0.25)
+        S.area((6, 2, 6), (0, 0.5, 0), 500, "#5a78d8", 6).data.volume_factor = 0.0
+        S.haze((15, 13, 6.8), (0, 0.4, 3.4), 0.02, "#ffe6c4")
+        st["sig"] = S.Signature("sunny · claude fable 5.2 · 2026", (-0.81, -0.78, 0.08), scale=0.0175, color="#c44a34", thick=0.013)
         return st
 
     def frame(self, st, t):
@@ -548,7 +561,7 @@ class Sunny:
             pos = centre + V((r * math.cos(ang), r * math.sin(ang), 0))
             h = h_in + sweep * cu
             dist += r * sweep * cu
-        walk = walk_pose(dist, look=(0.25 * cu, -0.25 * cu), crouch=0.03 * cu)
+        walk = move_pose(dist, ease(span(t, 2.5, 3.1)), look=(0.25 * cu, -0.25 * cu), crouch=0.02 * cu)
         down = ease(span(t, 4.6, 5.7))
         br = math.sin((t - 5.7) * 2.0)
         sleep = A.curl(breath=br if t > 5.7 else 0.0, eyes=1.0 - ease(span(t, 5.9, 6.6)))
@@ -556,8 +569,38 @@ class Sunny:
         cat.place(pos.lerp(settle, down), h)
         cat.apply_pose(blend(walk, sleep, down))
         c = ease(span(t, 4.4, 7.0))
-        aim(cam, LOW_CAM[0].lerp(HIGH_CAM[0], c), LOW_CAM[1].lerp(HIGH_CAM[1], c), focus=SPOT + V((0, 0, 0.5 * (1 - c))))
-        st["sig"].write(span(t, 6.7, 8.7))
+        aim(cam, LOW_CAM[0].lerp(END_CAM[0], c), LOW_CAM[1].lerp(END_CAM[1], c), focus=SPOT + V((0, 0.2, 0.5 * (1 - c))))
+        st["sig"].write(span(t, 6.4, 8.2))
 
 
+class FeatherLoop(Feather):
+    """The share loop: one leap, ending exactly where it began. Not in the film."""
+    id, dur = "loop", 4.0
+
+    def frame(self, st, t):
+        cat, cam, top = st["cat"], st["cam"], st["top"]
+        w = 2 * PI / self.dur
+        jerk = math.sin(span(t, 1.3, 2.6) * PI) ** 2
+        F = V((1.1 + 0.12 * math.sin(w * t * 2), 0.3, top + 1.75 + 0.07 * math.sin(w * t * 3) + 1.5 * jerk))
+        x = -0.35
+        yaw, pitch = look_at((x, 0.3, top), 0.0, F)
+        wig = math.sin(t * 22) * 0.07 * math.sin(span(t, 0.2, 1.4) * PI)
+        tilt, z = None, 0.0
+        if 1.4 <= t < 2.4:
+            z, pose, tilt = _leap(t, 1.4, 2.4, 1.35, twist=0.8)
+        else:
+            depth = 0.6 + 0.4 * span(t, 0.0, 1.4) if t < 1.4 else lerp(1.15, 0.6, ease(span(t, 2.4, 3.6)))
+            pose = A.crouch(wiggle=wig, look=(yaw, pitch), depth=depth)
+        cat.place((x, 0.3, top + z), 0.0, tilt)
+        cat.apply_pose(pose)
+        st["feather"].matrix_world = Matrix.Translation(F) @ rot("Y", 0.6 * math.sin(w * t * 2))
+        tip = V((F.x + 2.2, 0.3, F.z + 1.6 + 0.2 * math.sin(w * t * 2)))
+        base = V((7.0, 0.1, top + 3.4))
+        d = tip - base
+        st["rod"].matrix_world = Matrix.Translation((tip + base) / 2) @ d.to_track_quat("Z", "Y").to_matrix().to_4x4() @ Matrix.Diagonal((1, 1, d.length, 1))
+        st["string"].set([tip.lerp(F, i / 7) for i in range(8)])
+        aim(cam, (0.0, -5.9, top + 1.0), (0.05, 0.3, top + 1.3), focus=(x, 0.3, top + 0.5))
+
+
+LOOP = FeatherLoop()
 SCENES = [Morning(), Hello(), Throw(), Fetch(), Feather(), Hallway(), Window(), Lamp(), Sunny()]
