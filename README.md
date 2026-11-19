@@ -2,11 +2,10 @@
 
 Short animated films drawn entirely in code from Sean's build photos, served
 as a path app at `seanmh.com/films/`. The photos are reference only and never
-enter git or a deploy. Series design: `plans/films-plan.html` on `main`. Film
+enter git or a deploy. Series design: `wiki/Films.md` on `main`. Film
 prompts: `prompts/` on `main`.
 
-Status: **films-plan step 1 done** (toolkit, runtime, preview, renderer,
-pipeline proof). All three films passed their storyboard and style-frame gates,
+Status: toolkit, runtime, preview, renderer and pipeline proof are done. All three films passed their storyboard and style-frame gates,
 are fully animated, and have release media in `public/`: **grain** (12 scenes,
 etched coloured pencil with one photographic glass pass; redrawn 2026-11-16), **gesso** (17 scenes,
 impasto with raking light), and **ramp** (18 scenes, lit cut-paper relief). The

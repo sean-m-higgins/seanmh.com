@@ -26,7 +26,7 @@ npm run check && npm run build
   `~/SoftLot/MyWebsite/film-refs/`. Never commit them.
 - Every frame must be a pure function of the frame index.
 
-Plan: `plans/films-plan.html` on `main`.
+Series design: `wiki/Films.md` on `main` (the series plan was retired 2026-11-19).
 
 ## Site rules (full map in AGENTS.md on `main`)
 
