@@ -11,8 +11,8 @@ etched coloured pencil with one photographic glass pass; redrawn 2026-11-16), **
 impasto with raking light), and **ramp** (18 scenes, lit cut-paper relief). The
 `/films/` collection and one wall page per film (step 3) are live at
 `seanmh.com/films/`. **sunny** (9 scenes, a felt-and-card miniature rendered in
-Blender) was released 2026-11-19 as film 04. Its design doc is
-`plans/sunny-film-plan.html` on `main`.
+Blender) was released 2026-11-19 as film 04. Its design notes are in
+`wiki/Films.md` on `main`.
 
 ## Commands
 
