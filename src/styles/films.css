@@ -18,6 +18,14 @@
   font-synthesis: none;
 }
 
+[data-film-theme="light"] { color-scheme: light; }
+[data-film-theme="dark"], [data-film-theme="theater"] { color-scheme: dark; }
+:root[data-film-theme="theater"] {
+  --paper: #000;
+  --paper-deep: #000;
+  --wash: #171717;
+}
+
 * { box-sizing: border-box; }
 html { scroll-behavior: smooth; background: var(--paper); }
 body { margin: 0; min-width: 320px; overflow-x: hidden; background: var(--paper); color: var(--ink); }
@@ -166,7 +174,7 @@ button, video { font: inherit; }
 
 @media (max-width: 760px) {
   .museum-shell { display: block; }
-  .museum-masthead { min-height: 4rem; padding-inline: 1rem; }
+  .museum-masthead { min-height: 4rem; padding-inline: 1rem; gap: 0.6rem; flex-wrap: wrap; }
   .wordmark small { display: none; }
   .museum-masthead nav { gap: 0.75rem; }
   .film-index { position: static; min-height: 0; padding: 1rem; border-right: 0; border-bottom: 1px solid var(--line); }

@@ -1,27 +1,50 @@
-<button type="button" class="theater-switch" aria-pressed="false" hidden>
-  <span aria-hidden="true"></span> Theater mode
-</button>
+<div class="mode-options" role="group" aria-label="Viewing mode" hidden>
+  <button type="button" class="theater-switch" data-mode="theater" aria-pressed="false">
+    <span aria-hidden="true"></span> Theater mode
+  </button>
+  <button type="button" class="theater-switch" data-mode="dark" aria-pressed="false" hidden>
+    <span aria-hidden="true"></span> Dark mode
+  </button>
+</div>
 
 <script>
-  const button = document.querySelector<HTMLButtonElement>(".theater-switch")!;
+  const group = document.querySelector<HTMLElement>(".mode-options")!;
+  const buttons = group.querySelectorAll<HTMLButtonElement>("button");
+  const darkButton = group.querySelector<HTMLButtonElement>('[data-mode="dark"]')!;
   const system = matchMedia("(prefers-color-scheme: dark)");
   const root = document.documentElement;
+  try {
+    darkButton.hidden = localStorage.getItem("films-modes-revealed") !== "true";
+  } catch { /* Controls still work without storage. */ }
+
   function update() {
-    const dark = root.style.colorScheme ? root.style.colorScheme === "dark" : system.matches;
-    button.setAttribute("aria-pressed", String(dark));
+    const mode = root.dataset.filmTheme ?? (system.matches ? "dark" : "light");
+    for (const button of buttons) {
+      button.setAttribute("aria-pressed", String(button.dataset.mode === mode));
+    }
   }
-  button.addEventListener("click", () => {
-    const theme = button.getAttribute("aria-pressed") === "true" ? "light" : "dark";
-    root.style.colorScheme = theme;
-    try { localStorage.setItem("films-theme", theme); } catch { /* Current page still updates. */ }
-    update();
-  });
+
+  for (const button of buttons) {
+    button.addEventListener("click", () => {
+      const mode = button.getAttribute("aria-pressed") === "true" ? "light" : button.dataset.mode!;
+      root.dataset.filmTheme = mode;
+      darkButton.hidden = false;
+      update();
+      try {
+        localStorage.setItem("films-modes-revealed", "true");
+        localStorage.setItem("films-theme", mode);
+      } catch { /* Keep the choice for this page. */ }
+    });
+  }
+
   system.addEventListener("change", update);
   update();
-  button.hidden = false;
+  group.hidden = false;
 </script>
 
 <style>
+  .mode-options { display: flex; gap: 0.35rem; }
+  .mode-options[hidden] { display: none; }
   .theater-switch {
     display: inline-flex;
     align-items: center;
