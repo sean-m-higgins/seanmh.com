@@ -1,0 +1,48 @@
+<button type="button" class="theater-switch" aria-pressed="false" hidden>
+  <span aria-hidden="true"></span> Theater mode
+</button>
+
+<script>
+  const button = document.querySelector<HTMLButtonElement>(".theater-switch")!;
+  const system = matchMedia("(prefers-color-scheme: dark)");
+  const root = document.documentElement;
+  function update() {
+    const dark = root.style.colorScheme ? root.style.colorScheme === "dark" : system.matches;
+    button.setAttribute("aria-pressed", String(dark));
+  }
+  button.addEventListener("click", () => {
+    const theme = button.getAttribute("aria-pressed") === "true" ? "light" : "dark";
+    root.style.colorScheme = theme;
+    try { localStorage.setItem("films-theme", theme); } catch { /* Current page still updates. */ }
+    update();
+  });
+  system.addEventListener("change", update);
+  update();
+  button.hidden = false;
+</script>
+
+<style>
+  .theater-switch {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.45rem;
+    padding: 0.55rem 0.8rem;
+    border: 1px solid var(--line-strong);
+    border-radius: 2rem;
+    background: transparent;
+    color: var(--ink);
+    cursor: pointer;
+    white-space: nowrap;
+  }
+  .theater-switch[hidden] { display: none; }
+  .theater-switch span {
+    width: 0.65rem;
+    height: 0.65rem;
+    border: 1px solid currentColor;
+    border-radius: 50%;
+    background: linear-gradient(90deg, currentColor 50%, transparent 50%);
+  }
+  .theater-switch[aria-pressed="true"] { background: #302a22; color: #f0d8b6; border-color: #70604b; }
+  .theater-switch:hover { border-color: currentColor; }
+  .theater-switch:focus-visible { outline: 2px solid currentColor; outline-offset: 3px; }
+</style>

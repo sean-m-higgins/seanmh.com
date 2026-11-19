@@ -34,7 +34,13 @@ const structuredData = !error && imageUrl && duration ? {
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <meta name="description" content={description} />
     <meta name="generator" content={Astro.generator} />
-    <meta name="theme-color" content="#f3f0e9" />
+    <meta name="color-scheme" content="light dark" />
+    <script is:inline>
+      try {
+        const theme = localStorage.getItem("films-theme");
+        if (theme === "light" || theme === "dark") document.documentElement.style.colorScheme = theme;
+      } catch { /* Use the system preference when storage is unavailable. */ }
+    </script>
     <meta name="portfolio-version" content="films" />
 
     {!error && <link rel="canonical" href={canonicalUrl} />}

@@ -1,17 +1,17 @@
 :root {
-  --paper: #f3f0e9;
-  --paper-deep: #ebe7de;
-  --ink: #181816;
-  --ink-soft: #55534d;
-  --ink-mute: #625f58;
-  --line: #d7d2c8;
-  --line-strong: #aaa49a;
-  --wash: #e9e5dc;
+  --paper: light-dark(#f3f0e9, #171819);
+  --paper-deep: light-dark(#ebe7de, #0c0d0e);
+  --ink: light-dark(#181816, #f4efe5);
+  --ink-soft: light-dark(#55534d, #d1cbc1);
+  --ink-mute: light-dark(#625f58, #b2aca2);
+  --line: light-dark(#d7d2c8, #38393a);
+  --line-strong: light-dark(#aaa49a, #646360);
+  --wash: light-dark(#e9e5dc, #2c2c2c);
   --sans: "Helvetica Neue", Helvetica, Arial, system-ui, sans-serif;
   --serif: "Iowan Old Style", "Palatino Linotype", Palatino, Georgia, serif;
   --gutter: clamp(1rem, 3.7vw, 3.75rem);
   --sidebar: clamp(10rem, 17vw, 14rem);
-  color-scheme: light;
+  color-scheme: light dark;
   font-family: var(--sans);
   background: var(--paper);
   color: var(--ink);
@@ -87,7 +87,7 @@ button, video { font: inherit; }
 .wordmark { display: flex; align-items: baseline; gap: 0.75rem; text-decoration: none; }
 .wordmark span { font-family: var(--serif); font-size: 1.35rem; font-style: italic; letter-spacing: -0.02em; }
 .wordmark small { color: var(--ink-mute); font-size: 0.71rem; text-transform: uppercase; letter-spacing: 0.1em; }
-.museum-masthead nav { display: flex; gap: 1.5rem; font-size: 0.78rem; }
+.museum-masthead nav { display: flex; align-items: center; gap: 1.5rem; font-size: 0.78rem; }
 .museum-masthead nav a { text-decoration: none; color: var(--ink-soft); }
 .museum-masthead nav a:hover { color: var(--ink); }
 
@@ -168,7 +168,7 @@ button, video { font: inherit; }
   .museum-shell { display: block; }
   .museum-masthead { min-height: 4rem; padding-inline: 1rem; }
   .wordmark small { display: none; }
-  .museum-masthead nav { gap: 0; }
+  .museum-masthead nav { gap: 0.75rem; }
   .film-index { position: static; min-height: 0; padding: 1rem; border-right: 0; border-bottom: 1px solid var(--line); }
   .index-heading, .index-note, .index-year { display: none; }
   .film-index ol { display: grid; grid-template-columns: repeat(3, 1fr); border: 0; gap: 0.35rem; }

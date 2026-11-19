@@ -1,4 +1,5 @@
 ---
+import TheaterSwitch from "./TheaterSwitch.astro";
 import { films, filmPath, formatDuration, type Film } from "../content/films";
 
 interface Props { film: Film }
@@ -18,6 +19,7 @@ const media = `/films/${film.slug}`;
       <small>films by Sean Higgins</small>
     </a>
     <nav aria-label="Collection links">
+      <TheaterSwitch />
       <a href="/"><span class="portfolio-long">Sean’s </span>portfolio <span aria-hidden="true">↗</span></a>
     </nav>
   </header>

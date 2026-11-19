@@ -1,4 +1,5 @@
 ---
+import TheaterSwitch from "../components/TheaterSwitch.astro";
 import { films, filmPath, formatDuration } from "../content/films";
 import FilmLayout from "../layouts/FilmLayout.astro";
 
@@ -9,7 +10,10 @@ const description = "From life: four short films made entirely in code from Sean
   <div class="collection-page">
     <header class="museum-masthead">
       <a class="wordmark" href="/films/" aria-current="page"><span>from life</span><small>films by Sean Higgins</small></a>
-      <nav aria-label="Collection links"><a href="/"><span class="portfolio-long">Sean’s </span>portfolio ↗</a></nav>
+      <nav aria-label="Collection links">
+        <TheaterSwitch />
+        <a href="/"><span class="portfolio-long">Sean’s </span>portfolio ↗</a>
+      </nav>
     </header>
     <main id="film-work" class="collection-main">
       <header class="collection-intro">
