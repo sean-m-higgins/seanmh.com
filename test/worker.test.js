@@ -369,6 +369,109 @@ test('Films owns /films and its media independently of version selection', async
   assert.equal(media.headers.get('Set-Cookie'), null);
 });
 
+// A stand-in for caches.default with the two behaviours the Worker relies on:
+// match() cuts a Range into a 206 and answers a matching If-None-Match with 304.
+function mockEdgeCache() {
+  const store = new Map();
+  globalThis.caches = {
+    default: {
+      async put(key, response) {
+        store.set(String(key), { headers: new Headers(response.headers), bytes: new Uint8Array(await response.arrayBuffer()) });
+      },
+      async match(request) {
+        const entry = store.get(request.url);
+        if (!entry) return undefined;
+        const headers = new Headers(entry.headers);
+        if (request.headers.get('If-None-Match') === headers.get('ETag')) {
+          return new Response(null, { status: 304, headers });
+        }
+        const range = /^bytes=(\d+)-(\d*)$/.exec(request.headers.get('Range') ?? '');
+        if (!range) return new Response(entry.bytes, { status: 200, headers });
+        const start = Number(range[1]);
+        const end = range[2] ? Number(range[2]) : entry.bytes.length - 1;
+        headers.set('Content-Range', `bytes ${start}-${end}/${entry.bytes.length}`);
+        return new Response(entry.bytes.slice(start, end + 1), { status: 206, headers });
+      },
+    },
+  };
+  return { store, restore: () => { delete globalThis.caches; } };
+}
+
+function filmOrigin(etag, calls) {
+  return async (url, init) => {
+    calls.push({ url: String(url), method: init?.method ?? 'GET', range: new Headers(init?.headers).get('Range') });
+    const headers = { ETag: etag, 'Content-Type': 'video/mp4', 'X-Robots-Tag': 'noindex' };
+    if (init?.method === 'HEAD') return new Response(null, { headers });
+    return new Response('0123456789', { headers });
+  };
+}
+
+test('Films MP4 seeks are answered with 206 from the edge cache', async (t) => {
+  const edge = mockEdgeCache();
+  t.after(edge.restore);
+  const calls = [];
+  t.after(mockFetch(filmOrigin('"v1"', calls)));
+
+  const first = await worker.fetch(request('/films/sunny.mp4', { headers: { Range: 'bytes=2-5', Cookie: 'pv=b-card' } }));
+  assert.equal(first.status, 206);
+  assert.equal(first.headers.get('Content-Range'), 'bytes 2-5/10');
+  assert.equal(await first.text(), '2345');
+  assert.equal(first.headers.get('X-Portfolio-Version'), 'i-films');
+  assert.equal(first.headers.get('X-Robots-Tag'), null);
+  assert.equal(first.headers.get('Set-Cookie'), null);
+  assert.equal(first.headers.get('Cache-Control'), 'public, max-age=0, must-revalidate');
+  // The origin is asked for the whole file, never a range it would ignore.
+  assert.deepEqual(calls.map((c) => [c.method, c.url, c.range]), [
+    ['HEAD', 'https://seanmh-films.pages.dev/sunny.mp4', null],
+    ['GET', 'https://seanmh-films.pages.dev/sunny.mp4', null],
+  ]);
+
+  calls.length = 0;
+  const second = await worker.fetch(request('/films/sunny.mp4', { headers: { Range: 'bytes=7-' } }));
+  assert.equal(second.status, 206);
+  assert.equal(await second.text(), '789');
+  assert.deepEqual(calls.map((c) => c.method), ['HEAD']);
+
+  const revalidated = await worker.fetch(request('/films/sunny.mp4', { headers: { 'If-None-Match': '"v1"' } }));
+  assert.equal(revalidated.status, 304);
+});
+
+test('a re-rendered film gets a new edge entry, keyed by its ETag', async (t) => {
+  const edge = mockEdgeCache();
+  t.after(edge.restore);
+  const calls = [];
+  t.after(mockFetch(filmOrigin('"v1"', calls)));
+  await worker.fetch(request('/films/grain.mp4', { headers: { Range: 'bytes=0-0' } }));
+
+  mockFetch(filmOrigin('"v2"', calls));
+  calls.length = 0;
+  await worker.fetch(request('/films/grain.mp4', { headers: { Range: 'bytes=0-0' } }));
+  assert.deepEqual(calls.map((c) => c.method), ['HEAD', 'GET']);
+  assert.deepEqual([...edge.store.keys()], [
+    'https://seanmh.com/films/grain.mp4?etag=%22v1%22',
+    'https://seanmh.com/films/grain.mp4?etag=%22v2%22',
+  ]);
+});
+
+test('Films media falls back to the plain proxy when the edge cache cannot help', async (t) => {
+  const edge = mockEdgeCache();
+  t.after(edge.restore);
+  const calls = [];
+  t.after(mockFetch(async (url, init) => {
+    calls.push(init?.method ?? 'GET');
+    return new Response('page', { headers: { 'Content-Type': 'text/html' } }); // no ETag
+  }));
+
+  const media = await worker.fetch(request('/films/sunny.mp4', { headers: { Range: 'bytes=0-1' } }));
+  assert.equal(media.status, 200);
+  assert.deepEqual(calls, ['HEAD', 'GET']);
+  assert.equal(edge.store.size, 0);
+
+  calls.length = 0;
+  await worker.fetch(request('/films/sunny/', { headers: { Accept: 'text/html' } }));
+  assert.deepEqual(calls, ['GET']); // documents never take the cache path
+});
+
 test('Films canonicalizes its root without touching an origin', async (t) => {
   const restore = mockFetch(async () => {
     throw new Error('canonical redirect must not reach an origin');

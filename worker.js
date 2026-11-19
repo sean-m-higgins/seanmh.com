@@ -573,6 +573,55 @@ function rewriteLocationHeader(headers, publicUrl, upstreamUrl, publicPathPrefix
   }
 }
 
+// Cloudflare Pages ignores Range and always answers 200 with the whole file,
+// so a <video> cannot seek without downloading everything first. The Workers
+// Cache API does honour Range (and If-None-Match) on match(), so the Worker
+// stores each film MP4 whole at the edge and lets the cache cut the requested
+// bytes into a 206. The key carries the origin's ETag: a film re-rendered
+// under the same name becomes a new entry instead of a stale one. Any surprise
+// returns null and the request falls back to the plain proxy.
+const RANGED_MEDIA = /\.mp4$/;
+
+async function fromRangedEdgeCache(request, url, upstreamUrl) {
+  if (request.method !== 'GET' || !RANGED_MEDIA.test(url.pathname) || typeof caches === 'undefined') {
+    return null;
+  }
+  try {
+    const head = await fetch(upstreamUrl, { method: 'HEAD' });
+    const etag = head.headers.get('ETag');
+    if (!head.ok || !etag) return null;
+
+    const key = new URL(url.pathname, url.origin);
+    key.searchParams.set('etag', etag);
+    const lookup = () => {
+      const headers = new Headers();
+      for (const name of ['Range', 'If-None-Match']) {
+        const value = request.headers.get(name);
+        if (value) headers.set(name, value);
+      }
+      return new Request(key, { headers });
+    };
+
+    const cache = caches.default;
+    let cached = await cache.match(lookup());
+    if (!cached) {
+      const full = await fetch(upstreamUrl);
+      if (full.status !== 200) {
+        await full.body?.cancel();
+        return null;
+      }
+      const headers = new Headers(full.headers);
+      headers.set('Cache-Control', 'public, max-age=31536000, immutable');
+      headers.delete('Set-Cookie');
+      await cache.put(key.toString(), new Response(full.body, { status: 200, headers }));
+      cached = await cache.match(lookup());
+    }
+    return cached ?? null;
+  } catch {
+    return null;
+  }
+}
+
 export default {
   async fetch(request, env) {
     const url = new URL(request.url);
@@ -621,9 +670,10 @@ export default {
     if (pathApp) {
       const originPath = url.pathname.slice(pathApp.prefix.length) || '/';
       const proxyUrl = pathApp.origin + originPath + url.search;
-      let resp;
+      const cached = await fromRangedEdgeCache(request, url, proxyUrl);
+      let resp = cached;
       try {
-        resp = await fetch(proxyUrl, proxiedRequestInit(request));
+        resp ??= await fetch(proxyUrl, proxiedRequestInit(request));
       } catch (err) {
         const message = err instanceof Error ? err.message : String(err);
         return new Response(
@@ -648,7 +698,8 @@ export default {
       headers.delete('X-Robots-Tag');
       headers.delete('Set-Cookie');
       headers.set('X-Portfolio-Version', pathApp.name);
-      if (isDocumentRequest(request)) {
+      if (isDocumentRequest(request) || cached) {
+        // The edge copy is immutable per ETag; browsers still revalidate.
         headers.set('Cache-Control', 'public, max-age=0, must-revalidate');
       }
 
