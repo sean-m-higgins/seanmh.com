@@ -22,7 +22,7 @@ npm run preview -- --port 4329
 - Original SVG geometry and five interactive studies; the Three.js lightwell
   loads lazily and is optional.
 
-Wiki: `Gaudi`. Plan: `plans/films-plan.html` on `main` links films to rooms.
+Wiki: `Gaudi`. Films: Growth, Courtyard and Eagle link to grain, gesso and ramp through `FilmPreview.astro`; see `wiki/Films.md` on `main`.
 
 ## Site rules (full map in AGENTS.md on `main`)
 
