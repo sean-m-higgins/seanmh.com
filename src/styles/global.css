@@ -8,6 +8,8 @@
   --font-handwriting: "Caveat", ui-sans-serif, cursive;
   --color-accent: #6366f1;
   --color-accent-light: #818cf8;
+  /* The painting behind Sunny in the "sunny" film loop (sampled). */
+  --color-coral: #e05c50;
 }
 
 @layer base {

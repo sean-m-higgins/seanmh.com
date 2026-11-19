@@ -427,6 +427,50 @@ function setupSections() {
         scrollTrigger: { trigger: contactLine, start: "top 88%", toggleActions: "play none none reverse" },
       }
     );
+
+  // Sunny film coda: the wand string pays out with scroll (pathLength="1",
+  // so a 1-unit dash hides or shows the whole line), the felt lure drops onto
+  // its end, and the film is uncovered bottom-up beneath it.
+  const separator = document.querySelector<HTMLElement>("[data-film-separator]");
+  if (separator) {
+    const strings = separator.querySelectorAll("[data-film-string]");
+    const drop = gsap.fromTo(
+      separator.querySelectorAll("[data-film-lure]"),
+      { scale: 0, autoAlpha: 0 },
+      { scale: 1, autoAlpha: 1, duration: 0.6, ease: "back.out(2.2)", transformOrigin: "50% 0%", paused: true }
+    );
+    // Tweened as attributes: CSSPlugin rounds px values, which in pathLength
+    // units would snap the line straight from hidden to drawn.
+    gsap.fromTo(
+      strings,
+      { attr: { "stroke-dasharray": 1, "stroke-dashoffset": 1 } },
+      {
+        attr: { "stroke-dashoffset": 0 },
+        ease: "none",
+        scrollTrigger: { trigger: separator, start: "top 92%", end: "bottom 62%", scrub: 0.6 },
+        // The lure rides the drawn line's own (scrub-smoothed) progress, so it
+        // never hangs off a half-drawn string or goes missing from a finished one.
+        onUpdate() {
+          if (this.progress() > 0.96) drop.play();
+          else drop.reverse();
+        },
+      }
+    );
+  }
+  const filmFrame = document.querySelector<HTMLElement>("[data-film-frame]");
+  if (filmFrame)
+    gsap.fromTo(
+      filmFrame,
+      // Negative side/bottom insets leave room for the coral glow; the
+      // frame's own radius rounds the corners.
+      { clipPath: "inset(100% -30% -30% -30%)" },
+      {
+        clipPath: "inset(0% -30% -30% -30%)",
+        duration: 0.9,
+        ease: "power2.out",
+        scrollTrigger: { trigger: filmFrame, start: "top 88%", toggleActions: "play none none reverse" },
+      }
+    );
 }
 
 // The hero name's letters lean away from the pointer and settle back. Runs

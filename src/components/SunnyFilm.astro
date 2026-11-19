@@ -1,0 +1,108 @@
+---
+// Coda below Contact: a loop from "sunny" (the films version, /films/sunny/).
+// The separator is the feather wand from the loop itself: its string comes in
+// off the right edge of the page, the way it enters the film's frame, and
+// lets a felt lure down over the film where Sunny is jumping for it.
+// Two compositions (wide / phone) so strokes keep their weight instead of
+// stretching with preserveAspectRatio="none". Motion lives in scroll.ts
+// ([data-film-*] hooks) and the sway in scroll.css; without JS or with
+// reduced motion the string is simply drawn and the lure hangs still.
+const variants = [
+  {
+    class: "hidden md:block",
+    viewBox: "0 0 1200 264",
+    string:
+      "M 1230 -12 C 1080 40, 960 118, 842 112 C 760 108, 716 58, 744 36 C 772 14, 812 52, 792 98 C 772 146, 640 120, 600 178",
+    lure: { x: 600, y: 178 },
+  },
+  {
+    class: "md:hidden",
+    viewBox: "0 0 400 224",
+    string:
+      "M 416 -8 C 360 36, 318 70, 278 68 C 246 66, 232 40, 248 28 C 266 15, 286 42, 268 78 C 252 110, 206 108, 200 150",
+    lure: { x: 200, y: 150 },
+  },
+];
+---
+
+<section id="sunny" aria-label="Sunny, a loop from the film" class="relative overflow-hidden pb-28">
+  <div data-film-separator aria-hidden="true">
+    {
+      variants.map((v) => (
+        <svg viewBox={v.viewBox} class:list={["block h-auto w-full", v.class]} fill="none">
+          <path
+            data-film-string
+            d={v.string}
+            pathLength="1"
+            stroke="currentColor"
+            stroke-width="1.6"
+            stroke-linecap="round"
+            class="text-neutral-400 dark:text-neutral-500"
+          />
+          <g transform={`translate(${v.lure.x} ${v.lure.y})`}>
+            <g data-film-lure>
+              <g data-lure-sway>
+                {/* Pivot box: symmetric about x=0 with its top at y=0, so the
+                    sway's fill-box origin (50% 0) lands on the string's end. */}
+                <rect x="-24" y="0" width="48" height="56" fill="none" />
+                {/* Felt petals: white with pink and pale-blue edges, as in the film. */}
+                <ellipse cx="-8" cy="24" rx="9" ry="21" transform="rotate(22 -8 24)" fill="#f6f3ee" stroke="#ec9fb2" stroke-width="2" />
+                <ellipse cx="8" cy="26" rx="9" ry="21" transform="rotate(-18 8 26)" fill="#f6f3ee" stroke="#a7c1e3" stroke-width="2" />
+                <ellipse cx="-1" cy="30" rx="5.5" ry="19" transform="rotate(6 -1 30)" fill="#f2b3c1" />
+                <ellipse cx="3" cy="31" rx="2.6" ry="15" transform="rotate(-6 3 31)" fill="#b9cfea" />
+                <circle cx="0" cy="3.2" r="3.2" fill="#e05c50" />
+              </g>
+            </g>
+          </g>
+        </svg>
+      ))
+    }
+  </div>
+
+  <figure class="mx-auto w-full max-w-lg px-6">
+    <div data-film-frame class="mx-auto max-w-sm overflow-hidden rounded-lg shadow-2xl shadow-coral/25">
+      <video
+        data-film-video
+        src="/media/sunny-loop.mp4"
+        poster="/media/sunny-loop-poster.webp"
+        width="720"
+        height="720"
+        autoplay
+        muted
+        loop
+        playsinline
+        preload="metadata"
+        aria-label="Sunny, a felt tabby cat, leaps after a feather on a wand in front of a coral painting"
+        class="block aspect-square h-auto w-full bg-[#e1ded8]"
+      ></video>
+    </div>
+    <figcaption class="mt-6 text-center">
+      <span class="block -rotate-1 text-balance font-handwriting text-2xl text-coral sm:text-3xl">
+        Sunny, going straight up after a feather.
+      </span>
+      <a
+        href="/films/sunny/"
+        class="mt-3 inline-block rounded font-mono text-[0.68rem] uppercase tracking-[0.12em] text-neutral-500 transition-colors hover:text-neutral-800 focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-coral active:translate-y-px dark:hover:text-neutral-200"
+      >
+        From the short film <em class="normal-case">sunny</em>&nbsp;→
+      </a>
+    </figcaption>
+  </figure>
+</section>
+
+<script>
+  // Reduced motion: no ambient loop. Hold the first frame and hand the
+  // visitor the controls instead. (autoplay stays in the markup so no-JS
+  // visitors still get the loop.)
+  function setupSunnyFilm() {
+    const video = document.querySelector<HTMLVideoElement>("[data-film-video]");
+    if (!video || !window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
+    video.removeAttribute("autoplay");
+    video.pause();
+    video.currentTime = 0;
+    video.controls = true;
+  }
+
+  setupSunnyFilm();
+  document.addEventListener("astro:after-swap", setupSunnyFilm);
+</script>

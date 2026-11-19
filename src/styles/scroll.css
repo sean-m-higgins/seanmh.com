@@ -69,3 +69,21 @@ html.lenis body {
   z-index: 60; /* above the z-50 nav */
   pointer-events: none;
 }
+
+/* Sunny film coda: the felt lure on the end of the wand string swings like a
+   pendulum (sine in/out, alternating). Stopped under reduced motion. */
+@keyframes lure-sway {
+  from {
+    rotate: -8deg;
+  }
+  to {
+    rotate: 8deg;
+  }
+}
+@media (prefers-reduced-motion: no-preference) {
+  [data-lure-sway] {
+    transform-box: fill-box;
+    transform-origin: 50% 0;
+    animation: lure-sway 2.4s cubic-bezier(0.37, 0, 0.63, 1) infinite alternate;
+  }
+}
