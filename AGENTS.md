@@ -22,7 +22,7 @@ npm run itinerary:pdf
   places are authored by hand.
 - Only set `route.published` after Sean confirms the real waypoints.
 
-Wiki: `Travel`. Plan: `plans/us-atlas-plan.html` on `main`.
+Wiki: `Travel` (journeys, the US places layer, photos, and how to add each).
 
 ## Site rules (full map in AGENTS.md on `main`)
 
