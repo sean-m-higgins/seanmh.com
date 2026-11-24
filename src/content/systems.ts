@@ -147,10 +147,10 @@ export const nodes: readonly SystemNode[] = [
     region: "experience",
     code: "EXP.01",
     title: "Portfolio universes",
-    label: "Scroll · Card · Terminal · Gaudí",
-    summary: "Four presentations share one professional identity.",
+    label: "Scroll · Card · Terminal",
+    summary: "Three presentations share one professional identity.",
     detail:
-      "Scroll is the canonical long-form portfolio. Card compresses the same identity into a tactile single-view artifact. Terminal turns it into an operable command surface. Casa Higgins makes it an architectural portrait through six rooms inspired by Gaudí. Each presentation stays useful without its enhanced motion or graphics.",
+      "Scroll is the canonical long-form portfolio. Card compresses the same identity into a tactile single-view artifact. Terminal turns it into an operable command surface. Each presentation stays useful without its enhanced motion or graphics.",
     decisions: [
       "Let presentation diverge while facts stay aligned.",
       "Keep the canonical default readable and recruiter-safe.",
@@ -159,7 +159,6 @@ export const nodes: readonly SystemNode[] = [
       { label: "Scroll source", href: "https://github.com/sean-m-higgins/seanmh.com/tree/version/a-scroll" },
       { label: "Card source", href: "https://github.com/sean-m-higgins/seanmh.com/tree/version/b-card" },
       { label: "Terminal source", href: "https://github.com/sean-m-higgins/seanmh.com/tree/version/c-terminal" },
-      { label: "Gaudí source", href: "https://github.com/sean-m-higgins/seanmh.com/tree/version/h-gaudi" },
     ],
     href: "/?v=a-scroll",
     position: { x: 61, y: 20 },
@@ -169,10 +168,10 @@ export const nodes: readonly SystemNode[] = [
     region: "experience",
     code: "EXP.02",
     title: "Opt-in destinations",
-    label: "Nexus · Games · Blueprint · Travel · Films",
-    summary: "Discovery, play, systems, travel, and film demonstrate range without hijacking the landing page.",
+    label: "Nexus · Games · Casa Higgins · Blueprint · Travel · Films",
+    summary: "Discovery, play, architecture, systems, travel, and film demonstrate range without hijacking the landing page.",
     detail:
-      "Nexus maps the portfolio as miniature worlds. Halfpipe and Counter are complete arcade loops, Blueprint documents the architecture, G Travel turns journeys into an interactive atlas, and Films shows short films made entirely in code from Sean's own photos and videos. None replaces the canonical first-visit portfolio.",
+      "Nexus maps the portfolio as miniature worlds. Halfpipe and Counter are complete arcade loops, Casa Higgins turns the portfolio into a Gaudí-inspired house of seven rooms, Blueprint documents the architecture, G Travel turns journeys into an interactive atlas, and Films shows short films made entirely in code from Sean's own photos and videos. None replaces the canonical first-visit portfolio.",
     decisions: [
       "Make playful work discoverable, never mandatory.",
       "Keep every game playable when storage or APIs fail.",
@@ -181,6 +180,7 @@ export const nodes: readonly SystemNode[] = [
       { label: "Nexus source", href: "https://github.com/sean-m-higgins/seanmh.com/tree/version/nexus" },
       { label: "Halfpipe source", href: "https://github.com/sean-m-higgins/seanmh.com/tree/version/d-3d-game" },
       { label: "Counter source", href: "https://github.com/sean-m-higgins/seanmh.com/tree/version/e-2d-game" },
+      { label: "Casa Higgins source", href: "https://github.com/sean-m-higgins/seanmh.com/tree/version/h-gaudi" },
       { label: "Blueprint source", href: "https://github.com/sean-m-higgins/seanmh.com/tree/version/f-blueprint" },
       { label: "G Travel source", href: "https://github.com/sean-m-higgins/seanmh.com/tree/version/g-travel" },
       { label: "Films source", href: "https://github.com/sean-m-higgins/seanmh.com/tree/version/i-films" },
