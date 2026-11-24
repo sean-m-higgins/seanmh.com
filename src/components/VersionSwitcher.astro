@@ -91,6 +91,7 @@ const coreGlyph = active ? active.glyph : HERE_GLYPH;
     <span class="nexus-portal-swirl"></span>
     <span class="nexus-portal-core"></span>
   </span>
+  <span class="nexus-hint">Click to enter the Nexus <span aria-hidden="true">↗</span></span>
 </a>
 
 <svg width="0" height="0" class="nexus-defs" aria-hidden="true" focusable="false">
@@ -452,6 +453,35 @@ const coreGlyph = active ? active.glyph : HERE_GLYPH;
     outline-offset: 3px;
   }
 
+  .nexus-hint {
+    position: absolute;
+    left: calc(100% + 0.65rem);
+    bottom: calc(100% + 0.5rem);
+    width: max-content;
+    max-width: calc(100vw - 5.5rem);
+    padding: 0.6rem 0.75rem;
+    border: 1px solid #c4b5fd;
+    border-radius: 0.75rem;
+    background: #17152b;
+    color: #f5f3ff;
+    font: 500 0.75rem/1.4 system-ui, sans-serif;
+    box-shadow: 0 4px 16px rgb(0 0 0 / 0.2);
+    opacity: 0;
+    visibility: hidden;
+    transition: opacity 0.2s ease, visibility 0.2s;
+  }
+
+  .nexus-active .nexus-hint {
+    opacity: 1;
+    visibility: visible;
+    pointer-events: auto;
+  }
+
+  .nexus-launcher:focus-visible .nexus-hint {
+    outline: 2px solid #c4b5fd;
+    outline-offset: 3px;
+  }
+
   /* Active state — JS adds .nexus-active to the launcher while the dial (or the
      portal itself) is hovered, focused, or tapped open. The liquid pull-away
      plays, then the portal blooms open and its energy swirls. Removing the
@@ -576,6 +606,9 @@ const coreGlyph = active ? active.glyph : HERE_GLYPH;
   @media (prefers-reduced-motion: reduce) {
     /* No liquid or motion; the portal simply appears above the dial (its
        swirl/rim are static color, which is fine). */
+    .nexus-hint {
+      transition: none;
+    }
     .nexus-active .nexus-goo,
     .nexus-active .nexus-blob-base,
     .nexus-active .nexus-blob-drop {
