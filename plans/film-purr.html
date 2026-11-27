@@ -1,0 +1,174 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Film 05 · purr — plan</title>
+<style>
+  :root { color-scheme: dark; --bg:#0d1117; --panel:#161b22; --border:#30363d; --text:#e6edf3; --muted:#8b949e;
+    --accent:#58a6ff; --done:#3fb950; --next:#d29922; --warm:#f2b544; }
+  * { box-sizing: border-box; }
+  body { max-width: 1080px; margin: 0 auto; padding: 3rem 1.25rem 5rem; background: var(--bg); color: var(--text);
+    font: 16px/1.65 ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif; }
+  h1 { margin: 0 0 .4rem; font-size: clamp(2rem, 6vw, 3rem); }
+  h2 { margin: 2.6rem 0 .9rem; font-size: 1.45rem; }
+  h3 { margin: 1.4rem 0 .5rem; font-size: 1.05rem; }
+  a { color: var(--accent); }
+  code { padding: .1rem .35rem; border-radius: .3rem; background: rgba(110,118,129,.18); font: .9em ui-monospace, SFMono-Regular, monospace; }
+  .muted { color: var(--muted); }
+  .callout { border: 1px solid var(--border); border-radius: .75rem; background: var(--panel); padding: 1rem 1.15rem; margin: 1rem 0; }
+  .callout.warm { border-color: rgba(242,181,68,.5); background: rgba(242,181,68,.07); }
+  table { width: 100%; border-collapse: collapse; margin: 1rem 0; font-size: .95rem; }
+  th, td { padding: .6rem .7rem; border: 1px solid var(--border); text-align: left; vertical-align: top; }
+  th { background: var(--panel); }
+  .steps { padding-left: 1.4rem; }
+  .steps > li { margin: 0 0 1rem; }
+  .check { display: block; margin-top: .3rem; padding-left: .7rem; border-left: 3px solid rgba(63,185,80,.65); color: var(--muted); }
+  .chip { display:inline-block; padding: 0 .45rem; border-radius: 999px; font-size: .75rem; font-weight: 700; color: var(--bg); background: var(--warm); }
+  .bars { display: grid; grid-template-columns: repeat(8, 1fr); gap: 3px; margin: 1rem 0 .3rem; }
+  .bars div { padding: .5rem .3rem; border-radius: .35rem; font-size: .75rem; text-align: center; color: #1b1410; }
+</style>
+</head>
+<body>
+<p class="muted">Plan · written 2026-11-26 · branch <code>version/i-films</code> (<code>wt/i-films</code>)</p>
+<h1>Film 05 · <em>purr</em></h1>
+<p>A two-minute <strong>loop film</strong> of the cats from Sean's life — Sunny (the brown tabby tripod), a grey Russian blue,
+a black cat, and an orange-and-white cat — drawn in code in a warm lofi-illustration style, with an original
+piano-and-chill-jazz soundtrack, also made in code. It plays on repeat without anyone noticing where it starts.</p>
+
+<div class="callout" style="border-color:rgba(63,185,80,.6)">
+  <strong style="color:var(--done)">Status, 2026-11-27: built and release-rendered locally, nothing committed or pushed.</strong>
+  <ul>
+    <li><code>public/purr.mp4</code>: 120.000 s, H.264 High 1080², AAC-LC 48 kHz stereo, <strong>12.33 MiB</strong> (0.70 Mb/s video + 160 kb/s audio), −18.0 LUFS. Renders at 5.8 frames/s (8 min).</li>
+    <li>Share loop (<code>sunpatch</code>, dissolving into itself): <code>purr-loop.mp4</code> 0.97 MiB, <code>purr-loop.gif</code> 2.17 MiB at 720 px. It is the whole 15 s scene, longer than the brief's 4–8 s.</li>
+    <li>Seam: frame 2879 is 99.7 % of frame 0's morning. The music's wrap jump is inside its normal sample-to-sample range (see <code>src/films/purr/music/README.md</code>).</li>
+    <li>Deterministic: frames 100, 359, 1500, 2160 and 2870 hash identically on the same page and on a fresh page.</li>
+    <li><code>npm run check</code> (0 errors), <code>npm test</code> (7/7), <code>npm run build</code>, and a headless-Chrome look at <code>/films/</code> and <code>/films/purr/</code> all pass.</li>
+    <li>Still to do, with Sean's go-ahead: commit, push <code>version/i-films</code> (a production deploy), <code>wiki/Films.md</code>, and the Nexus moon.</li>
+  </ul>
+</div>
+
+<div class="callout warm">
+  <strong>Success means:</strong>
+  <ul>
+    <li>Played with <code>&lt;video loop&gt;</code>, the last frame flows into the first with no visible jump and the music has no audible seam.</li>
+    <li>Every frame reads as a hand-drawn illustration with depth: ink line, cel shading, warm painted light, layered foreground/midground/background.</li>
+    <li>Four distinct cats, each recognisable by coat; Sunny always has three legs (no right hind) and a bob tail.</li>
+    <li><code>public/purr.mp4</code> ≤ 20 MiB including audio; poster and share loop rendered; <code>npm run check</code>, <code>npm test</code>, <code>npm run build</code> pass.</li>
+  </ul>
+</div>
+
+<h2>1 · Inspiration, and what to take</h2>
+<table>
+  <tr><th>reference</th><th>what it is</th><th>what to take</th></tr>
+  <tr><td><code>inspiration/cat-chill-loop.mov</code> (155 s)</td>
+      <td>Two dozen short static shots, each a different cat doing one calm thing: lying on a bench, sniffing a pot plant, peeking from a tent, watching rain, padding through wisteria.</td>
+      <td><strong>Structure.</strong> One cat, one small action, a held camera per shot; variety comes from the set and the light, not from camera moves. Calm is the point: nothing happens fast.</td></tr>
+  <tr><td><code>inspiration/cat-chill-animation.mov</code> (36 s)</td>
+      <td>A lofi anime illustration: a black cat at a sunny window sill, a steaming glass of tea, a terracotta pot, lavender, brick, curtains and a room reflected in the glass.</td>
+      <td><strong>The look.</strong> Clean warm-brown ink lines, flat colour with one cel-shade step and a warm highlight, raking afternoon sun with leaf-dappled shadow, dense foliage, reflections that suggest a room behind. Motion is tiny: steam, a blink, a head turn, a leaf.</td></tr>
+</table>
+<p class="muted">Also echoes <code>.inspiration</code> entry 1 (Kengo Works: a short film as a museum piece) and the brief's <code>animated-footer.mov</code> note — "a living painted scene, slow light changes, nothing demanding attention".</p>
+
+<h2>2 · Decisions</h2>
+<table>
+  <tr><th>decision</th><th>choice</th><th>why</th></tr>
+  <tr><td>Slug / title</td><td><code>purr</code></td><td>One lowercase word like the rest of the series; it is the sound the film is trying to make.</td></tr>
+  <tr><td>Medium</td><td>Canvas 2D in JavaScript (the series default), not Blender</td><td>The reference is a flat 2D illustration; ink + cel shading is native to a canvas, and the drawn-film pipeline is deterministic to the pixel.</td></tr>
+  <tr><td>Frame</td><td>1080 × 1080, 24 fps, animated on twos</td><td>Series contract; on twos every second frame is a duplicate, which halves the bitrate and feels like hand animation.</td></tr>
+  <tr><td>Length</td><td><strong>120 s</strong> = 2880 frames = 8 scenes × 15 s</td><td>Long enough that the repeat isn't felt; music at 64 BPM makes it exactly 32 bars (one bar = 3.75 s = 90 frames), 4 bars per scene.</td></tr>
+  <tr><td>Shape</td><td>One day, morning → night → morning</td><td>The series rule "the last frame rhymes with the first" becomes literal: night dissolves into the next morning.</td></tr>
+  <tr><td>The anchor</td><td>A warm patch of light, always in the lower-left third of the frame</td><td>A nod to sunny; the eye lands in the same place across every dissolve.</td></tr>
+  <tr><td>Nothing boils</td><td>Lines hold still; backgrounds are drawn once per scene and cached</td><td>A boiling line fights "comforting". Held art also keeps the film far inside budget.</td></tr>
+  <tr><td>Words</td><td>No text anywhere in the film (no captions, no signs, no titles), except one small credit line at the very end</td><td>Sean's rule for this film. The credit is the series signature (<code>purr · claude opus 5.5 · 2026</code>), hand-lettered with the same <code>signature()</code> as the other films, written out over the night scene's last seconds and fading with the dissolve into morning.</td></tr>
+  <tr><td>Sound</td><td><strong>A first for the series</strong>: an original soundtrack muxed into the MP4 as AAC</td><td>Sean asked for it. The series was silent by design, so the site has to change: this film's player is not <code>muted</code> and has <code>loop</code>; the footer stops saying "silent" for it.</td></tr>
+</table>
+
+<h2>3 · How the loop is seamless</h2>
+<ul>
+  <li><strong>Picture.</strong> Each scene is drawn from <em>seconds</em>, not 0..1, so it can run before its start. In the last 1.25 s of each scene the next scene fades in, already running (its clock goes from −1.25 s to 0). Scene 8 fades into scene 1 the same way, so frame 2879 is 96 % of morning at −0.04 s and frame 0 is morning at 0 s: the loop point is just another frame of a dissolve.</li>
+  <li><strong>Ambient motion</strong> inside a scene (steam, rain, breathing, leaves) uses periods that divide the scene's span, or is continuous through the dissolve, so nothing pops.</li>
+  <li><strong>Music.</strong> Exactly 5,760,000 samples at 48 kHz. Everything that rings past bar 32 (piano decay, reverb) is wrapped back onto bar 1, and every LFO's period divides 120 s, so sample N−1 → sample 0 is continuous. The chord at bar 32 turns around into bar 1.</li>
+  <li><strong>Browser.</strong> A <code>&lt;video loop&gt;</code> restart can cost a few ms of audio on some browsers. Accepted; the wrap is at a quiet, sustained moment (night → morning).</li>
+</ul>
+
+<h2>4 · The cats</h2>
+<table>
+  <tr><th>cat</th><th>coat</th><th>eyes</th><th>scenes</th></tr>
+  <tr><td><strong>Sunny</strong> (tabby)</td><td>Warm brown-grey mackerel tabby, dark stripes, pale cream chin and belly. <strong>Three legs: no right hind leg; bob tail.</strong></td><td>Yellow-green</td><td>sunpatch, box, night</td></tr>
+  <tr><td>Russian blue</td><td>Even blue-grey, silver-tipped sheen, no markings</td><td>Green</td><td>balcony, rain, night</td></tr>
+  <tr><td>Black cat</td><td>Black with a warm brown cast in sunlight and a cool rim light</td><td>Amber-gold</td><td>sill, rain, night</td></tr>
+  <tr><td>Orange-and-white</td><td>Ginger tabby back and head, white chest, muzzle and paws</td><td>Amber</td><td>quilt, dusk, night</td></tr>
+</table>
+<p>Each is built from parametric parts (head, ears, eyes, body, paws, tail) in a few poses — sitting, loaf, curled asleep, seen from behind, kneading — with small animated parameters: breath, blink, ear flick, head tilt, tail curl. Sunny's poses place no right hind leg anywhere and end in a bob.</p>
+
+<h2>5 · Scenes</h2>
+<div class="bars">
+  <div style="background:#f7d9a0">1 sill</div><div style="background:#f5cf86">2 sunpatch</div><div style="background:#cfe4c0">3 balcony</div><div style="background:#f3e6c8">4 quilt</div>
+  <div style="background:#9fb3c4">5 rain</div><div style="background:#f2a95a">6 box</div><div style="background:#c79ab0">7 dusk</div><div style="background:#6f7aa6">8 night</div>
+</div>
+<p class="muted">Each block is 15 s / 4 bars. Dissolves of 1.25 s at each boundary.</p>
+<table>
+  <tr><th>#</th><th>scene</th><th>time of day</th><th>what we see</th><th>what moves</th><th>music</th></tr>
+  <tr><td>1</td><td><code>sill</code></td><td>morning, pale gold</td><td>The black cat sits on a wide wooden window sill beside a glass of tea, a terracotta pot plant and lavender; through the glass, rooftops and a soft sky.</td><td>Tea steam, a slow blink, the head turns toward a bird outside and back, curtain edge breathes.</td><td>Solo felt piano</td></tr>
+  <tr><td>2</td><td><code>sunpatch</code></td><td>late morning</td><td>Sunny asleep, curled on a woven rug in a window-shaped patch of sun; a bookshelf, a floor plant, dust in the light.</td><td>Breathing, an ear flick, the bob tail twitches, dust motes drift.</td><td>Piano + soft bass</td></tr>
+  <tr><td>3</td><td><code>balcony</code></td><td>midday</td><td>The Russian blue sits among potted herbs on a small balcony; a white butterfly drifts past; the city beyond.</td><td>Head tracks the butterfly, tail tip curls, leaves stir, clouds drift.</td><td>Band enters: brushes</td></tr>
+  <tr><td>4</td><td><code>quilt</code></td><td>early afternoon</td><td>The orange-and-white cat kneads a patchwork quilt on a bed, eyes shut; a laundry basket and a window with sheer curtains.</td><td>Paws knead in turn, eyes closed happy, curtain sways, light shifts.</td><td>Full, light</td></tr>
+  <tr><td>5</td><td><code>rain</code></td><td>afternoon rain</td><td>The Russian blue and the black cat, seen from behind, sit side by side at a rainy window; blurred street lights beyond.</td><td>Drops run down the glass, tails sway out of step, one ear turns.</td><td>Soft, a little rain</td></tr>
+  <tr><td>6</td><td><code>box</code></td><td>golden hour</td><td>Sunny in a cardboard box on the floor (box hides the legs), long orange light and plant shadows across the wall.</td><td>Slow blink, head tilt, ears, the shadows sway.</td><td>Warmest, fullest</td></tr>
+  <tr><td>7</td><td><code>dusk</code></td><td>dusk, violet</td><td>The orange-and-white cat on a kitchen counter by a window; a kettle steams, string lights glow on.</td><td>Steam, the lights twinkle on one by one, tail sways, the cat watches.</td><td>Thinning</td></tr>
+  <tr><td>8</td><td><code>night</code></td><td>night, lamp and moon</td><td>All four cats asleep together on a sofa under a warm lamp, moonlight through the window.</td><td>Four breaths at four rhythms, an ear twitch; the faint signature; dissolves into morning.</td><td>Solo piano, turning around</td></tr>
+</table>
+
+<h2>6 · The look</h2>
+<ul>
+  <li><strong>Ink line:</strong> warm dark brown (never <code>#000</code>), 2–3 px, round joins; thinner for interior detail.</li>
+  <li><strong>Colour:</strong> flat base, one cel-shade step (cooler, a little violet) and a warm highlight step, cut as crescents from each shape against the scene's light direction.</li>
+  <li><strong>Light:</strong> each scene has a key light (sun, lamp, grey rain) and its colour grades the whole frame; sun patches carry leaf-dapple. A soft bloom on light sources.</li>
+  <li><strong>Depth:</strong> a blurred, desaturated far layer (sky/city/room reflection), a crisp midground (the cat and its set), and an out-of-focus foreground element in most scenes (leaves, a curtain edge).</li>
+  <li><strong>Texture:</strong> a faint paper grain over everything, held.</li>
+</ul>
+
+<h2>7 · Sound</h2>
+<p>Made by a separate agent, in parallel, entirely in code (Python + numpy, no installs, original material): a soft felt piano carrying harmony and melody, with a light chill-jazz band (upright-style bass, brushed kit, a warm pad) that follows the day: sparse in the morning, fullest at golden hour, solo piano at night turning back to morning. 64 BPM, 32 bars, exactly 120 s. Target about −18 LUFS, true peak under −1.5 dBTP. Code lives in <code>src/films/purr/music/</code>; output <code>renders/purr/music.wav</code>.</p>
+
+<h2>8 · Changes outside the film module</h2>
+<ul>
+  <li><code>scripts/render-film.mjs</code>: an <code>--audio &lt;file&gt;</code> option that muxes AAC (160 kb/s) into the MP4; the budget check counts it.</li>
+  <li><code>src/content/films.ts</code>: <code>purr</code> in the slug union and the catalog (kind <code>portrait</code>, duration 120), with new optional flags <code>sound</code> and <code>loop</code>.</li>
+  <li><code>src/components/FilmWall.astro</code>: for a film with <code>sound</code>, no <code>muted</code>; with <code>loop</code>, the <code>loop</code> attribute; the footer says "with sound" / "loops" instead of "silent".</li>
+  <li>The collection page's hand-written count copy.</li>
+  <li>Afterwards (with Sean's go-ahead): <code>wiki/Films.md</code> (the collection table and the "silent" rule), README, Nexus moon.</li>
+</ul>
+
+<h2>9 · Steps</h2>
+<ol class="steps">
+  <li>Plan (this file). <span class="check">Sean asked for it in <code>seanmh.com/</code>.</span></li>
+  <li>Start the audio agent with the fixed timing contract (120 s, 64 BPM, 32 bars, scene map). <span class="check">Returns a WAV of exactly 5,760,000 frames with measured seam, loudness and peak.</span></li>
+  <li>Kit: ink, cel shading, light, foliage, cached layers, dissolves (<code>src/films/purr/kit.js</code>). Cats (<code>cats.js</code>). <span class="check">A cat sheet still: all four coats and every pose, Sunny with three legs.</span></li>
+  <li>Scenes 1–8, one at a time, checking stills at the start, middle and end of each. <span class="check">Contact sheet: does every frame look hand-made? Is there depth? Is the light warm?</span></li>
+  <li>Loop check: render the last 2 s + first 2 s as one clip and look at the frames across the wrap. <span class="check">No jump in the picture at frame 2879 → 0.</span></li>
+  <li>Release: <code>npm run film:render -- purr --release --audio renders/purr/music.wav</code>, poster, share loop. <span class="check">≤ 20 MiB, audio stream present, duration 120.000 s, ffprobe clean.</span></li>
+  <li>Site: catalog entry, FilmWall sound/loop, check + test + build, a browser look at <code>/films/purr/</code>. <span class="check">Plays with sound, loops, no console errors.</span></li>
+  <li>Report to Sean. <span class="check">Nothing committed or pushed until Sean says so (pushing <code>version/i-films</code> deploys).</span></li>
+</ol>
+
+<h2>10 · Gates and guardrails</h2>
+<div class="callout">
+  <p>The film brief asks for Sean's approval at the storyboard and style-frame gates. Sean asked for this film to be completed end-to-end in one go, so this plan stands in for the storyboard, and the style is the one the reference sets. Sean reviews the finished film; any scene can be redrawn after.</p>
+  <ul>
+    <li>No reference footage or photo enters git, a deploy, or a frame. The cat-chill videos are style and structure references only; no shot is copied.</li>
+    <li>No people. No brands, signs or text in the sets.</li>
+    <li>Every frame is a pure function of the frame index (no <code>Math.random</code>, <code>Date</code> or <code>requestAnimationFrame</code>).</li>
+  </ul>
+</div>
+
+<h2>11 · Budget</h2>
+<table>
+  <tr><th>item</th><th>estimate</th></tr>
+  <tr><td>Video, 120 s, held art, on twos, CRF 20</td><td>≈ 0.8–1.2 Mb/s → 12–17 MiB (raise CRF to 21–22 if needed)</td></tr>
+  <tr><td>Audio, AAC 160 kb/s</td><td>≈ 2.3 MiB</td></tr>
+  <tr><td>Render time</td><td>≈ 2–4 frames/s → 12–25 min for the release</td></tr>
+</table>
+</body>
+</html>
