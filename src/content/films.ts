@@ -134,11 +134,11 @@ export const films: Film[] = [
     sentence: "Four cats through one day, from the first sun on the sill to all of them asleep on the sofa, and round again.",
     notes: { kicker: "The subject", heading: "A day with four cats." },
     synopsis: [
-      "The cats of Sean’s life: Sunny the tabby, a Russian blue, a black cat, and an orange-and-white cat. Each gets a quiet moment of one day: a window sill at sunrise, a patch of sun on the rug, a butterfly on the balcony, a quilt to knead, rain on the glass, a box at golden hour, the kitchen at dusk, and the sofa at night, where all four fall asleep together.",
+      "The cats of Sean’s life: Sunny the tabby, a Russian blue, a black cat, and a grey-and-white tabby. Each gets a quiet moment of one day: a window sill at sunrise, a patch of sun on the rug, a butterfly on the balcony, a quilt to knead, rain on the glass, a box at golden hour, the kitchen at dusk, and the sofa at night, where all four fall asleep together.",
       "It is made to run on repeat. Night dissolves back into morning, and the music, a felt piano with a little brushed jazz, turns the same corner, so there is no place where it starts. Both the pictures and the music are written entirely in code.",
     ],
     facts: [
-      { label: "Cats", value: "a tabby (Sunny, on three legs), a Russian blue, a black cat, an orange-and-white cat" },
+      { label: "Cats", value: "a tabby (Sunny, on three legs), a Russian blue, a black cat, a grey-and-white tabby" },
       { label: "Length", value: "two minutes, eight scenes of fifteen seconds" },
       { label: "Shape", value: "a seamless loop: night dissolves into morning" },
       { label: "Music", value: "felt piano, bass and brushes in D♭, 64 BPM, 32 bars" },

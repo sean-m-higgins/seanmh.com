@@ -1,4 +1,4 @@
-// Scene 4 · quilt — early afternoon. The orange-and-white cat kneads a
+// Scene 4 · quilt — early afternoon. The grey-and-white tabby kneads a
 // patchwork quilt on the bed, eyes shut, paws pressing in turn; a sheer
 // curtain breathes at the window behind; a basket of folded laundry. Bars 13–16.
 
@@ -169,7 +169,7 @@ export const quilt = {
     ctx.save();
     ctx.translate(cx, cy);
     ctx.scale(sc, sc);
-    knead(ctx, COATS.ginger, {
+    knead(ctx, COATS.grey, {
       k, breath: 0.5 + 0.5 * Math.sin(TAU * s / 3.75),
       yaw: 0.08 * drift(s, 6.5), tilt: 0.06 * Math.sin(TAU * s / 7.5),
       earL: 0.18 * gesture(s, 7.4, 8, 0.15), earR: -0.15 * gesture(s, 3.1, 3.6, 0.12),

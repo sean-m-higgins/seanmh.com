@@ -1,4 +1,4 @@
-// Scene 7 · dusk — violet evening. The orange-and-white cat lies in a loaf on
+// Scene 7 · dusk — violet evening. The grey-and-white tabby lies in a loaf on
 // the kitchen counter by the window. A kettle steams; the string lights over
 // the window come on one by one and the cat turns to watch them. Bars 25–28.
 
@@ -171,7 +171,7 @@ export const dusk = {
     ctx.save();
     ctx.translate(cx, cy);
     ctx.scale(k, k);
-    loaf(ctx, COATS.ginger, {
+    loaf(ctx, COATS.grey, {
       breath: 0.5 + 0.5 * Math.sin(TAU * s / 3.75),
       yaw, tilt, look: [clamp((target.x - hx) / 70, -6, 6) * watching, -4 * watching], pupil: 0.65,
       tail: 0.5 * Math.sin(TAU * s / 4.2) + 0.5 * gesture(s, 6, 7.2, 0.3),

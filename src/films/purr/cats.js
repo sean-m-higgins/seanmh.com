@@ -28,10 +28,10 @@ export const COATS = {
     eye: hex('#f4b52e'), eyeDark: hex('#b96a14'), nose: hex('#43323a'), ear: hex('#6a4a4c'),
     whisk: [236, 230, 224], line: hex('#140e12'), fur: hex('#4e3f45'),
   },
-  ginger: {
-    name: 'ginger', base: hex('#e49a57'), chest: hex('#f7efe2'), stripe: hex('#c26a2e'), stripeA: 0.75,
-    eye: hex('#e9b443'), eyeDark: hex('#a86a1c'), nose: hex('#e79891'), ear: hex('#f2b3a3'),
-    whisk: [252, 248, 238], muzzle: hex('#f8f1e5'), tabby: true, white: true, line: INK, fur: hex('#b86d35'),
+  grey: {
+    name: 'grey', base: hex('#4d4f55'), chest: hex('#f4f2ed'), stripe: hex('#a4a7ae'), stripeA: 0.7,
+    eye: hex('#e9b443'), eyeDark: hex('#a86a1c'), nose: hex('#e79891'), ear: hex('#e8b0a6'),
+    whisk: [250, 250, 248], muzzle: hex('#f6f4ef'), tabby: true, white: true, line: INK, fur: hex('#34363b'),
   },
 };
 
@@ -580,7 +580,7 @@ export function knead(ctx, coat, o = {}) {
 export function sheet(ctx, s) {
   ctx.fillStyle = '#efe6d6';
   ctx.fillRect(0, 0, 1080, 1080);
-  const coats = [COATS.sunny, COATS.blue, COATS.black, COATS.ginger];
+  const coats = [COATS.sunny, COATS.blue, COATS.black, COATS.grey];
   coats.forEach((c, i) => {
     const y = 150 + i * 250;
     const b = 0.5 + 0.5 * Math.sin(TAU * s / 3.2);

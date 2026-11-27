@@ -1,4 +1,4 @@
-// Scene 8 · night — all four cats asleep together on the sofa: the ginger and
+// Scene 8 · night — all four cats asleep together on the sofa: the grey tabby and
 // Sunny curled on the seat, the Russian blue curled at the far end, the black
 // cat in a loaf on the sofa's back. A lamp glows; moonlight comes in blue. Four
 // breaths at four rhythms. The credit line writes itself small at the very end
@@ -102,11 +102,11 @@ export const night = {
     ctx.save(); ctx.translate(870, 452); ctx.scale(0.58, 0.58);
     loaf(ctx, COATS.black, { flip: true, breath: br(4.6, 0.2), mode: 'sleep', yaw: -0.2, tilt: 0.12, tail: 0.15 * Math.sin(TAU * s / 15) });
     ctx.restore();
-    // the ginger curled at the left
+    // the grey tabby curled at the left
     ctx.save(); ctx.translate(300, SEAT - 10); ctx.scale(0.62, 0.62);
-    curl(ctx, COATS.ginger, { breath: br(4.1, 0.5), earL: gesture(s, 7.2, 7.7, 0.12) * -0.3 });
+    curl(ctx, COATS.grey, { breath: br(4.1, 0.5), earL: gesture(s, 7.2, 7.7, 0.12) * -0.3 });
     ctx.restore();
-    // Sunny in the middle, his bob toward the ginger
+    // Sunny in the middle, his bob toward the grey tabby
     ctx.save(); ctx.translate(560, SEAT); ctx.scale(0.66, 0.66);
     curl(ctx, COATS.sunny, { flip: true, breath: br(3.75), earR: gesture(s, 3.4, 3.9, 0.12) * 0.3 });
     ctx.restore();
