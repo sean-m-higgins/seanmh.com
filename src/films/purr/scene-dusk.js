@@ -134,14 +134,24 @@ function towel(g) {
   const fold = rrect(470, 786, 100, 26, 8); cel(g, fold, hex('#e4d6bf'), { sd: 6, hd: 4 }); ink(g, fold, 2.2);
 }
 
-/** Out of focus in front: a bowl of lemons on the counter's near corner. */
+/** A bowl of lemons on the counter at the left, crisp, catching the last light. */
 function near(g, R) {
   setLight(EVE);
-  for (const [x, y] of [[90, 900], [170, 880], [130, 850], [230, 910]]) {
-    const l = ellipse(x, y, 58, 44, 0.3); cel(g, l, hex('#efc64a'), { sd: 18, hd: 10 });
+  const bx = 96, by = 694;
+  g.fillStyle = css([70, 40, 50], 0.3); g.fill(ellipse(bx + 14, by + 2, 104, 12));
+  for (const [x, y, a] of [[bx - 44, by - 58, 0.3], [bx + 40, by - 60, -0.4], [bx - 2, by - 78, 0.1], [bx + 4, by - 50, 0.5]]) {
+    const l = blob([[x - 34, y], [x - 16, y - 20], [x + 18, y - 20], [x + 36, y - 2], [x + 16, y + 20], [x - 18, y + 20]]);
+    g.save(); g.translate(x, y); g.rotate(a); g.translate(-x, -y);
+    cel(g, l, hex('#efc64a'), { sd: 10, hd: 6 }); ink(g, l, 2.2);
+    g.restore();
   }
-  const b = P('M-20 900 Q130 1120 300 900 Z'); cel(g, b, hex('#4f7a8a'), { sd: 30, hd: 12 });
-  g.fillStyle = css(hex('#3e6270')); g.fill(ellipse(140, 902, 160, 22));
+  const bowl = P(`M${bx - 92} ${by - 56} Q${bx} ${by + 50} ${bx + 92} ${by - 56} Z`);
+  cel(g, bowl, hex('#4f7a8a'), { sd: 16, hd: 8 }); ink(g, bowl, 2.4);
+  const foot = rect(bx - 28, by - 10, 56, 10);
+  cel(g, foot, hex('#44697a'), { sd: 3, hd: 0 }); ink(g, foot, 2.2);
+  g.save(); g.clip(bowl); g.strokeStyle = css([236, 244, 240], 0.6); g.lineWidth = 3;
+  g.beginPath(); g.moveTo(bx - 100, by - 40); g.quadraticCurveTo(bx, by + 44, bx + 100, by - 40); g.stroke();
+  g.restore();
 }
 
 export const dusk = {
@@ -180,7 +190,7 @@ export const dusk = {
     });
     ctx.restore();
     ctx.drawImage(held('dusk:towel', towel), 0, 0);
-    ctx.drawImage(soft('dusk:near', 8, near), 0, 0);
+    ctx.drawImage(held('dusk:near', near), 0, 0);
     grade(ctx, 'dusk', { x: 900, y: 0, r: 1200, warm: [255, 180, 110], wa: 0.4, cool: [70, 50, 110], ca: 0.35 });
   },
 };

@@ -189,3 +189,57 @@ def rim(rng):
          + 0.6 * np.sin(2 * np.pi * 510 * t) * np.exp(-t / 0.02)
          + 0.25 * nz * np.exp(-t / 0.004))
     return y * ramp(t, 0.0008)
+
+
+# --- strings: a small section, bowed softly ----------------------------------
+
+def strings(midi, vel, dur, rng):
+    """Three players a few cents apart, each with its own slow vibrato and its
+    own place in the stereo field. A slow bow: nothing here has an edge."""
+    f0 = hz(midi)
+    L = int((dur + 1.8) * SR) + 1
+    t = np.arange(L) / SR
+    nmax = int(np.clip(4200 / f0, 3, 9))
+    out = np.zeros((L, 2))
+    for _ in range(3):
+        det = 2 ** (rng.normal(0, 5) / 1200)
+        vib = 1 + 0.0026 * np.sin(2 * np.pi * rng.uniform(4.3, 5.4) * t + rng.uniform(0, 6.28)) * ramp(t, 0.9)
+        ph = 2 * np.pi * np.cumsum(f0 * det * vib) / SR
+        y = np.zeros(L)
+        for n in range(1, nmax + 1):
+            y += np.sin(n * ph + rng.uniform(0, 6.28)) / n / (1 + (n * f0 / 1500) ** 2)
+        gl, gr = pan(rng.uniform(-0.7, 0.7))
+        out[:, 0] += y * gl
+        out[:, 1] += y * gr
+    att = 0.5 + 0.35 * (1 - vel)
+    env = ramp(t, att) * np.where(t < dur, 1.0, np.exp(-(t - dur) / 0.55))
+    env *= 1 + 0.05 * np.sin(2 * np.pi * 0.31 * t + rng.uniform(0, 6.28))     # the bow breathes
+    return out * (env * vel ** 1.3 / 3)[:, None]
+
+
+# --- celesta: small bells for dew, bubbles and stars -------------------------
+
+def celesta(midi, vel, dur, rng):
+    f0 = hz(midi)
+    L = int(2.8 * SR)
+    t = np.arange(L) / SR
+    y = np.zeros(L)
+    for ratio, a, d in [(1, 1.0, 1.5), (2, 0.3, 0.8), (3, 0.1, 0.45), (4.07, 0.07, 0.22), (6.24, 0.035, 0.1)]:
+        if ratio * f0 < 9000:
+            y += a * np.sin(2 * np.pi * ratio * f0 * t + rng.uniform(0, 6.28)) * np.exp(-t / (d * (880 / max(f0, 220)) ** 0.3))
+    Lt = int(0.012 * SR)
+    y[:Lt] += 0.05 * rng.standard_normal(Lt) * np.exp(-t[:Lt] / 0.002)        # the felt hammer on the bar
+    y *= ramp(t, 0.002) * vel ** 1.4
+    gl, gr = pan(np.clip((midi - 84) / 20, -0.6, 0.6) + rng.uniform(-0.25, 0.25))
+    return np.stack([y * gl, y * gr], axis=1)
+
+
+# --- the metronome on the piano ----------------------------------------------
+
+def tick(rng):
+    L = int(0.09 * SR)
+    t = np.arange(L) / SR
+    y = (np.sin(2 * np.pi * 1180 * t) * np.exp(-t / 0.009) + 0.5 * np.sin(2 * np.pi * 2520 * t) * np.exp(-t / 0.005)
+         + 0.35 * np.sin(2 * np.pi * 410 * t) * np.exp(-t / 0.02))
+    nz = spectral(rng.standard_normal(L), band(900, 4500))
+    return (y + 0.2 * nz / np.std(nz) * np.exp(-t / 0.002)) * ramp(t, 0.0006)

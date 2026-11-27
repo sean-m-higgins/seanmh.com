@@ -8,6 +8,7 @@
 // Sunny is a tripod: no right hind leg and a bob tail. None of his poses ever
 // draws a right hind leg, and he never has a long tail (see memory note and
 // wiki/Films.md). His poses here are the curl, the loaf and the box peek.
+// Tails are tapered (thick at the root, fine at the tip) and drawn by tail().
 
 import { P, moved, ellipse, blob, poly, cel, ink, shape, tube, css, hex, mix, shadeOf, lightOf, INK, LIGHT, TAU, furMarks, mul32 } from './kit.js';
 
@@ -73,6 +74,65 @@ function stripes(ctx, clip, list, coat, w = 12, a = coat.stripeA ?? 0.8) {
   ctx.clip(clip);
   for (const s of list) taper(ctx, s, s.w ?? w, 1.5, coat.stripe, a);
   ctx.restore();
+}
+
+/** Points along a Catmull-Rom curve through pts (open), n per segment. */
+function along(pts, n = 10) {
+  const out = [];
+  const at = (i) => pts[Math.min(pts.length - 1, Math.max(0, i))];
+  for (let i = 0; i < pts.length - 1; i++) {
+    const p0 = at(i - 1), p1 = at(i), p2 = at(i + 1), p3 = at(i + 2);
+    for (let k = 0; k < n; k++) {
+      const t = k / n, t2 = t * t, t3 = t2 * t;
+      out.push([0, 1].map((d) => 0.5 * (2 * p1[d] + (-p0[d] + p2[d]) * t + (2 * p0[d] - 5 * p1[d] + 4 * p2[d] - p3[d]) * t2 + (-p0[d] + 3 * p1[d] - 3 * p2[d] + p3[d]) * t3)));
+    }
+  }
+  out.push(pts[pts.length - 1]);
+  return out;
+}
+
+/**
+ * A tail: a tube along `pts` that tapers from w0 at the root to w1 at a
+ * rounded tip, cel-shaded and inked like any other part, ringed on a tabby.
+ */
+export function tail(ctx, coat, pts, w0 = 32, w1 = 13, o = {}) {
+  const c = along(pts, 10), n = c.length;
+  const L = [], Rr = [];
+  for (let i = 0; i < n; i++) {
+    const a = c[Math.max(0, i - 1)], b = c[Math.min(n - 1, i + 1)];
+    const dx = b[0] - a[0], dy = b[1] - a[1], d = Math.hypot(dx, dy) || 1;
+    const u = i / (n - 1), w = (w0 + (w1 - w0) * Math.pow(u, 0.8)) / 2;
+    L.push([c[i][0] - (dy / d) * w, c[i][1] + (dx / d) * w]);
+    Rr.push([c[i][0] + (dy / d) * w, c[i][1] - (dx / d) * w]);
+  }
+  const path = new Path2D();
+  L.forEach(([x, y], i) => (i ? path.lineTo(x, y) : path.moveTo(x, y)));
+  const e = c[n - 1], q = c[n - 2], ea = Math.atan2(e[1] - q[1], e[0] - q[0]);
+  path.arc(e[0], e[1], w1 / 2, ea + Math.PI / 2, ea - Math.PI / 2, true);
+  for (let i = n - 1; i >= 0; i--) path.lineTo(Rr[i][0], Rr[i][1]);
+  path.closePath();
+  part(ctx, path, coat, {
+    sd: w0 * 0.3, hd: w0 * 0.14, lw: o.lw ?? 2.6, base: o.base,
+    inner: (g) => {
+      if (coat.tabby && o.rings !== false) {
+        g.strokeStyle = css(coat.stripe, (coat.stripeA ?? 0.8) * 0.9);
+        g.lineCap = 'butt';
+        for (let k = 3; k < n - 4; k += o.every ?? 7) {
+          g.lineWidth = Math.max(4, w0 * 0.24 * (1 - k / n * 0.5));
+          g.beginPath(); g.moveTo(L[k][0], L[k][1]); g.quadraticCurveTo(c[k][0] + (c[k + 1][0] - c[k][0]) * 2, c[k][1] + (c[k + 1][1] - c[k][1]) * 2, Rr[k][0], Rr[k][1]); g.stroke();
+        }
+      }
+      if (coat.white && o.tip !== false) {
+        g.fillStyle = css(coat.chest);
+        const k = n - 6;
+        g.beginPath(); g.moveTo(L[k][0], L[k][1]);
+        for (let i = k; i < n; i++) g.lineTo(L[i][0], L[i][1]);
+        g.arc(e[0], e[1], w1, ea + Math.PI / 2, ea - Math.PI / 2, true);
+        for (let i = n - 1; i >= k; i--) g.lineTo(Rr[i][0], Rr[i][1]);
+        g.fill();
+      }
+    },
+  });
 }
 
 // ---------------------------------------------------------------- the head
@@ -172,12 +232,17 @@ function eye(ctx, coat, x, y, rx, ry, o) {
  *    mode ('open' | 'sleep' | 'happy'), earL / earR (flick angle, rad).
  */
 export function head(ctx, coat, o = {}) {
-  const { yaw = 0, tilt = 0, earL = 0, earR = 0 } = o;
+  const { yaw = 0, tilt = 0, earL = 0, earR = 0, yawn = 0 } = o;
   ctx.save();
   ctx.rotate(tilt);
-  ear(ctx, coat, -1, -earL, yaw);
-  ear(ctx, coat, 1, earR, yaw);
+  ear(ctx, coat, -1, -earL - yawn * 0.3, yaw);
+  ear(ctx, coat, 1, earR + yawn * 0.3, yaw);
   const fx = yaw * 24; // features slide with the turn
+  if (yawn > 0.02) {
+    // the lower jaw drops below the chin
+    const jaw = ellipse(fx * 1.2, 70 + yawn * 26, 30 + yawn * 4, 16 + yawn * 10);
+    part(ctx, jaw, coat, { base: coat.muzzle ?? coat.chest ?? coat.base, sd: 6, hd: 0, lw: 2.4 });
+  }
   part(ctx, HEAD, coat, {
     sd: 18, hd: 8, lw: 2.8,
     inner: (g) => {
@@ -212,7 +277,7 @@ export function head(ctx, coat, o = {}) {
     ctx.fill(ellipse(fx, 64, 20, 14));
   }
   const pupil = o.pupil ?? 0.35;
-  const eo = { blink: o.blink ?? 0, look: o.look ?? [0, 0], pupil, mode: o.mode, lid: o.lid };
+  const eo = { blink: o.blink ?? 0, look: o.look ?? [0, 0], pupil, mode: yawn > 0.25 ? 'happy' : o.mode, lid: o.lid };
   const er = (sgn) => 22 * (1 - 0.3 * Math.max(0, -sgn * yaw));
   eye(ctx, coat, -40 + fx * 1.05, 6, er(-1), 24, eo);
   eye(ctx, coat, 40 + fx * 1.05, 6, er(1), 24, eo);
@@ -225,7 +290,28 @@ export function head(ctx, coat, o = {}) {
   ink(ctx, nose, 1.8, coat.line);
   const mouth = new Path2D();
   mouth.moveTo(0, 42); mouth.lineTo(0, 48);
-  mouth.moveTo(-13, 50); mouth.quadraticCurveTo(-6, 56, 0, 48); mouth.quadraticCurveTo(6, 56, 13, 50);
+  if (yawn > 0.02) {
+    // a yawn: the mouth opens wide, a curled pink tongue, two small fangs
+    const my = 52 + yawn * 20, rx = 11 + yawn * 9, ry = 3 + yawn * 26;
+    const open = ellipse(0, my, rx, ry);
+    ctx.fillStyle = 'rgb(112,38,52)';
+    ctx.fill(open);
+    ctx.save();
+    ctx.clip(open);
+    ctx.fillStyle = 'rgb(232,128,134)';
+    ctx.fill(ellipse(0, my + ry * 0.62, rx * 0.72, ry * 0.5));
+    ctx.fillStyle = 'rgb(250,246,236)';
+    for (const sg of [-1, 1]) ctx.fill(poly([[sg * rx * 0.72, my - ry], [sg * rx * 0.3, my - ry], [sg * rx * 0.5, my - ry + 5 + yawn * 9]]));
+    ctx.restore();
+    ink(ctx, open, 2.2, coat.line);
+  } else {
+    mouth.moveTo(-13, 50); mouth.quadraticCurveTo(-6, 56, 0, 48); mouth.quadraticCurveTo(6, 56, 13, 50);
+    if (o.tongue !== undefined) {
+      // licking its lips: a small tongue that sweeps from side to side (-1..1)
+      const tg = ellipse(o.tongue * 9, 55 + Math.abs(o.tongue) * -3, 8, 6.5, o.tongue * 0.5);
+      ctx.fillStyle = 'rgb(236,134,140)'; ctx.fill(tg); ink(ctx, tg, 1.6, coat.line);
+    }
+  }
   ink(ctx, mouth, 2, coat.line);
   ctx.restore();
   // whiskers
@@ -277,24 +363,9 @@ function paw(ctx, coat, x, y, rx = 28, ry = 14, toes = true, base) {
  * o: head params, breath (0..1), tail (−1..1, the tip's lift), flip.
  */
 export function sit(ctx, coat, o = {}) {
-  const { breath = 0, tail = 0, flip = false } = o;
+  const { breath = 0, tail: tw = 0, flip = false, paw: lift = 0 } = o;
   flipped(ctx, flip, () => {
     const R = mul32(31);
-    // tail first: it lies on the ground and curls round the front
-    const tl = new Path2D();
-    tl.moveTo(150, -30);
-    tl.bezierCurveTo(196, -4, 176, 18, 100, 18);
-    tl.bezierCurveTo(30, 20, -50, 18, -96, 6);
-    tl.bezierCurveTo(-118 - tail * 4, 0, -132 - tail * 6, -14 - tail * 22, -126 + tail * 4, -32 - tail * 30);
-    tube(ctx, tl, 34, coat.base, { lc: coat.line, lw: 2.6, shade: sh(coat) });
-    if (coat.tabby) {
-      ctx.save();
-      for (const x of [120, 60, 0, -60]) {
-        ctx.fillStyle = css(coat.stripe, 0.75);
-        ctx.fill(ellipse(x, 18 - (x < -40 ? 4 : 0), 8, 15, 0.2));
-      }
-      ctx.restore();
-    }
     ctx.save();
     ctx.translate(0, -2);
     ctx.scale(1 + breath * 0.012, 1 + breath * 0.018);
@@ -319,20 +390,27 @@ export function sit(ctx, coat, o = {}) {
     });
     paw(ctx, coat, 138, -10, 34, 13);
     // front legs: taper from the shoulder to the wrist, toes out a little
-    for (const [x0, x1, px, lean] of [[-66, -18, -46, -3], [12, 60, 38, 4]]) {
+    for (const [x0, x1, px, lean, up] of [[-66, -18, -46, -3, lift], [12, 60, 38, 4, 0]]) {
       const m = (x0 + x1) / 2;
-      const leg = P(`M${x0} -186 C${x0 - 4} -130 ${m - 17 + lean} -70 ${m - 15 + lean} -14 L${m + 15 + lean} -14 C${m + 17 + lean} -70 ${x1 + 4} -130 ${x1} -186 Z`);
+      // a lifted paw: the leg folds at the wrist and reaches out and up
+      const fy = -14 - up * 86, fx = lean - up * 44;
+      const leg = up > 0.01
+        ? new Path2D(`M${x0} -186 C${x0 - 4} -150 ${m - 17 + fx} ${fy - 50} ${m - 15 + fx} ${fy} L${m + 15 + fx} ${fy} C${m + 17 + fx * 0.6} ${fy - 30} ${x1 + 4} -130 ${x1} -186 Z`)
+        : P(`M${x0} -186 C${x0 - 4} -130 ${m - 17 + lean} -70 ${m - 15 + lean} -14 L${m + 15 + lean} -14 C${m + 17 + lean} -70 ${x1 + 4} -130 ${x1} -186 Z`);
       part(ctx, leg, coat, {
         base: coat.white ? coat.chest : coat.base, sd: 10, hd: 6, inside: true,
-        inner: (g) => stripes(g, leg, [[[x0 - 4, -130], [m, -124], [x1 + 4, -130]], [[x0 - 4, -92], [m, -86], [x1 + 4, -92]], [[x0, -56], [m, -52], [x1, -56]]], coat, 9),
+        inner: (g) => (up > 0.01 ? null : stripes(g, leg, [[[x0 - 4, -130], [m, -124], [x1 + 4, -130]], [[x0 - 4, -92], [m, -86], [x1 + 4, -92]], [[x0, -56], [m, -52], [x1, -56]]], coat, 9)),
       });
-      paw(ctx, coat, px + lean, -11, 26, 13);
+      if (up > 0.01) { ctx.save(); ctx.translate(px + fx, fy + 4); ctx.rotate(-up * 0.5); paw(ctx, coat, 0, 0, 25, 15); ctx.restore(); }
+      else paw(ctx, coat, px + lean, -11, 26, 13);
     }
     // chest
     const chest = P('M-50 -252 C-68 -200 -62 -150 -42 -118 L-30 -108 L-18 -120 L-6 -104 L6 -118 L18 -106 L28 -122 C46 -160 48 -212 36 -254 Z');
     cel(ctx, chest, coat.chest, { sd: 10, hd: 0 });
     furMarks(ctx, R, -6, -170, 34, 50, 16, shadeOf(coat.chest, 0.8), { len: 10, dir: 1.6, a: 0.5 });
     ctx.restore();
+    // the tail comes round the haunch and lies across the front of the paws; its tip lifts
+    if (!coat.bob) tail(ctx, coat, [[176, -66], [192, -26], [150, 8], [84, 12], [30, 8 - tw * 4], [-6 - tw * 4, -2 - tw * 16], [-20 + tw * 2, -16 - tw * 30]], 34, 13);
     // head
     ctx.save();
     ctx.translate(-4, -330 - breath * 3);
@@ -347,7 +425,7 @@ export function sit(ctx, coat, o = {}) {
  * Sunny curls with his bob at the back; the others wrap a full tail round.
  */
 export function curl(ctx, coat, o = {}) {
-  const { breath = 0, tail = 0, flip = false, earR = 0, earL = 0 } = o;
+  const { breath = 0, tail: tw = 0, flip = false, earR = 0, earL = 0 } = o;
   flipped(ctx, flip, () => {
     const R = mul32(47);
     ctx.save();
@@ -356,7 +434,7 @@ export function curl(ctx, coat, o = {}) {
     ctx.translate(0, -100);
     if (coat.bob) {
       // Sunny's bob: a short round stub at the back.
-      const bob = ellipse(184 + tail * 3, 30 - tail * 4, 30, 22, -0.5 + tail * 0.15);
+      const bob = ellipse(184 + tw * 3, 30 - tw * 4, 30, 22, -0.5 + tw * 0.15);
       part(ctx, bob, coat, { sd: 8, hd: 4, inner: (g) => stripes(g, bob, [[[170, 8], [178, 30], [172, 52]]], coat, 10) });
     }
     const body = blob([[-176, 0], [-150, -74], [-60, -118], [50, -122], [140, -86], [184, -8], [160, 62], [80, 100], [-30, 106], [-130, 82]]);
@@ -383,13 +461,7 @@ export function curl(ctx, coat, o = {}) {
     ink(ctx, crease, 2.4, coat.line, 0.9);
     if (!coat.bob) {
       // a full tail wraps round the front, its tip near the nose
-      const tl = new Path2D();
-      tl.moveTo(176, 30);
-      tl.bezierCurveTo(196, 96, 100, 122, 0, 116);
-      tl.bezierCurveTo(-80, 112, -136, 104, -164 - tail * 6, 70 - tail * 12);
-      tube(ctx, tl, 30, coat.base, { lc: coat.line, lw: 2.6, shade: sh(coat) });
-      if (coat.tabby) for (const x of [140, 80, 20, -40, -100]) { ctx.fillStyle = css(coat.stripe, 0.7); ctx.fill(ellipse(x, 113 - Math.abs(x) * 0.05, 7, 14, 0.15)); }
-      if (coat.white) { ctx.fillStyle = css(coat.chest); ctx.fill(ellipse(-160 - tail * 6, 72 - tail * 12, 15, 13)); }
+      tail(ctx, coat, [[176, 26], [188, 82], [110, 116], [0, 118], [-90, 112], [-146 - tw * 4, 96 - tw * 6], [-170 - tw * 8, 70 - tw * 16]], 34, 14);
     }
     paw(ctx, coat, -66, 92, 30, 15);
     // the head, resting on the paws, asleep
@@ -397,7 +469,7 @@ export function curl(ctx, coat, o = {}) {
     ctx.translate(-112, 22);
     ctx.rotate(-0.28);
     ctx.scale(0.8, 0.8);
-    head(ctx, coat, { mode: 'sleep', yaw: -0.25, earL, earR });
+    head(ctx, coat, { mode: 'sleep', yaw: -0.25, earL, earR, ...(o.head ?? {}) });
     ctx.restore();
     paw(ctx, coat, -120, 92, 30, 15);
     ctx.restore();
@@ -409,13 +481,13 @@ export function curl(ctx, coat, o = {}) {
  * about 420 units long. o: head params, breath, tail, flip, sleep.
  */
 export function loaf(ctx, coat, o = {}) {
-  const { breath = 0, tail = 0, flip = false } = o;
+  const { breath = 0, tail: tw = 0, flip = false } = o;
   flipped(ctx, flip, () => {
     const R = mul32(53);
     ctx.save();
     ctx.scale(1 + breath * 0.01, 1 + breath * 0.022);
     if (coat.bob) {
-      const bob = ellipse(196, -96 - tail * 4, 22, 18, -0.3);
+      const bob = ellipse(196, -96 - tw * 4, 22, 18, -0.3);
       part(ctx, bob, coat, { sd: 6, hd: 4 });
     }
     const body = blob([[-150, -14], [-160, -100], [-110, -168], [20, -184], [140, -156], [196, -92], [192, -14], [120, 4], [-100, 4]]);
@@ -433,19 +505,13 @@ export function loaf(ctx, coat, o = {}) {
         furMarks(g, R, 40, -100, 130, 60, 40, sh(coat, 1.3), { len: 13, dir: 0.1, a: 0.3 });
       },
     });
-    if (!coat.bob) {
-      const tl = new Path2D();
-      tl.moveTo(188, -30);
-      tl.bezierCurveTo(206, 0, 160, 14, 80, 14);
-      tl.bezierCurveTo(30, 14, -10, 12, -36 - tail * 6, 2 - tail * 16);
-      tube(ctx, tl, 28, coat.base, { lc: coat.line, lw: 2.6, shade: sh(coat) });
-      if (coat.tabby) for (const x of [150, 100, 50]) { ctx.fillStyle = css(coat.stripe, 0.7); ctx.fill(ellipse(x, 13, 6, 13, 0.1)); }
-      if (coat.white) { ctx.fillStyle = css(coat.chest); ctx.fill(ellipse(-34 - tail * 6, 2 - tail * 16, 14, 13)); }
-    }
+    // the tail lies along the front; a scene can draw its own instead (o.tail === false)
+    if (!coat.bob && o.tail !== false) tail(ctx, coat, [[186, -40], [204, -6], [150, 14], [80, 14], [20, 12 - tw * 4], [-24 - tw * 6, 4 - tw * 14], [-40 - tw * 4, -8 - tw * 26]], 30, 12);
     // tucked paws peep out at the front
     paw(ctx, coat, -126, -2, 26, 11, false);
     paw(ctx, coat, -72, 0, 26, 11, false);
     ctx.restore();
+    if (o.head === false) return;
     ctx.save();
     ctx.translate(-92, -212 - breath * 3);
     ctx.scale(0.92, 0.92);
@@ -459,14 +525,10 @@ export function loaf(ctx, coat, o = {}) {
  * o: tilt (rad), earL / earR (rad), tail (−1..1), breath, flip.
  */
 export function back(ctx, coat, o = {}) {
-  const { tilt = 0, earL = 0, earR = 0, tail = 0, breath = 0, flip = false } = o;
+  const { tilt = 0, earL = 0, earR = 0, tail: tw = 0, breath = 0, flip = false } = o;
   flipped(ctx, flip, () => {
     const R = mul32(61);
-    const tl = new Path2D();
-    tl.moveTo(70, -8);
-    tl.bezierCurveTo(150, 4, 196, -4, 214 + tail * 6, -36 - tail * 10);
-    tl.bezierCurveTo(222 + tail * 10, -54 - tail * 14, 214 + tail * 14, -72 - tail * 18, 198 + tail * 16, -74 - tail * 20);
-    tube(ctx, tl, 30, coat.base, { lc: coat.line, lw: 2.6 });
+    if (!coat.bob) tail(ctx, coat, [[60, -14], [130, 2], [186, -4], [214 + tw * 6, -34 - tw * 10], [218 + tw * 14, -66 - tw * 18], [198 + tw * 18, -84 - tw * 22]], 32, 13);
     ctx.save();
     ctx.scale(1 + breath * 0.012, 1 + breath * 0.016);
     const body = P('M-104 0 C-156 -40 -156 -150 -100 -218 C-72 -250 72 -250 100 -218 C156 -150 156 -40 104 0 Z');
@@ -483,6 +545,18 @@ export function back(ctx, coat, o = {}) {
     ctx.restore();
     ctx.save();
     ctx.translate(0, -262 - breath * 3);
+    headBack(ctx, coat, { tilt, earL, earR });
+    ctx.restore();
+  });
+}
+
+/** The back of a head, centred near the nape: two ears, the skull, whisker tips. */
+export function headBack(ctx, coat, o = {}) {
+  const { tilt = 0, earL = 0, earR = 0 } = o;
+  const R = mul32(61);
+  {
+    {
+    ctx.save();
     ctx.rotate(tilt);
     const ears = [[-1, earL], [1, earR]];
     for (const [s, f] of ears) {
@@ -503,7 +577,8 @@ export function back(ctx, coat, o = {}) {
     for (const s of [-1, 1]) for (let i = 0; i < 2; i++) { ctx.moveTo(s * 92, 14 + i * 8); ctx.quadraticCurveTo(s * 120, 10 + i * 10, s * 142, 18 + i * 16); }
     ctx.stroke();
     ctx.restore();
-  });
+    }
+  }
 }
 
 /**
@@ -526,7 +601,15 @@ export function peek(ctx, coat, o = {}) {
   head(ctx, coat, o);
   ctx.restore();
   if (o.mid) o.mid(ctx); // what the cat is behind (the box's front), drawn before the paws come over it
-  for (const [x, l] of [[-58, pawL], [58, pawR]]) paw(ctx, coat, x, 94 - l * 8, 30, 15);
+  for (const [x, l] of [[-58, pawL], [58, pawR]]) {
+    // a paw hooked over the edge: rounded on top, toes hanging down the front
+    const y = 92 - l * 10;
+    const mit = new Path2D(`M${x - 27} ${y + 16} C${x - 30} ${y - 6} ${x - 20} ${y - 20} ${x} ${y - 20} C${x + 20} ${y - 20} ${x + 30} ${y - 6} ${x + 27} ${y + 16} C${x + 20} ${y + 26} ${x - 20} ${y + 26} ${x - 27} ${y + 16} Z`);
+    part(ctx, mit, coat, { base: coat.white ? coat.chest : lightOf(coat.base, 0.25, [255, 240, 214]), sd: 7, hd: 4, lw: 2.4 });
+    const toes = new Path2D();
+    for (const d of [-9, 9]) { toes.moveTo(x + d, y + 22); toes.lineTo(x + d, y + 8); }
+    ink(ctx, toes, 1.7, coat.innerLine ?? shadeOf(coat.base, 2.2, LIGHT.cool), 0.85);
+  }
 }
 
 /**
@@ -564,7 +647,7 @@ export function knead(ctx, coat, o = {}) {
     paw(ctx, coat, x, y + 2, 30 * spread, 15);
   }
   // the bib: a fluffy chest over the tops of the legs
-  const bib = P('M-70 -206 C-86 -170 -80 -130 -60 -112 L-48 -100 L-36 -110 L-22 -94 L-8 -106 L6 -92 L20 -106 L34 -94 L46 -108 L60 -100 C82 -128 86 -170 70 -206 Z');
+  const bib = P('M-70 -206 C-86 -170 -80 -130 -60 -112 Q-52 -98 -44 -104 Q-36 -110 -30 -100 Q-22 -88 -12 -98 Q-4 -106 2 -96 Q10 -86 20 -98 Q28 -106 36 -98 Q46 -92 54 -104 Q58 -108 62 -104 C82 -128 86 -170 70 -206 Z');
   cel(ctx, bib, coat.white ? coat.chest : mix(coat.base, coat.chest ?? coat.base, 0.5), { sd: 10, hd: 0 });
   ink(ctx, bib, 1.8, coat.innerLine ?? shadeOf(coat.base, 2.2, LIGHT.cool), 0.8);
   furMarks(ctx, R, 0, -150, 50, 40, 20, shadeOf(coat.chest ?? coat.base, 0.9), { len: 10, dir: 1.6, a: 0.5 });
@@ -585,8 +668,8 @@ export function sheet(ctx, s) {
     const y = 150 + i * 250;
     const b = 0.5 + 0.5 * Math.sin(TAU * s / 3.2);
     ctx.save(); ctx.translate(90, y + 40); ctx.scale(0.3, 0.3);
-    if (!c.bob) sit(ctx, c, { breath: b, blink: 0, yaw: 0.2, tail: Math.sin(s) });
-    else { head(ctx, c, { yaw: 0.2 }); }
+    if (!c.bob) sit(ctx, c, { breath: b, blink: 0, yaw: 0.2, tail: Math.sin(s), paw: i === 2 ? 1 : 0, yawn: i === 3 ? 1 : 0 });
+    else { head(ctx, c, { yaw: 0.2, yawn: 0.6 }); }
     ctx.restore();
     ctx.save(); ctx.translate(300, y); ctx.scale(0.42, 0.42); curl(ctx, c, { breath: b }); ctx.restore();
     ctx.save(); ctx.translate(530, y + 50); ctx.scale(0.4, 0.4); loaf(ctx, c, { breath: b }); ctx.restore();

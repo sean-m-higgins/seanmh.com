@@ -254,6 +254,9 @@ export function soft(key, px, build) {
     const tmp = document.createElement('canvas');
     tmp.width = tmp.height = SIZE;
     build(tmp.getContext('2d'), R);
+    // The sharp copy goes under the blurred one: a blur fades to nothing at
+    // the canvas edge, which would leave a pale fringe round the frame.
+    g.drawImage(tmp, 0, 0);
     g.filter = `blur(${px}px)`;
     g.drawImage(tmp, 0, 0);
     g.filter = 'none';
@@ -532,14 +535,18 @@ export function grade(ctx, key, o) {
     g.fillStyle = w;
     g.fillRect(0, 0, SIZE, SIZE);
   });
+  const al = o.alpha ?? 1; // a grade can be faded (a lamp going out)
+  if (al <= 0) return;
   ctx.save();
   ctx.globalCompositeOperation = 'soft-light';
+  ctx.globalAlpha = al;
   ctx.drawImage(wash, 0, 0);
   ctx.globalCompositeOperation = 'screen';
-  ctx.globalAlpha = o.screen ?? 0.12;
+  ctx.globalAlpha = (o.screen ?? 0.12) * al;
   ctx.drawImage(wash, 0, 0);
   ctx.restore();
   ctx.save();
+  ctx.globalAlpha = al;
   ctx.globalCompositeOperation = 'multiply';
   ctx.drawImage(held(`grade:${key}:c`, (g) => {
     const c = g.createRadialGradient(x, y, r * 0.5, x, y, r * 1.5);
@@ -550,3 +557,144 @@ export function grade(ctx, key, o) {
   }), 0, 0);
   ctx.restore();
 }
+
+// ---------------------------------------------------------------- set pieces
+
+/** A shadow laid on with 'multiply': hard-edged by default, soft with o.blur. */
+export function shadow(ctx, path, c = [120, 92, 120], a = 0.5, blur = 0) {
+  ctx.save();
+  ctx.globalCompositeOperation = 'multiply';
+  if (blur) ctx.filter = `blur(${blur}px)`;
+  ctx.fillStyle = css(c, a);
+  ctx.fill(path);
+  ctx.restore();
+}
+
+/** Light laid on with 'soft-light' then a little 'screen': a lit shape. */
+export function lit(ctx, path, c = [255, 214, 140], a = 0.5, blur = 0) {
+  ctx.save();
+  if (blur) ctx.filter = `blur(${blur}px)`;
+  ctx.globalCompositeOperation = 'soft-light';
+  ctx.fillStyle = css(c, a);
+  ctx.fill(path);
+  ctx.globalCompositeOperation = 'screen';
+  ctx.fillStyle = css(c, a * 0.35);
+  ctx.fill(path);
+  ctx.restore();
+}
+
+/** Wood grain inside a path: long wavering lines along `dir` ('h' | 'v'). */
+export function woodGrain(g, R, path, x, y, w, h, o = {}) {
+  const { c = [120, 70, 40], a = 0.3, gap = 6, dir = 'h', lw = 1.2 } = o;
+  g.save();
+  g.clip(path);
+  g.strokeStyle = css(c, a);
+  g.lineWidth = lw;
+  const n = Math.ceil((dir === 'h' ? h : w) / gap);
+  for (let k = 0; k < n; k++) {
+    g.beginPath();
+    if (dir === 'h') {
+      const yy = y + 3 + k * gap + rd(R, -1, 1);
+      g.moveTo(x, yy);
+      g.bezierCurveTo(x + w * 0.3, yy + rd(R, -3, 3), x + w * 0.7, yy + rd(R, -3, 3), x + w, yy + rd(R, -1, 1));
+    } else {
+      const xx = x + 3 + k * gap + rd(R, -1, 1);
+      g.moveTo(xx, y);
+      g.bezierCurveTo(xx + rd(R, -3, 3), y + h * 0.3, xx + rd(R, -3, 3), y + h * 0.7, xx + rd(R, -1, 1), y + h);
+    }
+    g.stroke();
+  }
+  g.restore();
+}
+
+/**
+ * A plank floor seen from above and in front: boards run toward a vanishing
+ * point (vx, vy) above the floor's far edge at y0; the near edge is y1.
+ */
+export function planks(g, R, y0, y1, o = {}) {
+  const { vx = SIZE / 2, vy = y0 - 500, n = 12, base = [176, 118, 70], x0 = 0, x1 = SIZE, joints = 0.5, la = 0.4 } = o;
+  g.save();
+  g.beginPath(); g.rect(x0, y0, x1 - x0, y1 - y0); g.clip();
+  const at = (u, y) => vx + ((x0 + u * (x1 - x0) - vx) * (y - vy)) / (y1 - vy);
+  for (let i = -n; i < n * 2; i++) {
+    const u0 = i / n, u1 = (i + 1) / n;
+    const c = mix(base, R() < 0.5 ? [255, 226, 180] : [90, 50, 40], R() * 0.12);
+    g.fillStyle = css(c);
+    g.fill(poly([[at(u0, y0), y0], [at(u1, y0), y0], [at(u1, y1), y1], [at(u0, y1), y1]]));
+    // end joints: a board is several lengths end to end
+    g.strokeStyle = css(shadeOf(base, 1.6), la);
+    g.lineWidth = 1.6;
+    let y = y0 + R() * (y1 - y0) * 0.5;
+    while (y < y1 && joints > 0) {
+      g.beginPath(); g.moveTo(at(u0, y), y); g.lineTo(at(u1, y), y); g.stroke();
+      y += (y1 - y0) * rd(R, 0.3, 0.8) / joints;
+    }
+    // grain: two or three faint lines down each board
+    g.strokeStyle = css(shadeOf(base, 1.2), la * 0.45);
+    g.lineWidth = 1;
+    for (let k = 0; k < 2; k++) {
+      const u = u0 + (u1 - u0) * rd(R, 0.2, 0.8);
+      g.beginPath(); g.moveTo(at(u, y0), y0); g.lineTo(at(u + rd(R, -0.004, 0.004), y1), y1); g.stroke();
+    }
+    g.strokeStyle = css(shadeOf(base, 2), la);
+    g.lineWidth = 1.8;
+    g.beginPath(); g.moveTo(at(u0, y0), y0); g.lineTo(at(u0, y1), y1); g.stroke();
+  }
+  g.restore();
+}
+
+/** A row of books standing on a shelf whose top surface is at y. */
+export function books(g, R, x0, x1, y, o = {}) {
+  const { h = 120, cols, lean = 0.12, gap = 0.1 } = o;
+  const C = cols ?? ['#b5533c', '#3f6d7a', '#d9a441', '#6b4a6e', '#e8dcc0', '#7a8f5a', '#c97b63', '#2f4858', '#a6603f'].map(hex);
+  let x = x0;
+  while (x < x1 - 14) {
+    if (R() < gap) { x += rd(R, 14, 40); continue; }
+    const w = Math.min(x1 - x, rd(R, 16, 38)), hh = h * rd(R, 0.68, 1);
+    const c = C[(R() * C.length) | 0];
+    const tilt = R() < lean ? rd(R, 0.08, 0.2) * (R() < 0.5 ? -1 : 1) : 0;
+    g.save();
+    g.translate(x + (tilt > 0 ? 0 : w), y);
+    g.rotate(tilt);
+    const bx = tilt > 0 ? 0 : -w;
+    const p = rect(bx, -hh, w, hh);
+    cel(g, p, c, { sd: 4, hd: 2 });
+    // bands on the spine
+    g.fillStyle = css(lightOf(c, 0.9), 0.75);
+    if (R() < 0.7) g.fillRect(bx + 2, -hh * rd(R, 0.72, 0.86), w - 4, 3);
+    if (R() < 0.5) g.fillRect(bx + 2, -hh * rd(R, 0.14, 0.24), w - 4, 5);
+    ink(g, p, 1.8);
+    g.restore();
+    x += w + (tilt ? 8 : 0);
+  }
+}
+
+/** A terracotta pot (or any colour): a tapered body and a rim. Base centre at (x, y). */
+export function pot(g, x, y, w, h, c = [197, 110, 62], o = {}) {
+  const t = o.taper ?? 0.76;
+  g.fillStyle = css(o.shadow ?? [60, 30, 40], 0.26);
+  g.fill(ellipse(x + w * 0.18 * -Math.sign(LIGHT.x || 1), y + 3, w * 0.62, h * 0.09 + 5));
+  const body = poly([[x - w / 2, y - h], [x + w / 2, y - h], [x + (w / 2) * t, y], [x - (w / 2) * t, y]]);
+  cel(g, body, c, { sd: w * 0.16, hd: w * 0.07 });
+  ink(g, body, 2.4);
+  const rim = rrect(x - w * 0.56, y - h - h * 0.14, w * 1.12, h * 0.2, 5);
+  cel(g, rim, lightOf(c, 0.25), { sd: 6, hd: 5 });
+  ink(g, rim, 2.4);
+}
+
+/** Stars: small soft points, a few of them larger with a cross of light. Held. */
+export function stars(g, R, x0, y0, w, h, n, o = {}) {
+  const { c = [255, 244, 220], a = 0.9 } = o;
+  for (let i = 0; i < n; i++) {
+    const x = x0 + R() * w, y = y0 + R() * R() * h, r = 0.6 + R() * R() * 2;
+    g.fillStyle = css(c, a * (0.35 + R() * 0.65));
+    g.beginPath(); g.arc(x, y, r, 0, TAU); g.fill();
+    if (r > 2) {
+      g.strokeStyle = css(c, 0.35); g.lineWidth = 1;
+      g.beginPath(); g.moveTo(x - r * 3.4, y); g.lineTo(x + r * 3.4, y); g.moveTo(x, y - r * 3.4); g.lineTo(x, y + r * 3.4); g.stroke();
+    }
+  }
+}
+
+/** A twinkle in [0, 1] for star or light number i at time s. */
+export const twinkle = (s, i, p = 2.5) => 0.5 + 0.5 * Math.sin(TAU * (s / (p * (0.7 + ((i * 0.618) % 1) * 0.6)) + i * 0.37));

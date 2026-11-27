@@ -5,7 +5,7 @@
 import {
   SIZE, TAU, hex, css, mix, P, poly, rect, rrect, ellipse, blob, cel, ink, shape, tube, glow, vgrad, lgrad,
   held, soft, grade, setLight, bush, vine, lavender, leaf, sunPatch, steam, motes, drift, gesture, blink, span, smooth,
-  shadeOf, lightOf, INK, rd, mul32,
+  shadeOf, lightOf, INK, rd, mul32, shadow, lit,
 } from './kit.js';
 import { COATS, sit } from './cats.js';
 
@@ -178,6 +178,27 @@ function room(g, R) {
   const handle = new Path2D();
   handle.moveTo(mx + 42, my - 84); handle.bezierCurveTo(mx + 78, my - 84, mx + 78, my - 30, mx + 42, my - 30);
   ink(g, handle, 9, INK, 0.9); ink(g, handle, 5, [236, 232, 224]);
+
+  // hard shadows across the sill, thrown right by the low sun
+  shadow(g, poly([[potX + 70, potY], [1080, potY - 16], [1080, potY - 118], [potX + 91, potY - 146]]), [150, 104, 110], 0.42);
+  shadow(g, poly([[mx + 40, my + 2], [mx + 150, my - 22], [mx + 150, my - 44], [mx + 44, my - 30]]), [170, 110, 90], 0.3);
+  // tea light: the sun through the glass throws an amber smear on the wood
+  lit(g, ellipse(mx + 86, my - 14, 54, 12, -0.2), [255, 170, 60], 0.75, 3);
+
+  // a sheer curtain at the right, pulled back, the sun in its folds
+  const cur = P('M1080 20 L930 20 C936 200 914 380 932 560 C944 660 968 720 1010 762 L1080 780 Z');
+  g.save();
+  g.globalAlpha = 0.9;
+  cel(g, cur, hex('#f6efe2'), { sd: 0, hd: 0 });
+  g.restore();
+  g.save(); g.clip(cur);
+  for (let i = 0; i < 7; i++) {
+    const x = 940 + i * 22;
+    g.fillStyle = css(i % 2 ? [226, 208, 196] : [255, 248, 232], 0.5);
+    g.fill(poly([[x, 20], [x + 12, 20], [x + 16 + i * 5, 780], [x + 2 + i * 5, 780]]));
+  }
+  g.restore();
+  ink(g, cur, 2.2, INK, 0.75);
 
   // window light falling on the wall at the right
   g.save();

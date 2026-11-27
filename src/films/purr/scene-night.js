@@ -7,14 +7,14 @@
 import {
   SIZE, TAU, hex, css, mix, P, poly, rect, rrect, ellipse, blob, cel, ink, glow, vgrad, lgrad,
   held, soft, grade, setLight, bush, leaf, sunPatch, motes, drift, gesture, smooth, span,
-  shadeOf, lightOf, INK, rd, mul32,
+  shadeOf, lightOf, INK, rd, mul32, twinkle,
 } from './kit.js';
 import { COATS, curl, loaf } from './cats.js';
 import { signature } from '../common.js';
 
 const LAMP = { x: -0.8, y: -0.6, warm: [255, 190, 120], cool: [44, 44, 96], k: 1.1 };
 const SEAT = 700, SOFA = hex('#3f6a72');
-const CREDIT = { size: SIZE, title: 'purr', model: 'claude opus 5.5', year: 2026 };
+const CREDIT = { size: SIZE, title: 'purr', model: 'claude fable 5.2', year: 2026 };
 
 function nightSky(g, R) {
   g.fillStyle = vgrad(g, 60, 420, [[0, hex('#1b2350')], [1, hex('#3a4a7e')]]);
@@ -46,6 +46,24 @@ function roomLayer(g, R) {
   }
   // a plant in silhouette on the sill
   bush(g, mul32(81), 680, 420, 90, 70, { n: 44, L: 32, W: 12, cols: [hex('#2f4a46'), hex('#3a5a50'), hex('#24403e'), hex('#46665a')] });
+  // two small pictures on the wall between the lamp and the window
+  for (const [x, y, w, h, kind] of [[270, 150, 150, 190, 'moon'], [440, 210, 96, 120, 'fish']]) {
+    const fr = rect(x, y, w, h);
+    cel(g, fr, hex('#5a4038'), { sd: 5, hd: 4 }); ink(g, fr, 2.2, [20, 14, 18]);
+    const art = rect(x + 12, y + 12, w - 24, h - 24);
+    g.fillStyle = css(kind === 'moon' ? hex('#2f3c66') : hex('#d8c9a6')); g.fill(art);
+    g.save(); g.clip(art);
+    if (kind === 'moon') {
+      g.fillStyle = css(hex('#f1e6c4')); g.fill(ellipse(x + w * 0.62, y + h * 0.34, 22, 22));
+      g.fillStyle = css(hex('#2f3c66')); g.fill(ellipse(x + w * 0.69, y + h * 0.31, 20, 20));
+      g.fillStyle = css(hex('#1c2444')); g.fill(blob([[x, y + h], [x, y + h * 0.7], [x + w * 0.3, y + h * 0.58], [x + w * 0.6, y + h * 0.72], [x + w, y + h * 0.62], [x + w, y + h]]));
+    } else {
+      const fb = blob([[x + 26, y + 60], [x + 50, y + 46], [x + 70, y + 60], [x + 50, y + 74]]);
+      g.fillStyle = css(hex('#c9684a')); g.fill(fb); g.fill(poly([[x + 66, y + 60], [x + 82, y + 48], [x + 82, y + 72]]));
+      g.fillStyle = css([40, 26, 30]); g.fill(ellipse(x + 36, y + 57, 2.2, 2.2));
+    }
+    g.restore(); ink(g, art, 1.4, [20, 14, 18], 0.8);
+  }
   // the floor lamp at the left: a warm drum shade
   const pole = new Path2D(); pole.moveTo(150, 260); pole.lineTo(150, 1000);
   ink(g, pole, 10, [30, 20, 20]); ink(g, pole, 5, hex('#8a6a3a'));
@@ -74,6 +92,8 @@ function roomLayer(g, R) {
   const rug = P('M-20 960 L1100 960 L1100 1100 L-20 1100 Z');
   g.fillStyle = css(hex('#8a5a4a')); g.fill(rug);
   g.strokeStyle = css(hex('#c99a6a'), 0.6); g.lineWidth = 6; g.beginPath(); g.moveTo(-20, 990); g.lineTo(1100, 990); g.stroke();
+  // the rug's border: a row of small diamonds
+  for (let x = 10; x < SIZE; x += 64) { g.fillStyle = css(hex('#d9b07a'), 0.55); g.fill(poly([[x, 1034], [x + 18, 1016], [x + 36, 1034], [x + 18, 1052]])); }
   for (const x of [150, 980]) { const l = rect(x, 900, 22, 50); cel(g, l, hex('#4a3020'), { sd: 4, hd: 3 }); ink(g, l, 2); }
   // a knitted throw over the left arm
   const throwP = P('M20 520 C80 500 160 510 190 540 L200 760 C150 780 70 770 30 760 Z');
@@ -90,7 +110,21 @@ export const night = {
   draw(ctx, s) {
     setLight(LAMP);
     ctx.drawImage(held('night:room', roomLayer), 0, 0);
+    // the lamp is on for the first half of the scene, then it clicks off
+    const lamp = 1 - smooth(span(s, 14.86, 15.14)); // on the downbeat of the last phrase
     const br = (p, ph = 0) => 0.5 + 0.5 * Math.sin(TAU * (s / p + ph));
+    // stars turn a little, and one falls
+    for (const [i, x, y] of [[1, 612, 96], [2, 700, 210], [3, 760, 120], [4, 838, 290], [5, 960, 250], [6, 990, 84], [7, 650, 300]]) {
+      ctx.fillStyle = css([240, 240, 255], 0.75 * twinkle(s, i));
+      ctx.fill(ellipse(x, y, 2.2, 2.2));
+    }
+    const fall = span(s, 20.2, 20.9);
+    if (fall > 0 && fall < 1) {
+      const x = 640 + fall * 150, y = 80 + fall * 70;
+      ctx.strokeStyle = lgrad(ctx, x - 70, y - 33, x, y, [[0, [240, 240, 255], 0], [1, [240, 240, 255], 0.85 * Math.sin(Math.PI * fall)]]);
+      ctx.lineWidth = 2.4; ctx.lineCap = 'round';
+      ctx.beginPath(); ctx.moveTo(x - 70, y - 33); ctx.lineTo(x, y); ctx.stroke();
+    }
     // shadows under the sleepers
     ctx.save();
     ctx.globalCompositeOperation = 'multiply';
@@ -100,27 +134,44 @@ export const night = {
     ctx.restore();
     // the black cat in a loaf along the sofa's back, asleep
     ctx.save(); ctx.translate(870, 452); ctx.scale(0.58, 0.58);
-    loaf(ctx, COATS.black, { flip: true, breath: br(4.6, 0.2), mode: 'sleep', yaw: -0.2, tilt: 0.12, tail: 0.15 * Math.sin(TAU * s / 15) });
+    loaf(ctx, COATS.black, { flip: true, breath: br(4.6, 0.2), mode: 'sleep', yaw: -0.2, tilt: 0.12, tail: 0.15 * Math.sin(TAU * s / 15), earL: gesture(s, 21.2, 21.8, 0.15) * 0.3 });
     ctx.restore();
     // the grey tabby curled at the left
     ctx.save(); ctx.translate(300, SEAT - 10); ctx.scale(0.62, 0.62);
-    curl(ctx, COATS.grey, { breath: br(4.1, 0.5), earL: gesture(s, 7.2, 7.7, 0.12) * -0.3 });
+    curl(ctx, COATS.grey, { breath: br(4.1, 0.5), earL: gesture(s, 7.2, 7.7, 0.12) * -0.3 + gesture(s, 15.1, 15.6, 0.12) * -0.3 });
     ctx.restore();
     // Sunny in the middle, his bob toward the grey tabby
     ctx.save(); ctx.translate(560, SEAT); ctx.scale(0.66, 0.66);
-    curl(ctx, COATS.sunny, { flip: true, breath: br(3.75), earR: gesture(s, 3.4, 3.9, 0.12) * 0.3 });
+    curl(ctx, COATS.sunny, { flip: true, breath: br(3.75), earR: gesture(s, 3.4, 3.9, 0.12) * 0.3 + gesture(s, 18.3, 18.8, 0.12) * 0.25, tail: gesture(s, 24, 25, 0.25) * Math.sin(TAU * (s - 24) * 2) });
     ctx.restore();
     // the Russian blue at the far end
     ctx.save(); ctx.translate(830, SEAT - 6); ctx.scale(0.62, 0.62);
     curl(ctx, COATS.blue, { flip: true, breath: br(3.4, 0.3), tail: gesture(s, 9.5, 10.6, 0.25) * Math.sin(TAU * (s - 9.5) * 2) });
     ctx.restore();
     // the lamp's light, and a few motes in it
-    glow(ctx, 150, 220, 560, [255, 190, 120], 0.55);
-    glow(ctx, 150, 200, 160, [255, 236, 190], 0.6);
-    motes(ctx, 88, 24, [40, 100, 360, 500], s, { a: 0.6, c: [255, 220, 170] });
-    grade(ctx, 'night', { x: 150, y: 220, r: 1000, warm: [255, 176, 110], wa: 0.5, cool: [30, 30, 80], ca: 0.45, screen: 0.08 });
+    if (lamp > 0) {
+      glow(ctx, 150, 220, 560, [255, 190, 120], 0.55 * lamp);
+      glow(ctx, 150, 200, 160, [255, 236, 190], 0.6 * lamp);
+      ctx.save(); ctx.globalAlpha = lamp;
+      motes(ctx, 88, 24, [40, 100, 360, 500], s, { a: 0.6, c: [255, 220, 170] });
+      ctx.restore();
+    }
+    grade(ctx, 'night', { x: 150, y: 220, r: 1000, warm: [255, 176, 110], wa: 0.5, cool: [30, 30, 80], ca: 0.45, screen: 0.08, alpha: lamp });
+    if (lamp < 1) {
+      // lamp out: the room falls to blue, and only the moon's patch on the sofa is left
+      ctx.save();
+      ctx.globalAlpha = 1 - lamp;
+      ctx.globalCompositeOperation = 'multiply';
+      ctx.fillStyle = 'rgb(118,126,190)';
+      ctx.fillRect(0, 0, SIZE, SIZE);
+      ctx.fillStyle = 'rgba(40,30,40,0.8)';
+      ctx.fill(P('M70 260 L230 260 L200 120 L100 120 Z'));
+      ctx.restore();
+      glow(ctx, 880, 140, 420, [150, 170, 255], 0.16 * (1 - lamp));
+      grade(ctx, 'night:moon', { x: 880, y: 140, r: 1000, warm: [150, 170, 255], wa: 0.4, cool: [20, 20, 60], ca: 0.4, screen: 0.06, alpha: 1 - lamp });
+    }
     // the credit: small, hand-lettered, written out near the end
-    const write = smooth(span(s, 10.2, 12.8));
-    if (write > 0) signature(ctx, mul32(5), CREDIT, write, { y: 1036, scale: 0.016, color: [246, 226, 196], alpha: 0.78 });
+    const write = smooth(span(s, 22.6, 25.6));
+    if (write > 0) signature(ctx, mul32(5), CREDIT, write, { y: 1036, scale: 0.016, color: [226, 226, 246], alpha: 0.8 });
   },
 };

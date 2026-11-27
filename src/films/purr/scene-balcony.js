@@ -83,10 +83,11 @@ function balconyLayer(g, R) {
     const bar = rect(x, 262, 9, RAIL_Y + 20 - 262);
     g.fillStyle = css(iron); g.fill(bar);
     g.fillStyle = css(hex('#7a8a86')); g.fillRect(x + 6, 262, 2, RAIL_Y + 20 - 262);
-    // a curl at the top of each bar
-    const c = new Path2D(); c.arc(x + 4.5, 286, 12, Math.PI * 0.2, Math.PI * 1.9);
-    ink(g, c, 4, iron);
   }
+  // a second rail, and a ring between the rails in every gap
+  const low = rect(0, 304, SIZE, 8);
+  cel(g, low, iron, { sd: 3, hd: 3, hi: hex('#7a8a86') }); ink(g, low, 1.6);
+  for (let x = 20; x < SIZE; x += 54) ink(g, ellipse(x + 31.5, 283, 13, 13), 4.5, iron);
   // window boxes hung on the rail: herbs spilling over
   for (const [bx, w] of [[30, 300], [720, 330]]) {
     bush(g, mul32(bx), bx + w / 2, 196, w * 0.55, 80, { n: 70, L: 34, W: 13, lit: 0.6 });
@@ -117,16 +118,21 @@ function balconyLayer(g, R) {
     leaf(g, ex, ey, a + rd(R, -0.5, 0.5), rd(R, 110, 160), rd(R, 42, 58), mix(hex('#3f7a3a'), hex('#7fae4a'), R()), { lit: R() < 0.5 ? 0.8 : 0, lw: 2.2 });
   }
   pot(1000, 900, 200, 140, hex('#b9653a'));
-  // a small wooden stool with a watering can
-  const st = rrect(560, 760, 170, 22, 4);
-  for (const lx of [574, 700]) { const l = rect(lx, 782, 16, 110); cel(g, l, hex('#a5754a'), { sd: 5, hd: 3 }); ink(g, l, 2.2); }
-  cel(g, st, hex('#c08a5a'), { sd: 6, hd: 5 }); ink(g, st, 2.4);
-  const can = P('M590 760 L600 680 L690 680 L700 760 Z');
-  cel(g, can, hex('#e6c35a'), { sd: 14, hd: 8 }); ink(g, can, 2.4);
-  const spout = new Path2D(); spout.moveTo(695, 740); spout.lineTo(760, 690);
-  ink(g, spout, 12, INK); ink(g, spout, 7, hex('#e6c35a'));
-  const handle = new Path2D(); handle.moveTo(610, 684); handle.bezierCurveTo(615, 630, 675, 630, 680, 684);
-  ink(g, handle, 10, INK); ink(g, handle, 6, hex('#e6c35a'));
+  // a watering can on the tiles at the front, its spout toward the lavender
+  g.fillStyle = css([90, 40, 30], 0.35); g.fill(ellipse(545, 1010, 130, 18));
+  const tin = hex('#e6c35a');
+  const spout = new Path2D(); spout.moveTo(470, 980); spout.lineTo(372, 880);
+  ink(g, spout, 22, INK); ink(g, spout, 17, tin); ink(g, P('M368 876 L376 884'), 44, INK); ink(g, P('M369 877 L375 883'), 39, lightOf(tin, 0.4));
+  const handle = new Path2D(); handle.moveTo(612, 890); handle.bezierCurveTo(690, 880, 700, 980, 622, 990);
+  ink(g, handle, 17, INK); ink(g, handle, 12, tin);
+  const can = P('M462 1008 L472 868 L618 868 L628 1008 Z');
+  cel(g, can, tin, { sd: 22, hd: 12 }); ink(g, can, 2.6);
+  const band = rect(466, 930, 158, 12);
+  g.save(); g.clip(can); g.fillStyle = css(shadeOf(tin, 1.2), 0.7); g.fill(band); g.restore();
+  const lid = ellipse(545, 868, 73, 12);
+  cel(g, lid, lightOf(tin, 0.3), { sd: 4, hd: 0 }); ink(g, lid, 2.4);
+  const arch = new Path2D(); arch.moveTo(486, 866); arch.bezierCurveTo(500, 800, 590, 800, 604, 866);
+  ink(g, arch, 15, INK); ink(g, arch, 10, tin);
 }
 
 /** The butterfly's flight: a slow figure-of-eight over the plants, continuous in s. */

@@ -6,7 +6,7 @@
 import {
   SIZE, TAU, hex, css, mix, P, poly, rect, rrect, ellipse, blob, cel, ink, glow, vgrad, lgrad,
   held, soft, grade, setLight, bush, vine, leaf, drift, gesture, smooth, span, clamp,
-  shadeOf, lightOf, INK, rd, mul32,
+  shadeOf, lightOf, INK, rd, mul32, steam, tube,
 } from './kit.js';
 import { COATS, back } from './cats.js';
 
@@ -47,20 +47,37 @@ function street(g, R) {
   g.fillStyle = css(hex('#c45050')); g.fill(ellipse(640, 560, 40, 20));
 }
 
-function bokeh(g, R) {
-  g.globalCompositeOperation = 'screen';
-  for (let i = 0; i < 40; i++) {
-    const x = rd(R, WIN[0], WIN[2]), y = rd(R, 200, 640), r = rd(R, 10, 34);
-    const c = R() < 0.7 ? [255, 206, 140] : [170, 200, 255];
-    const gr = g.createRadialGradient(x, y, 0, x, y, r);
-    gr.addColorStop(0, css(c, 0.5)); gr.addColorStop(0.8, css(c, 0.3)); gr.addColorStop(1, css(c, 0));
-    g.fillStyle = gr; g.fillRect(x - r, y - r, r * 2, r * 2);
+/** The storm over the scene's 30 s: it builds, holds, and thins toward the end. */
+const storm = (s) => 0.3 + 0.7 * smooth(span(s, 0.5, 9)) - 0.5 * smooth(span(s, 23, 29.5));
+
+/** Lights across the street, out of focus. They come on one at a time as the afternoon darkens. */
+const LAMPS = (() => {
+  const R = mul32(404), out = [];
+  for (let i = 0; i < 46; i++) {
+    out.push({ x: rd(R, WIN[0], WIN[2]), y: rd(R, 200, 640), r: rd(R, 12, 36), c: R() < 0.7 ? [255, 206, 140] : [170, 200, 255], on: i < 12 ? -9 : rd(R, 1, 21) });
   }
-  for (const lx of [180, 760]) {
-    const gr = g.createRadialGradient(lx, 250, 0, lx, 250, 120);
-    gr.addColorStop(0, 'rgba(255,230,170,0.85)'); gr.addColorStop(1, 'rgba(255,230,170,0)');
-    g.fillStyle = gr; g.fillRect(lx - 120, 130, 240, 240);
+  return out;
+})();
+function bokeh(ctx, s) {
+  ctx.save();
+  ctx.beginPath(); ctx.rect(WIN[0], WIN[1], WIN[2] - WIN[0], WIN[3] - WIN[1]); ctx.clip();
+  ctx.globalCompositeOperation = 'screen';
+  for (const l of LAMPS) {
+    const a = smooth(span(s, l.on, l.on + 0.5));
+    if (a <= 0) continue;
+    const gr = ctx.createRadialGradient(l.x, l.y, 0, l.x, l.y, l.r);
+    gr.addColorStop(0, css(l.c, 0.55 * a)); gr.addColorStop(0.75, css(l.c, 0.34 * a)); gr.addColorStop(1, css(l.c, 0));
+    ctx.fillStyle = gr; ctx.fillRect(l.x - l.r, l.y - l.r, l.r * 2, l.r * 2);
   }
+  // the two street lamps flicker on a little after the storm settles in
+  for (const [lx, t] of [[180, 6.5], [760, 7.75]]) {
+    const a = smooth(span(s, t, t + 0.35)) * (0.75 + 0.25 * smooth(span(s, t + 0.6, t + 1.4)));
+    if (a <= 0) continue;
+    const gr = ctx.createRadialGradient(lx, 250, 0, lx, 250, 130);
+    gr.addColorStop(0, css([255, 230, 170], 0.85 * a)); gr.addColorStop(1, 'rgba(255,230,170,0)');
+    ctx.fillStyle = gr; ctx.fillRect(lx - 130, 120, 260, 260);
+  }
+  ctx.restore();
 }
 
 /** Droplets that cling to the glass: tiny lenses, dark rim, bright fleck. */
@@ -76,7 +93,6 @@ function droplets(g, R) {
 function roomLayer(g, R) {
   setLight(RAINY);
   g.drawImage(soft('rain:street', 7, street), 0, 0);
-  g.drawImage(soft('rain:bokeh', 3, bokeh), 0, 0);
   // the glass carries a cool sheen
   g.fillStyle = css([150, 170, 200], 0.18);
   g.fillRect(WIN[0], WIN[1], WIN[2] - WIN[0], WIN[3] - WIN[1]);
@@ -150,8 +166,10 @@ function fallingRain(ctx, s) {
   ctx.strokeStyle = 'rgba(220,230,245,0.22)';
   ctx.lineWidth = 1.2;
   ctx.beginPath();
-  for (let i = 0; i < 120; i++) {
+  const n = Math.round(150 * storm(s));
+  for (let i = 0; i < 150; i++) {
     const x0 = rd(R, WIN[0] - 60, WIN[2]), sp = rd(R, 900, 1300), ph = R();
+    if (i >= n) continue;
     const y = ((s * sp / 700 + ph) % 1 + 1) % 1 * (WIN[3] - WIN[1] + 60) + WIN[1] - 30;
     const x = x0 + (y - WIN[1]) * 0.12;
     ctx.moveTo(x, y); ctx.lineTo(x + 3, y + 24);
@@ -182,11 +200,16 @@ export const rain = {
   draw(ctx, s) {
     setLight(RAINY);
     ctx.drawImage(held('rain:room', roomLayer), 0, 0);
+    bokeh(ctx, s);
     fallingRain(ctx, s);
     runners(ctx, s);
     // the cats, on the seat, backs to us
     const seat = SEAT_Y + 40;
+    // the Russian blue reaches up and pats at a drop running down the glass
+    const reach = gesture(s, 13.2, 18.6, 0.7);
+    const pat = reach > 0.95 ? Math.max(0, Math.sin(TAU * (s - 14) * 1.2)) * 0.5 : 0;
     for (const [coat, x, k, ph, flip] of [[COATS.blue, 400, 0.82, 0, true], [COATS.black, 680, 0.78, 0.37, false]]) {
+      const blue = coat === COATS.blue;
       ctx.save();
       ctx.globalCompositeOperation = 'multiply';
       ctx.fillStyle = css([90, 70, 100], 0.5);
@@ -195,16 +218,28 @@ export const rain = {
       ctx.save();
       ctx.translate(x, seat);
       ctx.scale(k, k);
+      if (blue && reach > 0) {
+        // the foreleg comes up beside the head, the paw flat on the glass
+        const px = -150 - reach * 14, py = -150 - reach * 250 + pat * 26;
+        const arm = new Path2D(); arm.moveTo(-70, -150); arm.quadraticCurveTo(-130, -170 - reach * 60, px, py + 20);
+        tube(ctx, arm, 40, coat.base, { lc: coat.line, lw: 2.6 });
+        const mit = ellipse(px, py, 27, 32, -0.2);
+        cel(ctx, mit, coat.base, { sd: 8, hd: 5 }); ink(ctx, mit, 2.6, coat.line);
+        ctx.save(); ctx.translate(px, py); ink(ctx, P('M-9 -28 L-9 -14 M7 -29 L7 -15'), 1.8, shadeOf(coat.base, 2), 0.8); ctx.restore();
+      }
       back(ctx, coat, {
         flip, breath: 0.5 + 0.5 * Math.sin(TAU * (s / 3.75 + ph)),
         tail: Math.sin(TAU * (s / 6 + ph)) * 0.8,
-        tilt: (coat === COATS.blue ? gesture(s, 5.5, 10, 0.8) * -0.14 : gesture(s, 1.5, 4.5, 0.6) * 0.1) + 0.02 * drift(s, 8, ph),
-        earL: coat === COATS.black ? gesture(s, 8.2, 9.6, 0.25) * -0.4 : 0,
-        earR: coat === COATS.blue ? gesture(s, 11.5, 12.4, 0.2) * 0.3 : 0,
+        tilt: (blue
+          ? gesture(s, 5.5, 10, 0.8) * -0.14 + reach * -0.1
+          : gesture(s, 1.5, 4.5, 0.6) * 0.1 + gesture(s, 15, 21, 0.9) * -0.2 + gesture(s, 24, 28, 0.8) * 0.08) + 0.02 * drift(s, 8, ph),
+        earL: !blue ? gesture(s, 8.2, 9.6, 0.25) * -0.4 + gesture(s, 22.4, 23.2, 0.2) * -0.3 : 0,
+        earR: blue ? gesture(s, 11.5, 12.4, 0.2) * 0.3 + gesture(s, 25.5, 26.3, 0.2) * 0.3 : 0,
       });
       ctx.restore();
     }
-    ctx.drawImage(soft('rain:near', 6, near), 0, 0);
+    ctx.drawImage(soft('rain:near', 2.5, near), 0, 0);
+    steam(ctx, 150, 852, s, { h: 120, w: 14, a: 0.4 });
     // the warm lamp from off the left edge rims the room
     glow(ctx, -80, 820, 700, [255, 180, 110], 0.4);
     grade(ctx, 'rain', { x: 540, y: 300, r: 900, warm: [200, 214, 236], wa: 0.35, cool: [60, 50, 80], ca: 0.35, screen: 0.06 });

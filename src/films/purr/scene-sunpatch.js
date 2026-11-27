@@ -133,18 +133,29 @@ function room(g, R) {
   g.restore();
   ink(g, basket, 2.4);
 
+  // a toy mouse left on the boards, its string tail trailing
+  g.fillStyle = css([50, 25, 25], 0.3); g.fill(ellipse(232, 884, 46, 9));
+  const tailS = new Path2D(); tailS.moveTo(256, 872); tailS.bezierCurveTo(300, 850, 320, 900, 368, 880);
+  ink(g, tailS, 3, hex('#c9584a'));
+  const mouse = P('M176 878 C176 852 214 842 244 856 C262 864 264 880 252 884 L182 886 Z');
+  cel(g, mouse, hex('#9aa0b0'), { sd: 8, hd: 4 }); ink(g, mouse, 2.2);
+  const mEar = ellipse(222, 850, 12, 10); cel(g, mEar, hex('#e8a9a0'), { sd: 3, hd: 0 }); ink(g, mEar, 1.8);
+  g.fillStyle = css(INK); g.fill(ellipse(192, 868, 2.6, 2.6));
+
   // the sun on the floor: the window's shape, slanting from the upper left
   const sun = [[230, 330], [760, 330], [930, 900], [300, 900]];
   sunPatch(g, R, sun, { a: 0.75, blur: 4, bars: [[[470, 330], [500, 330], [640, 900], [600, 900]], [[230, 560], [830, 560], [845, 595], [245, 595]]], leaves: 6 });
 }
 
-/** The out-of-focus near layer: a blanket's edge at the bottom right. */
+/** The out-of-focus near layer: the leaves of a plant by the lens, bottom right. */
 function near(g, R) {
   setLight(LATE);
-  const b = blob([[760, 1100], [800, 990], [900, 950], [1010, 930], [1120, 960], [1120, 1100]]);
-  cel(g, b, hex('#7f93a8'), { sd: 30, hd: 14 });
-  g.strokeStyle = css(hex('#e9e2d0'), 0.7); g.lineWidth = 8;
-  for (let i = 0; i < 4; i++) { g.beginPath(); g.moveTo(800 + i * 60, 1100); g.quadraticCurveTo(840 + i * 60, 980, 900 + i * 60, 950); g.stroke(); }
+  for (let i = 0; i < 9; i++) {
+    const a = Math.PI * (1.02 + 0.5 * (i / 8)) + rd(R, -0.08, 0.08);
+    const L = rd(R, 230, 330);
+    const x = 1110 + Math.cos(a) * 40, y = 1120 + Math.sin(a) * 40;
+    leaf(g, x, y, a, L, rd(R, 62, 84), mix(hex('#2f5a34'), hex('#5f8a3e'), R()), { lw: 3, lit: i % 3 === 0 ? 0.7 : 0 });
+  }
 }
 
 export const sunpatch = {
@@ -171,7 +182,7 @@ export const sunpatch = {
     ctx.restore();
     // dust in the beam
     motes(ctx, 21, 70, [180, 0, 800, 900], s, { a: 0.85, r: 2, inside: (x, y) => y > 120 && x > 160 + (y - 300) * 0.2 && x < 780 + (y - 330) * 0.3 });
-    ctx.drawImage(soft('sunpatch:near', 7, near), 0, 0);
+    ctx.drawImage(soft('sunpatch:near', 6, near), 0, 0);
     grade(ctx, 'sunpatch', { x: 330, y: 300, r: 950, warm: [255, 200, 120], wa: 0.5 });
   },
 };

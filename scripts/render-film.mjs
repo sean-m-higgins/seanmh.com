@@ -8,7 +8,9 @@
 //   options: --from <s> --to <s> (draft range) · --crf <n> (default 20) · --poster <s>
 //            --look <name> (passed to scenes as env.look; stills are named <slug>-<look>-<t>s.png)
 //   node scripts/render-film.mjs <slug> --loop <scene>  one scene, env.loop set -> public/<slug>-loop.mp4 + .gif (720 px)
-//   --audio <file> muxes a soundtrack (AAC 160 kb/s) into a draft or release; it must be as long as the film
+//   --audio <file> muxes a soundtrack (AAC, --abr <kb/s>, default 160) into a draft or release; it must be as long as the film
+//   --fit <MiB> (release) renders once to a near-lossless master in renders/, then encodes it in two passes to that size:
+//               for a long film that would not fit the budget at a fixed CRF. --master <file> reuses a master already rendered.
 
 import { spawn } from 'node:child_process';
 import { createHash } from 'node:crypto';
@@ -161,17 +163,40 @@ try {
     const to = opt('to') ? Math.min(info.frames, Math.round(+opt('to') * info.fps)) : info.frames;
     const audio = opt('audio') ? resolve(String(opt('audio'))) : null;
     const audioIn = audio ? ['-ss', String(from / info.fps), '-t', String((to - from) / info.fps), '-i', audio] : [];
-    const audioOut = audio ? ['-map', '0:v', '-map', '1:a', '-c:a', 'aac', '-b:a', '160k'] : [];
-    const enc = ffmpeg(['-f', 'image2pipe', '-framerate', String(info.fps), '-i', '-', ...audioIn,
-      '-c:v', 'libx264', '-preset', 'slow', '-tune', 'animation', '-crf', String(opt('crf') ?? 20),
-      '-pix_fmt', 'yuv420p', ...audioOut, '-movflags', '+faststart', out]);
+    const abr = +opt('abr') || 160;
+    const audioOut = audio ? ['-map', '0:v', '-map', '1:a', '-c:a', 'aac', '-b:a', `${abr}k`] : [];
+    const fit = release && opt('fit') ? +opt('fit') : 0;
+    const master = fit ? (opt('master') ? resolve(String(opt('master'))) : join(ROOT, 'renders', `${slug}-master.mp4`)) : null;
     const t0 = Date.now();
-    for (let i = from; i < to; i++) {
-      if (!enc.stdin.write(await png(page, i))) await new Promise((ok) => enc.stdin.once('drain', ok));
-      if ((i - from) % 48 === 0) process.stdout.write(`\r  frame ${i}/${to - 1}`);
+    if (!(fit && opt('master'))) {
+      // one pass over the frames: straight to the film at a fixed CRF, or (--fit) to a near-lossless master
+      const enc = fit
+        ? ffmpeg(['-f', 'image2pipe', '-framerate', String(info.fps), '-i', '-', '-c:v', 'libx264', '-preset', 'fast', '-crf', '10', '-pix_fmt', 'yuv420p', master])
+        : ffmpeg(['-f', 'image2pipe', '-framerate', String(info.fps), '-i', '-', ...audioIn,
+          '-c:v', 'libx264', '-preset', 'slow', '-tune', 'animation', '-crf', String(opt('crf') ?? 20),
+          '-pix_fmt', 'yuv420p', ...audioOut, '-movflags', '+faststart', out]);
+      for (let i = from; i < to; i++) {
+        if (!enc.stdin.write(await png(page, i))) await new Promise((ok) => enc.stdin.once('drain', ok));
+        if ((i - from) % 48 === 0) process.stdout.write(`\r  frame ${i}/${to - 1}`);
+      }
+      enc.stdin.end();
+      await enc.done;
     }
-    enc.stdin.end();
-    await enc.done;
+    if (fit) {
+      // two passes from the master, at the video bitrate that lands the whole file on the target size.
+      // A long GOP (one keyframe a scene) suits held art; the container costs about 1 %.
+      const dur = (to - from) / info.fps;
+      const vk = Math.floor((fit * 8388.608 * 0.99) / dur - (audio ? abr : 0));
+      const log = join(tmpdir(), `film-2pass-${process.pid}`);
+      const x264 = ['-c:v', 'libx264', '-preset', 'veryslow', '-tune', 'animation', '-b:v', `${vk}k`, '-g', '360', '-pix_fmt', 'yuv420p', '-passlogfile', log];
+      process.stdout.write(`\r  two-pass encode at ${vk} kb/s video${audio ? ` + ${abr} kb/s audio` : ''}\n`);
+      const p1 = ffmpeg(['-i', master, ...x264, '-pass', '1', '-an', '-f', 'null', '-']);
+      p1.stdin.end(); await p1.done;
+      const a2 = audio ? ['-i', audio, '-map', '0:v', '-map', '1:a', '-c:a', 'aac', '-b:a', `${abr}k`] : [];
+      const p2 = ffmpeg(['-i', master, ...a2, ...x264, '-pass', '2', '-movflags', '+faststart', out]);
+      p2.stdin.end(); await p2.done;
+      for (const f of [`${log}-0.log`, `${log}-0.log.mbtree`]) await rm(f, { force: true });
+    }
     const secs = (Date.now() - t0) / 1000;
     const p = await probe(out);
     const mib = p.size / 1048576, kbps = p.bit_rate / 1000;

@@ -101,6 +101,18 @@ function roomLayer(g, R) {
   // the sun from the window across the quilt
   sunPatch(g, R, [[640, 470], [1080, 470], [1080, 1080], [520, 1080]], { a: 0.5, blur: 18, bars: [[[790, 470], [830, 470], [860, 1080], [800, 1080]]] });
 
+  // a book left open, face down, on the quilt, and a pair of reading glasses
+  g.fillStyle = css([110, 80, 110], 0.35); g.fill(ellipse(214, 962, 130, 20));
+  for (const [sg, c] of [[-1, '#6f8f8a'], [1, '#7fa09a']]) {
+    const half = poly([[210, 880], [210 + sg * 118, 930], [210 + sg * 112, 962], [210, 918]]);
+    cel(g, half, hex(c), { sd: 8, hd: 4 }); ink(g, half, 2.2);
+    g.strokeStyle = css([248, 242, 228]); g.lineWidth = 5;
+    g.beginPath(); g.moveTo(210 + sg * 6, 922); g.lineTo(210 + sg * 110, 966); g.stroke();
+  }
+  ink(g, P('M210 880 L210 918'), 2.6);
+  for (const x of [330, 380]) { const lens = ellipse(x, 1000, 22, 14, -0.1); g.fillStyle = css([230, 240, 244], 0.45); g.fill(lens); ink(g, lens, 2.6, hex('#5a4038')); }
+  ink(g, P('M352 998 Q355 992 358 998 M308 998 L286 986 M402 1000 L424 992'), 2.4, hex('#5a4038'));
+
   // the laundry basket at the right, with folded towels
   const bx = 930, by = 760;
   g.fillStyle = css([80, 50, 60], 0.3); g.fill(ellipse(bx, by + 140, 190, 30));

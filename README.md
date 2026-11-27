@@ -31,7 +31,11 @@ npm run check && npm run build             # the Astro site
 
 Draft options: `--from <s> --to <s>` renders a range, `--crf <n>` (default
 20), `--poster <s>` picks the poster frame for a release, `--audio <wav>`
-muxes a soundtrack (AAC 160 kb/s) into a draft or release.
+muxes a soundtrack into a draft or release (AAC; `--abr <kb/s>`, default 160).
+`--fit <MiB>` (release) is for a film too long to fit the budget at a fixed
+CRF: it renders the frames once to a near-lossless master in `renders/`, then
+encodes that in two passes to the size asked for. `--master <file>` reuses a
+master, so an encode can be redone without drawing the frames again.
 
 ## Layout
 
@@ -45,7 +49,7 @@ muxes a soundtrack (AAC 160 kb/s) into a draft or release.
 | `src/films/ramp/` | Film 03. Cut-paper relief, lit. `kit.js` (the paper piece, light, sparks, the jointed puppet, scenes on twos), `parts.js` (the ramp in inches, wheelchair, horse, ATV, trailer, sets, the plotter and dot-matrix), `weld.js` (scene 9), `scenesA–E.js` (the other 17), `film.js` (scene list). |
 | `src/films/gesso/` | Film 02. `paint.js` (paint with body: every stroke lays colour and height, then `light()` rakes a lamp across the height map), `field.js` and `painting.js` (the wildflower painting as an ordered list of marks), `kit.js` and `parts.js` (the apartment, tools, people and shared scene helpers), `scenes1–3.js` (all 17 scenes), `film.js` (scene list). |
 | `src/films/sunny/` | Film 04, made in Blender 5.3 from Python (no `.blend` file, no hand keyframes). `cat.py` (Sunny: a mesh grown from a skeleton with the Skin modifier, a painted coat, and a puppet rig whose bones are all set by matrix each frame; he is a tripod, with no right hind leg and a bob tail, while the grey cat is built with `tripod=False`), `anim.py` (poses and three-legged gaits as pure functions: a hopping walk, a rocking canter, a gallop), `sets.py` (rooms, props, lights, the yarn signature), `scenes.py` (the nine scenes and the share loop), `film.py` (timeline, renderer, encoder). |
-| `src/films/purr/` | Film 05, a two-minute loop with sound. `kit.js` (the illustration kit: ink line, cel-shade and highlight crescents cut against the scene's light, held layers, soft far/near planes, foliage, sun patches, steam, motes, grade), `cats.js` (four coats and six poses; Sunny is a tripod with a bob and only uses poses that respect that), `scene-*.js` (the eight scenes), `film.js` (the dissolve loop), `music/` (the soundtrack in Python + numpy; see its README). |
+| `src/films/purr/` | Film 05, a five-minute loop with sound. `kit.js` (the illustration kit: ink line, cel-shade and highlight crescents cut against the scene's light, held layers, soft far/near planes, foliage, sun patches, steam, motes, grade), `cats.js` (four coats and six poses, with tapered tails, a yawn, a lifted paw and a lick; Sunny is a tripod with a bob and only uses poses that respect that), `scene-*.js` (the eighteen scenes), `film.js` (the dissolve loop), `music/` (the soundtrack in Python + numpy; see its README). |
 | `tools/stage.html` | Preview (scrubber, frame counter, `?t=`) and the page the renderer drives. |
 | `scripts/film-server.mjs` | Localhost static server; also serves `/refs/` from `~/SoftLot/MyWebsite/film-refs`. |
 | `scripts/render-film.mjs` | One headless Chrome over CDP → PNG frames piped into ffmpeg. No dependencies. |
@@ -163,21 +167,35 @@ Measured 2026-11-18 on the M1:
 ## purr — the loop with sound
 
 ```bash
-python3 -I src/films/purr/music/render.py                     # renders/purr/music.wav (120.000 s, ~40 s to render)
-npm run film:render -- purr --still 4.5,112                    # stills
+python3 -I src/films/purr/music/render.py                     # renders/purr/music.wav (300.000 s, ~2 min to render)
+npm run film:render -- purr --still 11,277                     # stills
 npm run film:render -- purr --look cats --still 1              # every coat in every pose
-npm run film:render -- purr --release --audio renders/purr/music.wav --poster 112
+npm run film:render -- purr --release --audio renders/purr/music.wav --abr 128 --fit 19.5 --poster 277
 npm run film:render -- purr --loop sunpatch                    # share loop: the scene dissolves into itself
 ```
 
-- **The first film with sound**, and the first loop. Eight scenes of 15 s
-  (four bars of the 64 BPM soundtrack each), 120 s in all. `films.ts` marks it
-  `kind: "loop"` and `sound: true`, so its player is not muted and has `loop`.
+- **The first film with sound**, and the first loop. Eighteen scenes over
+  300 s: 80 bars of the 64 BPM soundtrack, four bars (15 s) a scene and eight
+  for the rain and for the night. `films.ts` marks it `kind: "loop"` and
+  `sound: true`, so its player is not muted and has `loop`.
 - **No seam.** Each scene draws from its own clock in seconds and can run
   before its start; the last 1.25 s of every scene dissolves into the next,
-  already running, and the night dissolves into the morning the same way.
-  The music wraps every tail past 120 s back onto bar 1.
+  already running, and the night dissolves into the dawn the same way.
+  The music wraps every tail past 300 s back onto bar 1.
 - **Nothing boils.** Each scene's set is drawn once (`held`) and only what
-  lives moves, on twos; the dissolves move on ones.
+  lives moves, on twos. The dissolves move on twos as well.
+- **Five minutes in 20 MiB.** At a fixed CRF 20 this film would be about
+  30 MiB. Measured on the two-minute version: the dissolves were 8 % of the
+  running time and 26–40 % of the bits, and keyframes another 20–30 %. So the
+  dissolves went onto twos, the release is encoded in two passes to a size
+  (`--fit`) with one keyframe a scene (`-g 360`), and the audio is AAC at
+  128 kb/s. The release is 19.45 MiB; against the near-lossless master of
+  the same frames it scores 0.991 SSIM (worst frame 0.979).
+- **In time with the music.** The metronome, the kneading paws, the amp's
+  needle, the taps on the pencil and the lamp going out all sit on the beat:
+  scenes compute `beat = s * 64 / 60`. Change a scene's timing and the score
+  together (`music/README.md`, "In time with the picture").
+- **A blurred layer needs its sharp copy under it** (`soft()` in `kit.js`):
+  a canvas blur fades to nothing at the frame's edge and leaves a pale fringe.
 - **No text** except the credit line, written small over the night's last
   seconds.
