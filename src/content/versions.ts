@@ -119,6 +119,7 @@ export const VERSIONS: readonly VersionDef[] = [
       { slug: "gesso", label: "gesso", href: "/films/gesso/", color: "#e2584a" },
       { slug: "ramp", label: "ramp", href: "/films/ramp/", color: "#ff8a2a" },
       { slug: "sunny", label: "sunny", href: "/films/sunny/", color: "#b9c545" },
+      { slug: "purr", label: "purr", href: "/films/purr/", color: "#6fb7c4" },
     ],
   },
 ];

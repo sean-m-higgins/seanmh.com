@@ -871,6 +871,21 @@ const FILM_SUBJECTS: [number, number][][][] = [
     [[0.6, -0.3], [0.3, -0.48], [-0.15, -0.45], [-0.3, -0.32]],
     [[-0.95, 0.75], [-0.6, 0.75]],
   ],
+  // purr: two cats seen from behind, watching from a window.
+  [
+    [[-0.8, -0.1], [0.8, -0.1], [0.8, 0.85], [-0.8, 0.85], [-0.8, -0.1]],
+    [[0, -0.1], [0, 0.85]],
+    [[-0.9, -0.55], [0.9, -0.55]],
+    ...[-0.35, 0.35].flatMap((cx): [number, number][][] => [
+      [[cx - 0.24, -0.55], [cx - 0.27, -0.3], [cx - 0.16, -0.08], [cx + 0.16, -0.08], [cx + 0.27, -0.3], [cx + 0.24, -0.55]],
+      Array.from({ length: 13 }, (_, k): [number, number] => {
+        const a = (k / 12) * Math.PI * 2;
+        return [cx + Math.cos(a) * 0.15, 0.04 + Math.sin(a) * 0.13];
+      }),
+      [[cx - 0.13, 0.1], [cx - 0.1, 0.3], [cx - 0.02, 0.15]],
+      [[cx + 0.02, 0.15], [cx + 0.1, 0.3], [cx + 0.13, 0.1]],
+    ]),
+  ],
 ];
 
 function buildFilms(color: THREE.Color): Interior {
