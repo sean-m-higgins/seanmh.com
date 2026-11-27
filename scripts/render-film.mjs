@@ -8,6 +8,7 @@
 //   options: --from <s> --to <s> (draft range) · --crf <n> (default 20) · --poster <s>
 //            --look <name> (passed to scenes as env.look; stills are named <slug>-<look>-<t>s.png)
 //   node scripts/render-film.mjs <slug> --loop <scene>  one scene, env.loop set -> public/<slug>-loop.mp4 + .gif (720 px)
+//   --audio <file> muxes a soundtrack (AAC 160 kb/s) into a draft or release; it must be as long as the film
 
 import { spawn } from 'node:child_process';
 import { createHash } from 'node:crypto';
@@ -158,9 +159,12 @@ try {
     const out = release ? join(ROOT, 'public', `${slug}.mp4`) : join(ROOT, 'renders', `${slug}.mp4`);
     const from = Math.round((+opt('from') || 0) * info.fps);
     const to = opt('to') ? Math.min(info.frames, Math.round(+opt('to') * info.fps)) : info.frames;
-    const enc = ffmpeg(['-f', 'image2pipe', '-framerate', String(info.fps), '-i', '-',
+    const audio = opt('audio') ? resolve(String(opt('audio'))) : null;
+    const audioIn = audio ? ['-ss', String(from / info.fps), '-t', String((to - from) / info.fps), '-i', audio] : [];
+    const audioOut = audio ? ['-map', '0:v', '-map', '1:a', '-c:a', 'aac', '-b:a', '160k'] : [];
+    const enc = ffmpeg(['-f', 'image2pipe', '-framerate', String(info.fps), '-i', '-', ...audioIn,
       '-c:v', 'libx264', '-preset', 'slow', '-tune', 'animation', '-crf', String(opt('crf') ?? 20),
-      '-pix_fmt', 'yuv420p', '-movflags', '+faststart', out]);
+      '-pix_fmt', 'yuv420p', ...audioOut, '-movflags', '+faststart', out]);
     const t0 = Date.now();
     for (let i = from; i < to; i++) {
       if (!enc.stdin.write(await png(page, i))) await new Promise((ok) => enc.stdin.once('drain', ok));

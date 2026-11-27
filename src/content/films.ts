@@ -4,13 +4,15 @@ export interface FilmStep {
 }
 
 export interface Film {
-  slug: "grain" | "gesso" | "ramp" | "sunny";
+  slug: "grain" | "gesso" | "ramp" | "sunny" | "purr";
   title: string;
   subject: string;
-  kind: "how-to" | "story" | "portrait";
+  kind: "how-to" | "story" | "portrait" | "loop";
   model: string;
   year: number;
   duration: number;
+  /** Has a soundtrack: the player is not muted. The rest of the series is silent. */
+  sound?: boolean;
   sentence: string;
   room?: "woodshop" | "art" | "eagle";
   notes?: { kicker: string; heading: string };
@@ -118,6 +120,30 @@ export const films: Film[] = [
       { label: "Made in", value: "Blender, from Python, with no hand keyframes" },
       { label: "Motion", value: "twelve poses a second, each held for two frames" },
       { label: "Drawn from", value: "four home videos" },
+    ],
+  },
+  {
+    slug: "purr",
+    title: "purr",
+    subject: "four cats through one day, on a loop",
+    kind: "loop",
+    model: "Claude Opus 5.5",
+    year: 2026,
+    duration: 120,
+    sound: true,
+    sentence: "Four cats through one day, from the first sun on the sill to all of them asleep on the sofa, and round again.",
+    notes: { kicker: "The subject", heading: "A day with four cats." },
+    synopsis: [
+      "The cats of Sean’s life: Sunny the tabby, a Russian blue, a black cat, and an orange-and-white cat. Each gets a quiet moment of one day: a window sill at sunrise, a patch of sun on the rug, a butterfly on the balcony, a quilt to knead, rain on the glass, a box at golden hour, the kitchen at dusk, and the sofa at night, where all four fall asleep together.",
+      "It is made to run on repeat. Night dissolves back into morning, and the music, a felt piano with a little brushed jazz, turns the same corner, so there is no place where it starts. Both the pictures and the music are written entirely in code.",
+    ],
+    facts: [
+      { label: "Cats", value: "a tabby (Sunny, on three legs), a Russian blue, a black cat, an orange-and-white cat" },
+      { label: "Length", value: "two minutes, eight scenes of fifteen seconds" },
+      { label: "Shape", value: "a seamless loop: night dissolves into morning" },
+      { label: "Music", value: "felt piano, bass and brushes in D♭, 64 BPM, 32 bars" },
+      { label: "Made in", value: "JavaScript on a canvas; the music in Python" },
+      { label: "Motion", value: "cats move on twos, twelve drawings a second" },
     ],
   },
 ];

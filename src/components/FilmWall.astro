@@ -40,7 +40,7 @@ const media = `/films/${film.slug}`;
         </li>
       ))}
     </ol>
-    <p class="index-note">{film.kind === "portrait" ? <>Built entirely in code<br />from home videos.</> : <>Drawn entirely in code<br />from build photographs.</>}</p>
+    <p class="index-note">{film.kind === "portrait" ? <>Built entirely in code<br />from home videos.</> : film.kind === "loop" ? <>Drawn entirely in code<br />from the cats in Sean’s life.</> : <>Drawn entirely in code<br />from build photographs.</>}</p>
   </aside>
 
   <main class="film-main" id="film-work">
@@ -54,7 +54,8 @@ const media = `/films/${film.slug}`;
         id="film-player"
         controls
         playsinline
-        muted
+        muted={!film.sound}
+        loop={film.kind === "loop"}
         preload="metadata"
         poster={`${media}-poster.webp`}
         aria-label={`${film.title}: ${film.subject}`}
@@ -127,7 +128,7 @@ const media = `/films/${film.slug}`;
 
   <footer class="museum-footer">
     <p>© {new Date().getFullYear()} Sean Higgins</p>
-    <p>1080 × 1080 <span aria-hidden="true">·</span> silent <span aria-hidden="true">·</span> drawn on twos</p>
+    <p>1080 × 1080 <span aria-hidden="true">·</span> {film.sound ? "with sound" : "silent"} <span aria-hidden="true">·</span> {film.kind === "loop" ? "loops" : "drawn on twos"}</p>
   </footer>
 </div>
 
